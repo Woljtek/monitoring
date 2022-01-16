@@ -6,7 +6,7 @@ description: Finops Resources Chart Helm
 keywords:
 - prometheus
 - exporter
-- fionps
+- finops
 home: https://github.com/COPRS/monitoring/blob/main/finops/resources_exporter/helm
 sources:
 - https://github.com/COPRS/monitoring/blob/main/finops/resources_exporter
