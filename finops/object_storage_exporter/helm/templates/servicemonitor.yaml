@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "prometheus-exporter.fullname" . }}
+  labels:
+{{ include "prometheus-exporter.labels" . | indent 4 }}
+{{- if .Values.metrics.serviceMonitor.additionalLabels }}
+{{ toYaml .Values.metrics.serviceMonitor.additionalLabels | indent 4 }}
+{{- end }}
+spec:
+  selector:
+    matchLabels:
+{{ include "prometheus-exporter.labels" . | indent 6 }}
+  endpoints:
+  - port: metrics
+    interval: {{ .Values.metrics.serviceMonitor.interval }}
