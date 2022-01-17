@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        component: [object_storage_exporter, resources_exporter]
+        component: [object-storage-exporter, resources-exporter]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -50,5 +50,5 @@ jobs:
         run: helm package ${{ env.CHART_FOLDER }}/${{ matrix.component }}/helm/
 
       - name: Push to Artifactory
-        run: curl -u "${{ env.USERNAME }}:${{ env.PASSWORD }}" -T *.tgz "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.CHART_FOLDER }}.tgz"
+        run: curl -u "${{ env.USERNAME }}:${{ env.PASSWORD }}" -T *.tgz "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ matrix.component }}.tgz"
 

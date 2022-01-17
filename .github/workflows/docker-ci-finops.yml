@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        component: [object_storage_exporter, resources_exporter]
+        component: [object-storage-exporter, resources-exporter]
     permissions:
       contents: read
       packages: write
@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        component: [object_storage_exporter, resources_exporter]
+        component: [object-storage-exporter, resources-exporter]
     permissions:
       contents: read
       
