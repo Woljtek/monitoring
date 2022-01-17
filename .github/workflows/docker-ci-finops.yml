@@ -92,7 +92,7 @@ jobs:
       - name: Upload Anchore scan json report
         uses: actions/upload-artifact@master
         with:
-          name: vulnerabilities
+          name: vulnerabilities-${{ matrix.component }}
           path: ${{ steps.scan.outputs.vulnerabilities }}
 
       # Login against a Docker registry except on PR
@@ -112,6 +112,9 @@ jobs:
   generate_reports:
     needs: build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: [object_storage_exporter, resources_exporter]
     permissions:
       contents: read
       
@@ -119,7 +122,7 @@ jobs:
       - name: Download json report from build job
         uses: actions/download-artifact@v2
         with:
-          name: vulnerabilities
+          name: vulnerabilities-${{ matrix.component }}
           
       - name: Generate CSV and intermediate HTML report
         run: |  
@@ -137,7 +140,7 @@ jobs:
       - name: Upload Anchore scan reports
         uses: actions/upload-artifact@master
         with:
-          name: vulnerabilities
+          name: vulnerabilities-${{ matrix.component }}
           path: |
             vulnerabilities.csv
             vulnerabilities.pdf
