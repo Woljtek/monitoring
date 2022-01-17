@@ -50,5 +50,5 @@ jobs:
         run: helm package ${{ env.CHART_FOLDER }}/${{ matrix.component }}/helm/
 
       - name: Push to Artifactory
-        run: curl -u${{ env.USERNAME }}:${{ env.PASSWORD }} -T *.tgz "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.CHART_FOLDER }}.tgz"
+        run: curl -u "${{ env.USERNAME }}:${{ env.PASSWORD }}" -T *.tgz "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.CHART_FOLDER }}.tgz"
 
