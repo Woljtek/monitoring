@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  CHART_FOLDER: helm
+  CHART_FOLDER: finops
   ARTIFACTORY_BASE_URL: "artifactory.coprs.esa-copernicus.eu"
   ARTIFACTORY_PROJECT: "cs-helm"
   USERNAME: ${{ secrets.CS_ARTIFACTORY_USER }}
@@ -44,10 +44,10 @@ jobs:
           version: v3.4.0
 
       - name: Lint helm 
-        run: helm lint ${{ matrix.component }}/${{ env.CHART_FOLDER }}
+        run: helm lint ${{ env.CHART_FOLDER }}/${{ matrix.component }}/helm/
 
       - name: Package helm
-        run: helm package ${{ matrix.component }}/${{ env.CHART_FOLDER }}
+        run: helm package ${{ env.CHART_FOLDER }}/${{ matrix.component }}/helm/
 
       - name: Push to Artifactory
         run: curl -u${{ env.USERNAME }}:${{ env.PASSWORD }} -T *.tgz "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.CHART_FOLDER }}.tgz"
