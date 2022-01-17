@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "prometheus-exporter.fullname" . }}
+  labels:
+{{ include "prometheus-exporter.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "prometheus-exporter.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "prometheus-exporter.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    {{- if .Values.rbac.create }}
+      serviceAccountName: {{ include "prometheus-exporter.fullname" . }}
+    {{- end }}
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{ . }}
+    {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: metrics
+          containerPort: {{ .Values.internalPort }}
+          protocol: TCP
+        {{- if or .Values.env .Values.envFromSecret }}
+        env:
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key | quote }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- range $envFromSecret := .Values.envFromSecret }}
+        - name: {{ $envFromSecret.name | quote }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $envFromSecret.secret | quote }}
+              key: {{ $envFromSecret.key | quote }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.configs }}
+        volumeMounts:
+        {{- range $field := .Values.configs }}
+        - name: {{ $field.name }}
+          mountPath: {{ $field.path }}
+          subPath: {{ base $field.path }}
+        {{- end }}
+        {{- end }}
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.internalPort }}
+            resources:
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.internalPort }}   
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.configs }}
+      volumes:
+      {{- range $field := .Values.configs }}
+      - name: {{ $field.name }}
+        configMap:
+          name: {{ include "prometheus-exporter.fullname" $ }}
+          items:
+          - key: {{ $field.name }}
+            path: {{ base $field.path }}
+      {{- end }}
+      {{- end }}
