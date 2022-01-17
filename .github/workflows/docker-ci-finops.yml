@@ -61,7 +61,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REGISTRY_BASE }}/${{ env.ARTIFACTORY_PROJECT }}/${{ env.IMAGE_NAME }}_${{ matrix.component }}
+          images: ${{ env.REGISTRY_BASE }}/${{ env.ARTIFACTORY_PROJECT }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}
 
 
       # Build Docker image using Buildx
