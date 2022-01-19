@@ -12,6 +12,8 @@ on:
     paths:
       - 'finops/**'
       - '.github/workflows/docker-ci-finops.yml'
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
   workflow_dispatch:
 
 env:
