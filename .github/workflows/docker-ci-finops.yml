@@ -19,7 +19,8 @@ on:
 env:
   REGISTRY_BASE: artifactory.coprs.esa-copernicus.eu
   IMAGE_NAME: finops
-  ARTIFACTORY_PROJECT: cs-docker
+  ARTIFACTORY_PROJECT: rs-docker
+  ARTIFACTORY_SUB_PROJECT: monitoring
   ARTIFACTORY_USERNAME: ${{ secrets.CS_ARTIFACTORY_USER }}
   ARTIFACTORY_PASSWORD: ${{ secrets.CS_ARTIFACTORY_PASSWORD }}
   GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
@@ -63,7 +64,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REGISTRY_BASE }}/${{ env.ARTIFACTORY_PROJECT }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}
+          images: ${{ env.REGISTRY_BASE }}/${{ env.ARTIFACTORY_PROJECT }}/${{ env.ARTIFACTORY_SUB_PROJECT }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}
 
 
       # Build Docker image using Buildx
