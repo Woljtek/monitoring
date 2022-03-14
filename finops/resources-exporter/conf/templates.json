@@ -1,0 +1,29 @@
+{
+    "templates" : [
+        {
+            "name"   : "s3.large.2",
+            "cpu"    : 2,
+            "memory" : 4
+        },
+        {
+            "name"   : "s3.2xlarge.4",
+            "cpu"    : 8,
+            "memory" : 32
+        },
+        {
+            "name"   : "s3.4xlarge.4",
+            "cpu"    : 16,
+            "memory" : 64
+        },
+        {
+            "name"   : "s3.xlarge.2",
+            "cpu"    : 4,
+            "memory" : 8
+        },
+        {
+            "name"   : "s3.xlarge.4",
+            "cpu"    : 4,
+            "memory" : 16
+        }
+    ]
+}

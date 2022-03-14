@@ -1,0 +1,13 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ include "prometheus-exporter.fullname" . }}
+  labels:
+{{ include "prometheus-exporter.labels" . | indent 4 }}
+rules:
+- apiGroups: [""]
+  verbs: ["list"]
+  resources:
+  - nodes
+{{- end }}

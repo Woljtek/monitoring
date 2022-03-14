@@ -1,0 +1,13 @@
+{{- if .Values.configs }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "prometheus-exporter.fullname" . }}
+  labels:
+{{ include "prometheus-exporter.labels" . | indent 4 }}
+data: 
+  {{- range $field := .Values.configs }}
+  {{ $field.name }}: |-
+{{ $field.value | indent 4 }}
+  {{- end }}
+{{- end }}

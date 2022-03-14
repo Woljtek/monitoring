@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "prometheus-exporter.fullname" . }}
+  labels:
+{{ include "prometheus-exporter.labels" . | indent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ include "prometheus-exporter.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
