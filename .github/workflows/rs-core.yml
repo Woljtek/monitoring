@@ -1,4 +1,4 @@
-name: Docker CI FINOPS
+name: RS CORE Monitoring
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -46,7 +46,7 @@ jobs:
         with:
           fetch-depth: 0 # fetch all history so multiple commits can be scanned
 
-      - name: GitGuardian scan
+      - name: Zip RS-CORE
         uses: montudor/action-zip@v1
         with:
           args: zip -qq -r ${{ env.RS_CORE_NAME }}.zip rs-core
