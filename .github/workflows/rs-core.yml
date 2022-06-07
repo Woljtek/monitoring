@@ -40,20 +40,22 @@ jobs:
           # Short name for current branch. For PRs, use target branch (base ref)
           GIT_BRANCH=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
           echo "GIT_BRANCH=$GIT_BRANCH" >> $GITHUB_ENV
-          
+          GIT_TAG=${GITHUB_REF/refs\/tags\//}
+          echo "GIT_TAG=$GIT_TAG" >> $GITHUB_ENV
+  
       - name: checkout repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 0 # fetch all history so multiple commits can be scanned
           
       - name: Rename directory of RS-CORE
-        run: mv rs-core ${{ env.RS_CORE_NAME }}_${{ env.GIT_BRANCH }}_Executables
+        run: mv rs-core ${{ env.RS_CORE_NAME }}_${{ env.GIT_TAG }}_Executables
         
       - name: Zip RS-CORE
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r ${{ env.RS_CORE_NAME }}_${{ env.GIT_BRANCH }}.zip ${{ env.RS_CORE_NAME }}_${{ env.GIT_BRANCH }}_Executables
+          args: zip -qq -r ${{ env.RS_CORE_NAME }}_${{ env.GIT_TAG }}.zip ${{ env.RS_CORE_NAME }}_${{ env.GIT_TAG }}_Executables
 
       - name: Push to Artifactory
-        run: curl -u "${{ env.ARTIFACTORY_USERNAME }}:${{ env.ARTIFACTORY_PASSWORD }}" -T ${{ env.RS_CORE_NAME }}_${{ env.GIT_BRANCH }}.zip "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.RS_CORE_NAME }}_${{ env.GIT_BRANCH }}.zip"
+        run: curl -u "${{ env.ARTIFACTORY_USERNAME }}:${{ env.ARTIFACTORY_PASSWORD }}" -T ${{ env.RS_CORE_NAME }}_${{ env.GIT_TAG }}.zip "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.RS_CORE_NAME }}_${{ env.GIT_TAG }}.zip"
 
