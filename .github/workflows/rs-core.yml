@@ -7,6 +7,9 @@ name: RS CORE Monitoring
 
 on:
   push:
+    branches:
+      - release/*
+      - main
     paths:
       - 'rs-core/**'
       - '.github/workflows/rs-core.yml'
