@@ -48,6 +48,9 @@ jobs:
         with:
           fetch-depth: 0 # fetch all history so multiple commits can be scanned
           
+      - name: Sed version in rs-core
+        run: sed -i "s/<VERSION>/${{ env.GIT_TAG }}/g" rs-core/stream-application-list.properties
+        
       - name: Rename directory of RS-CORE
         run: mv rs-core ${{ env.RS_CORE_NAME }}_${{ env.GIT_TAG }}_Executables
         
