@@ -25,16 +25,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     component: [object-storage-exporter, resources-exporter]
-    # permissions:
-    #   contents: read
-    #   packages: write
-    #   security-events: write
 
     steps:
-
       - name: Set environment variables
         run: |
           # Short name for current branch. For PRs, use target branch (base ref)
@@ -49,7 +41,7 @@ jobs:
           fetch-depth: 0 # fetch all history so multiple commits can be scanned
           
       - name: Sed version in rs-core
-        run: sed -i "s/<VERSION>/${{ env.GIT_TAG }}/g" rs-core/stream-application-list.properties
+        run: sed -i "s/<VERSION>/${{ env.GIT_TAG }}/g" rs-core/stream-application-list.properties && sed -i "s/<VERSION>/${{ env.GIT_TAG }}/g" rs-core/stream-parameters.properties   
         
       - name: Rename directory of RS-CORE
         run: mv rs-core ${{ env.RS_CORE_NAME }}_${{ env.GIT_TAG }}_Executables
