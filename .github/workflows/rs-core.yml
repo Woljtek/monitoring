@@ -18,7 +18,7 @@ on:
 env:
   REGISTRY_BASE: artifactory.coprs.esa-copernicus.eu
   RS_CORE_NAME: rs-core-monitoring
-  ARTIFACTORY_PROJECT: rs-zip-private
+  ARTIFACTORY_PROJECT: rs-zip
   ARTIFACTORY_USERNAME: ${{ secrets.CS_ARTIFACTORY_USER }}
   ARTIFACTORY_PASSWORD: ${{ secrets.CS_ARTIFACTORY_PASSWORD }}
 
