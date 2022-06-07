@@ -17,7 +17,7 @@ on:
 
 env:
   REGISTRY_BASE: artifactory.coprs.esa-copernicus.eu
-  RS_CORE_NAME: rs-core-monitoring
+  RS_CORE_NAME: RS_CORE_MONITORING
   ARTIFACTORY_PROJECT: rs-zip
   ARTIFACTORY_USERNAME: ${{ secrets.CS_ARTIFACTORY_USER }}
   ARTIFACTORY_PASSWORD: ${{ secrets.CS_ARTIFACTORY_PASSWORD }}
@@ -45,12 +45,15 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0 # fetch all history so multiple commits can be scanned
-
+          
+      - name: Rename directory of RS-CORE
+        run: mv rs-core ${{ env.RS_CORE_NAME }}_1.3.8_Executables
+        
       - name: Zip RS-CORE
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r ${{ env.RS_CORE_NAME }}.zip rs-core
+          args: zip -qq -r ${{ env.RS_CORE_NAME }}_1.3.8.zip ${{ env.RS_CORE_NAME }}_1.3.8_Executables
 
       - name: Push to Artifactory
-        run: curl -u "${{ env.ARTIFACTORY_USERNAME }}:${{ env.ARTIFACTORY_PASSWORD }}" -T ${{ env.RS_CORE_NAME }}.zip "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.RS_CORE_NAME }}.zip"
+        run: curl -u "${{ env.ARTIFACTORY_USERNAME }}:${{ env.ARTIFACTORY_PASSWORD }}" -T ${{ env.RS_CORE_NAME }}_1.3.8.zip "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.RS_CORE_NAME }}_1.3.8.zip"
 
