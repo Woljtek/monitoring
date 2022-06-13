@@ -25,13 +25,13 @@ function build() {
 
   echo "Building $APP"
 
-  ROOT_NAME=RS_CORE_${APP}_${VERSION}_${DATE}
+  ROOT_NAME=RS_CORE_${APP}_${GIT_TAG}_${DATE}
   ZIP_NAME=${ROOT_NAME}.zip
 
   cd "$APP" || exit
 
-  sed -i "s/<VERSION>/${VERSION}/g" Executables/stream-application-list.properties
-  sed -i "s/<VERSION>/${VERSION}/g" Executables/stream-parameters.properties
+  sed -i "s/<VERSION>/${GIT_TAG}/g" Executables/stream-application-list.properties
+  sed -i "s/<VERSION>/${GIT_TAG}/g" Executables/stream-parameters.properties
 
   mv Executables "${ROOT_NAME}"_Executables
   mv Release_Note.pdf "${ROOT_NAME}"_Release_Note.pdf
