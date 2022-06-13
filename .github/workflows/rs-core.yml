@@ -16,41 +16,35 @@ on:
   workflow_dispatch:
 
 env:
+  REGISTRY_USER: ${{ secrets.CS_ARTIFACTORY_USER }}
+  REGISTRY_PWD: ${{ secrets.CS_ARTIFACTORY_PASSWORD }}
   REGISTRY_BASE: artifactory.coprs.esa-copernicus.eu
-  RS_CORE_NAME: rs-core-monitoring
-  ARTIFACTORY_PROJECT: rs-zip-private
-  ARTIFACTORY_USERNAME: ${{ secrets.CS_ARTIFACTORY_USER }}
-  ARTIFACTORY_PASSWORD: ${{ secrets.CS_ARTIFACTORY_PASSWORD }}
+  REGISTRY_PROJECT: rs-zip
+
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     component: [object-storage-exporter, resources-exporter]
-    # permissions:
-    #   contents: read
-    #   packages: write
-    #   security-events: write
 
     steps:
 
-      - name: Set environment variables
-        run: |
-          # Short name for current branch. For PRs, use target branch (base ref)
-          GIT_BRANCH=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-          echo "GIT_BRANCH=$GIT_BRANCH" >> $GITHUB_ENV
-          
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 0 # fetch all history so multiple commits can be scanned
 
-      - name: Zip RS-CORE
-        uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r ${{ env.RS_CORE_NAME }}.zip rs-core
+      - name: Set environment variables
+        run: |
+          # Artifactory
+          echo "REGISTRY_USER=${{ env.REGISTRY_USER }}" >> $GITHUB_ENV
+          echo "REGISTRY_PWD=${{ env.REGISTRY_PWD }}" >> $GITHUB_ENV
+          echo "REGISTRY_BASE=${{ env.REGISTRY_BASE }}" >> $GITHUB_ENV
+          echo "REGISTRY_PROJECT=${{ env.REGISTRY_PROJECT }}" >> $GITHUB_ENV
+          # Tag
+          GIT_TAG=${GITHUB_REF/refs\/tags\//}
+          echo "GIT_TAG=$GIT_TAG" >> $GITHUB_ENV
 
-      - name: Push to Artifactory
-        run: curl -u "${{ env.ARTIFACTORY_USERNAME }}:${{ env.ARTIFACTORY_PASSWORD }}" -T ${{ env.RS_CORE_NAME }}.zip "https://artifactory.coprs.esa-copernicus.eu/artifactory/${{ env.ARTIFACTORY_PROJECT }}/${{ env.RS_CORE_NAME }}.zip"
-
+      - name: Build rs-cores and push
+        run: |
+          cd rs-cores
+          ./build_cores.sh push
