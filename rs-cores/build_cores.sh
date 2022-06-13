@@ -44,7 +44,7 @@ function build() {
 
 }
 
-for FOLDER in $(ls -d S2_*/)
+for FOLDER in $(ls -d */)
 do
   build "${FOLDER::-1}"
 done
