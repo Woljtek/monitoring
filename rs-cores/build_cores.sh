@@ -1,4 +1,4 @@
-!/usr/bin/env bash
+#!/usr/bin/env bash
 
 ######################################################################
 # Build rs-cores for each folder found in the current directory
