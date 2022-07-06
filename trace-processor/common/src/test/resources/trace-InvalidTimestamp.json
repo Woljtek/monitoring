@@ -1,0 +1,21 @@
+{
+  "header": {
+    "type": "REPORT",
+    "timestamp": "2021-08-30 T 15:02:24.125000Z",
+    "level": "INFO",
+    "mission": "S3",
+    "workflow": "NOMINAL"
+  },
+
+  "message": {
+    "content": "Start compression processing"
+  },
+
+  "task": {
+    "uid": "4cb9fa49-2c0a-4363-82c3-ea9ab223c53a",
+    "name": "CompressionProcessing",
+    "event": "BEGIN",
+    "input": {},
+    "follows_from_task": "a66d3ac2-2483-4891-8151-1bc77e4296e8"
+  }
+}

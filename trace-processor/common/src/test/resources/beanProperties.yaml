@@ -1,0 +1,30 @@
+filters:
+  -
+    name: S2-AUX_DATA
+    rules:
+      header.mission: S2
+      header.type: REPORT
+      task.event: END
+      task.status: OK
+      #      message.content: End processing of
+      #      task.output[filename_strings][0]: .*_V.*
+      message.content: End metadata extraction
+      task.input[filename_strings][0]: .*_V.*
+  -
+    name: S2-DSIB
+    rules:
+      header.mission: S2
+      header.type: REPORT
+      task.event: END
+      task.status: OK
+      message.content: End processing of
+      task.output[filename_strings][0]: .*_DSIB\.xml
+  -
+    name: S2-CHUNK
+    rules:
+      header.mission: S2
+      header.type: REPORT
+      task.event: END
+      task.status: OK
+      message.content: End processing of
+      task.output[filename_strings][0]: .*ch2_DSDB.* |.*\.raw

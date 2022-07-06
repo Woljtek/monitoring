@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: trace-filter
+  profiles:
+    default: prod
+  main:
+    banner-mode: off
+  cloud:
+    stream:
+      function:
+        definition: trace-filter
+        bindings:
+          trace-filter-in-0: input
+          trace-filter-out-0: output
+
+logging:
+  config: classpath:log4j2.yaml
+  level:
+    eu:
+      csgroup:
+        coprs: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      enabled: true
+      livenessState:
+        enabled: true
+      readinessState:
+        enabled: true
+
+info:
+  app:
+    description: ^project.description^
+    name: ^project.artifactId^
+    version: ^project.version^
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  config: classpath:log4j2-test.yaml
+  level:
+    eu:
+      csgroup:
+        coprs: DEBUG
