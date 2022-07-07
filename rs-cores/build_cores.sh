@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 
 ######################################################################
 # Build rs-cores for each folder found in the current directory
@@ -16,7 +16,6 @@
 
 echo "Building rs-cores"
 
-DATE=$(date '+%Y-%m-%d')
 REGISTRY_URL="https://${REGISTRY_BASE}/artifactory/${REGISTRY_PROJECT}"
 
 function build() {
@@ -25,7 +24,7 @@ function build() {
 
   echo "Building $APP"
 
-  ROOT_NAME=RS_CORE_${APP}_${GIT_TAG}_${DATE}
+  ROOT_NAME=RS_CORE_${APP}_${GIT_TAG}
   ZIP_NAME=${ROOT_NAME}.zip
 
   cd "$APP" || exit
