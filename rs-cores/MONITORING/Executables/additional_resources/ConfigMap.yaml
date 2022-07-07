@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trace-filter-config
+  namespace: monitoring
+data:
+  filter.yaml: |
+    filters:
+      -
+        name: IngestionTrigger_Dsib
+        rules:
+          task.name: IngestionTrigger
+          task.event: END
+          task.input[filename_string]: DCS_.+?_DSIB\.xml$
+      -
+        name: IngestionTrigger_Chunk
+        rules:
+          task.name: IngestionTrigger
+          task.event: END
+          task.input[filename_string]: DCS_.+?\.raw$
+      -
+        name: IngestionTrigger_AuxData
+        rules:
+          task.name: IngestionTrigger
+          task.event: END
+      -
+        name: IngestionWorker_Dsib
+        rules:
+          task.name: IngestionWorker
+          task.event: END
+          task.status: OK
+          task.input[filename_string]: DCS_.+?_DSIB\.xml$
+      -
+        name: IngestionWorker_Chunk
+        rules:
+          task.name: IngestionWorker
+          task.event: END
+          task.status: OK
+          task.input[filename_string]: DCS_.+?\.raw$
+      -
+        name: IngestionWorker_AuxData
+        rules:
+          task.name: IngestionWorker
+          task.status: OK
+          task.event: END

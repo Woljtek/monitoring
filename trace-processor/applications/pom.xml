@@ -1,0 +1,221 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>eu.csgroup.coprs.monitoring.app</groupId>
+    <artifactId>applications</artifactId>
+    <version>${applications.revision}</version>
+    <description>Infrastructure for stream applications</description>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>eu.csgroup.coprs.monitoring</groupId>
+        <artifactId>trace-processor</artifactId>
+        <version>${trace-processor.revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+      <modules>
+        <module>processor</module>
+        <module>sink</module>
+    </modules>
+
+    <properties>
+        <jib.base-image>eclipse-temurin:17-jre@sha256:efe505b36fc2619cbb2b5f303736329c4b374edb190c5a2d15ac2376ad3ac501</jib.base-image>
+
+        <jib.dest-registry></jib.dest-registry>
+        <jib.dest-username></jib.dest-username>
+        <jib.dest-password></jib.dest-password>
+
+        <jib.java-executable>/usr/lib/jdk/jdk-17/bin/java</jib.java-executable>
+        <jib.goal>build</jib.goal>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.mock-server</groupId>
+                <artifactId>mockserver-netty</artifactId>
+                <version>${mockserver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mock-server</groupId>
+                <artifactId>mockserver-client-java</artifactId>
+                <version>${mockserver.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-binder-kafka</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-binder-kafka</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Probe -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Common -->
+        <dependency>
+            <groupId>eu.csgroup.coprs.monitoring</groupId>
+            <artifactId>common</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+
+                <plugin>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-dataflow-apps-docs-plugin</artifactId>
+                    <version>${spring-cloud-dataflow-apps-docs-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>generate-documentation</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>generate-documentation</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!--
+                 Use of properties-maven-plugin to load the encoded metadata properties created by the jib-maven-plugin
+                 Use: Use: ./mvnw clean install jib:dockerBuild or ./mvnw clean install jib:build
+                -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>properties-maven-plugin</artifactId>
+                    <version>${properties-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>read-project-properties</goal>
+                            </goals>
+                            <configuration>
+                                <files>
+                                    <file>${project.build.outputDirectory}/META-INF/spring-configuration-metadata-encoded.properties</file>
+                                </files>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-dataflow-apps-metadata-plugin</artifactId>
+                    <version>${spring-cloud-dataflow-apps-docs-plugin.version}</version>
+                    <configuration>
+                        <storeFilteredMetadata>true</storeFilteredMetadata>
+                        <metadataFilter>
+                            <names>
+                            </names>
+                            <sourceTypes>
+                                <filter>${scdf.properties.classname}</filter>
+                            </sourceTypes>
+                        </metadataFilter>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>aggregate-metadata</id>
+                            <phase>compile</phase>
+                            <goals>
+                                <goal>aggregate-metadata</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>${jib-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>jib-deployed-image</id>
+                            <goals><goal>${jib.goal}</goal></goals>
+                            <phase>deploy</phase>
+                            <configuration>
+                                <from>
+                                    <image>${jib.base-image}</image>
+                                </from>
+                                <to>
+                                    <image>${jib.dest-registry}/${project.artifactId}</image>
+                                    <tags>
+                                        <tag>${project.version}</tag>
+                                        <tag>latest</tag>
+                                    </tags>
+                                    <auth>
+                                        <username>${jib.dest-username}</username>
+                                        <password>${jib.dest-password}</password>
+                                    </auth>
+                                </to>
+                                <container>
+                                    <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+                                    <format>Docker</format>
+                                    <labels>
+                                        <org.springframework.cloud.dataflow.spring-configuration-metadata.json>
+                                            ${org.springframework.cloud.dataflow.spring.configuration.metadata.json}
+                                        </org.springframework.cloud.dataflow.spring-configuration-metadata.json>
+                                        <application.name>${project.artifactId}</application.name>
+                                        <application.version>${project.version}</application.version>
+                                    </labels>
+                                </container>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <configuration>
+                        <!-- Do not use '@' default limiter because it does not allow use in YAML file -->
+                        <delimiters>
+                            <delimiter>^</delimiter>
+                        </delimiters>
+                        <useDefaultDelimiters>false</useDefaultDelimiters>
+                    </configuration>
+                </plugin>
+
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>

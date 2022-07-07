@@ -1,0 +1,36 @@
+{
+  "header": {
+    "type": "REPORT",
+    "timestamp": "2021-08-30T15:02:24.125000Z",
+    "level": "INFO",
+    "mission": "S3",
+    "rs_chain_name": "trace-processor",
+    "rs_chain_version": "1.1.9-rc1",
+    "workflow": "NOMINAL",
+    "debug_mode": "false",
+    "tag_list": ["TAG1", "TAG2", "TAG3"]
+  },
+  "message": {
+    "content": "Start compression processing"
+  },
+  "task": {
+    "uid": "4cb9fa49-2c0a-4363-82c3-ea9ab223c53a",
+    "name": "CompressionProcessing",
+    "event": "BEGIN",
+    "data_rate_mebibytes_sec": "783740.123",
+    "data_volume_mebibytes": "783740.123",
+    "satellite": "S2B",
+    "input": {
+      "key": "value1",
+      "key_string": "value2",
+      "key_strings": ["value3", "value4", "value5"]
+    },
+    "child_of_task": "a66d3ac2-2483-4891-8151-1bc77e4296e8",
+    "follows_from_task": "a66d3ac2-2483-4891-8151-1bc77e4296e8"
+  },
+  "custom": {
+    "key": "value1",
+    "key_string": "value2",
+    "key_strings": ["value3", "value4", "value5"]
+  }
+}

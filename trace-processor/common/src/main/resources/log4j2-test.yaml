@@ -1,0 +1,55 @@
+Configuration:
+
+  name: LogConfig
+
+  status: WARN
+
+  thresholdFilter:
+    level: TRACE
+
+  Appenders:
+
+    Console:
+      - name: PLAIN
+        target: SYSTEM_OUT
+        PatternLayout:
+          Pattern: "%level: %msg%n"
+
+  Loggers:
+
+    Logger:
+      - name: eu.csgroup.coprs
+        level: TRACE
+        additivity: false
+        AppenderRef:
+          - ref: PLAIN
+      - name: org.springframework
+        level: INFO
+        additivity: false
+        AppenderRef:
+          - ref: PLAIN
+      - name: org.apache
+        level: WARN
+        additivity: false
+        AppenderRef:
+          - ref: PLAIN
+      - name: com.amazonaws
+        level: WARN
+        additivity: false
+        AppenderRef:
+          - ref: PLAIN
+      - name: org
+        level: WARN
+        additivity: false
+        AppenderRef:
+          - ref: PLAIN
+      - name: com
+        level: WARN
+        additivity: false
+        AppenderRef:
+          - ref: PLAIN
+
+    Root:
+      level: DEBUG
+      AppenderRef:
+        - ref: PLAIN
