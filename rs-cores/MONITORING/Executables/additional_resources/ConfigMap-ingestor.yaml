@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trace-ingestor-config
+  namespace: monitoring
+data:
+  mapping.yaml: |
+    mappings:
+      -
+        name: IngestionTrigger_Dsib
+        rules:
+          task.input[filename_string]: dsib.filename
+          header.mission: dsib.mission
+          task.input[pickup_point_detection_date]: dsib.pickup_point_seen_date
+          task.input[pickup_point_available_date]: dsib.pickup_point_available_date
+        dependencies:
+          - dsib.filename
+      -
+        name: IngestionTrigger_Chunk
+        rules:
+          task.input[filename_string]: chunk.filename
+          header.mission: chunk.mission
+          task.input[pickup_point_detection_date]: chunk.pickup_point_seen_date
+          task.input[pickup_point_available_date]: chunk.pickup_point_available_date
+        dependencies:
+          - chunk.filename
+      -
+        name: IngestionTrigger_AuxData_S1
+        rules:
+          task.input[filename_string]: aux_data.filename
+          header.mission: aux_data.mission
+          task.input[pickup_point_detection_date]: aux_data.pickup_point_seen_date
+          task.input[pickup_point_available_date]: aux_data.pickup_point_available_date
+        dependencies:
+          - aux_data.filename
+      -
+        name: IngestionTrigger_AuxData_S2
+        rules:
+          task.input[filename_string]: aux_data.filename
+          header.mission: aux_data.mission
+          task.input[pickup_point_detection_date]: aux_data.pickup_point_seen_date
+          task.input[pickup_point_available_date]: aux_data.pickup_point_available_date
+        dependencies:
+          - aux_data.filename
+      -
+        name: IngestionTrigger_AuxData_S3
+        rules:
+          task.input[filename_string]: aux_data.filename
+          header.mission: aux_data.mission
+          task.input[pickup_point_detection_date]: aux_data.pickup_point_seen_date
+          task.input[pickup_point_available_date]: aux_data.pickup_point_available_date
+        dependencies:
+          - aux_data.filename
+      -
+        name: IngestionWorker_Dsib
+        rules:
+          task.output[filename_string]: dsib.filename
+          header.mission: dsib.mission
+          header.timestamp: dsib.ingestion_date
+        dependencies:
+          - dsib.filename
+      -
+        name: IngestionWorker_Chunk
+        rules:
+          task.output[filename_string]: chunk.filename
+          header.mission: chunk.mission
+          header.timestamp: chunk.ingestion_date
+        dependencies:
+          - chunk.filename
+      -
+        name: IngestionWorker_AuxData_S1
+        rules:
+          task.output[filename_string]: aux_data.filename
+          header.mission: aux_data.mission
+          header.timestamp: aux_data.ingestion_date
+        dependencies:
+          - aux_data.filename
+      -
+        name: IngestionWorker_AuxData_S2
+        rules:
+          task.output[filename_string]: aux_data.filename
+          header.mission: aux_data.mission
+          header.timestamp: aux_data.ingestion_date
+        dependencies:
+          - aux_data.filename
+      -
+        name: IngestionWorker_AuxData_S3
+        rules:
+          task.output[filename_string]: aux_data.filename
+          header.mission: aux_data.mission
+          header.timestamp: aux_data.ingestion_date
+        dependencies:
+          - aux_data.filename
