@@ -140,7 +140,6 @@ data:
         name: MetadataExtraction_Product
         mappings:
            task.input[filename_string]: product.filename
-           header.mission: product.mission
            task.output[timeliness_name_string]: product.timeliness_name
            task.output[timeliness_value_seconds_integer]: product.timeliness_value_seconds
            task.output[end_to_end_product_boolean]: product.end_to_end_product
