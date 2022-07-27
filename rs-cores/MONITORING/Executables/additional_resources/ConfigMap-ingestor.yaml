@@ -4,11 +4,11 @@ metadata:
   name: trace-ingestor-config
   namespace: monitoring
 data:
-  mapping.yaml: |
-    mappings:
+  ingestion.yaml: |
+    ingestions:
       -
         name: IngestionTrigger_Dsib
-        rules:
+        mappings:
           task.input[filename_string]: dsib.filename
           header.mission: dsib.mission
           task.input[pickup_point_detection_date]: dsib.pickup_point_seen_date
@@ -17,7 +17,7 @@ data:
           - dsib.filename
       -
         name: IngestionTrigger_Chunk
-        rules:
+        mappings:
           task.input[filename_string]: chunk.filename
           header.mission: chunk.mission
           task.input[pickup_point_detection_date]: chunk.pickup_point_seen_date
@@ -26,7 +26,7 @@ data:
           - chunk.filename
       -
         name: IngestionTrigger_AuxData_S1
-        rules:
+        mappings:
           task.input[filename_string]: aux_data.filename
           header.mission: aux_data.mission
           task.input[pickup_point_detection_date]: aux_data.pickup_point_seen_date
@@ -35,7 +35,7 @@ data:
           - aux_data.filename
       -
         name: IngestionTrigger_AuxData_S2
-        rules:
+        mappings:
           task.input[filename_string]: aux_data.filename
           header.mission: aux_data.mission
           task.input[pickup_point_detection_date]: aux_data.pickup_point_seen_date
@@ -44,7 +44,7 @@ data:
           - aux_data.filename
       -
         name: IngestionTrigger_AuxData_S3
-        rules:
+        mappings:
           task.input[filename_string]: aux_data.filename
           header.mission: aux_data.mission
           task.input[pickup_point_detection_date]: aux_data.pickup_point_seen_date
@@ -53,7 +53,7 @@ data:
           - aux_data.filename
       -
         name: IngestionWorker_Dsib
-        rules:
+        mappings:
           task.output[filename_string]: dsib.filename
           header.mission: dsib.mission
           header.timestamp: dsib.ingestion_date
@@ -61,7 +61,7 @@ data:
           - dsib.filename
       -
         name: IngestionWorker_Chunk
-        rules:
+        mappings:
           task.output[filename_string]: chunk.filename
           header.mission: chunk.mission
           header.timestamp: chunk.ingestion_date
@@ -69,7 +69,7 @@ data:
           - chunk.filename
       -
         name: IngestionWorker_AuxData_S1
-        rules:
+        mappings:
           task.output[filename_string]: aux_data.filename
           header.mission: aux_data.mission
           header.timestamp: aux_data.ingestion_date
@@ -77,7 +77,7 @@ data:
           - aux_data.filename
       -
         name: IngestionWorker_AuxData_S2
-        rules:
+        mappings:
           task.output[filename_string]: aux_data.filename
           header.mission: aux_data.mission
           header.timestamp: aux_data.ingestion_date
@@ -85,9 +85,65 @@ data:
           - aux_data.filename
       -
         name: IngestionWorker_AuxData_S3
-        rules:
+        mappings:
           task.output[filename_string]: aux_data.filename
           header.mission: aux_data.mission
           header.timestamp: aux_data.ingestion_date
         dependencies:
           - aux_data.filename
+      -
+        name: MetadataExtraction_Dsib
+        mappings:
+           task.input[filename_string]: dsib.filename
+           header.mission: dsib.mission
+           header.timestamp: dsib.catalog_storage_date
+           task.output[product_metadata_custom_object]: dsib.custom
+        dependencies:
+          - dsib.filename
+      -
+        name: MetadataExtraction_Chunk
+        mappings:
+           task.input[filename_string]: chunk.filename
+           header.mission: chunk.mission
+           header.timestamp: chunk.catalog_storage_date
+           task.output[product_metadata_custom_object]: chunk.custom
+        dependencies:
+          - chunk.filename
+      -
+        name: MetadataExtraction_AuxData_S1
+        mappings:
+           task.input[filename_string]: aux_data.filename
+           header.mission: aux_data.mission
+           header.timestamp: aux_data.catalog_storage_date
+           task.output[product_metadata_custom_object]: aux_data.custom
+        dependencies:
+          - aux_data.filename
+      -
+        name: MetadataExtraction_AuxData_S2
+        mappings:
+           task.input[filename_string]: aux_data.filename
+           header.mission: aux_data.mission
+           header.timestamp: aux_data.catalog_storage_date
+           task.output[product_metadata_custom_object]: aux_data.custom
+        dependencies:
+          - aux_data.filename
+      -
+        name: MetadataExtraction_AuxData_S3
+        mappings:
+           task.input[filename_string]: aux_data.filename
+           header.mission: aux_data.mission
+           header.timestamp: aux_data.catalog_storage_date
+           task.output[product_metadata_custom_object]: aux_data.custom
+        dependencies:
+          - aux_data.filename
+      -
+        name: MetadataExtraction_Product
+        mappings:
+           task.input[filename_string]: product.filename
+           header.mission: product.mission
+           task.output[timeliness_name_string]: product.timeliness_name
+           task.output[timeliness_value_seconds_integer]: product.timeliness_value_seconds
+           task.output[end_to_end_product_boolean]: product.end_to_end_product
+           task.output[product_metadata_custom_object]: product.custom
+        dependencies:
+          - product.filename
