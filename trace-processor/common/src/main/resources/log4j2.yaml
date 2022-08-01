@@ -19,7 +19,7 @@ Configuration:
         target: SYSTEM_OUT
         PatternLayout:
           alwaysWriteExceptions: true
-          Pattern: "{\"header\":{\"type\":\"LOG\",\"timestamp\":\"%d{yyyy-MM-dd'T'HH:mm:ss.nnnnnn}Z\",\"level\":\"%level\",\"line\":%L,\"file\":\"%.255F\",\"thread\":\"%.255t\"},\"message\":{\"content\":\"%enc{%m%xEx}{JSON}\"},\"custom\":{\"logger_string\":\"%logger\"}}%n"
+          Pattern: "{\"header\":{\"type\":\"LOG\",\"timestamp\":\"%d{yyyy-MM-dd'T'HH:mm:ss.nnnnnn}Z\",\"level\":\"%level\",\"line\":%L,\"file\":\"%.255F\",\"thread\":\"%.255t\"},\"message\":{\"content\":\"%enc{%m%xEx}{JSON}\"},\"custom\":{\"logger_string\":\"%logger\"%mdc{log_param}}}%n"
 
       - name: PLAIN
         target: SYSTEM_OUT

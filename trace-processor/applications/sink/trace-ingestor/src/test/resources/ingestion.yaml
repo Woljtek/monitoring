@@ -37,3 +37,13 @@ ingestions:
       custom[test_field_object]: aux_data.custom[test_field_object]
     dependencies:
       - aux_data.filename
+  -
+    name: product
+    mappings:
+      task.input[filename_string]: product.filename
+      task.output[timeliness_name_string]: product.timeliness_name
+      task.output[timeliness_value_seconds_integer]: product.timeliness_value_seconds
+      task.output[end_to_end_product_boolean]: product.end_to_end_product
+      task.output[product_metadata_custom_object]: product.custom
+    dependencies:
+      - product.filename

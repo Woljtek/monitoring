@@ -3,6 +3,7 @@ package eu.csgroup.coprs.monitoring.traceingestor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
+import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
 import eu.csgroup.coprs.monitoring.common.datamodel.Trace;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.ExternalInput;
@@ -13,14 +14,16 @@ import eu.csgroup.coprs.monitoring.traceingestor.mapping.IngestionGroup;
 import eu.csgroup.coprs.monitoring.traceingestor.mapping.Mapping;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import org.slf4j.MDC;
 import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.messaging.Message;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -42,6 +45,8 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
 
     @Override
     public void accept(Message<FilteredTrace> message) {
+        final Instant start = Instant.now();
+
         final var filteredTrace = message.getPayload();
         // Find mapping associated to filter name
         final var ingestionStrategy = reloadableBeanFactory.getBean(IngestionGroup.class).getIngestions()
@@ -52,10 +57,19 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
         ingestionStrategy.ifPresentOrElse(
                 m -> ingest(filteredTrace.getTrace(), m),
                 () -> {
-                    throw new RuntimeException("No configuration found for '%s'".formatted(filteredTrace.getRuleName()));
+                    String errorMessage = "No configuration found for '%s'\n%s".formatted(filteredTrace.getRuleName(), filteredTrace.getTrace());
+                    log.error(errorMessage);
+                    throw new RuntimeException(errorMessage);
                 }
         );
 
+        final var duration = Duration.between(start, Instant.now());
+        try (MDC.MDCCloseable mdc = MDC.putCloseable("log_param", ",\"ingestion_duration_in_ms\":%s".formatted(duration.toMillis()))) {
+            log.info("Trace ingestion with configuration '%s' done (took %s ms)\n%s".formatted(
+                    ingestionStrategy.get().getName(),
+                    duration.toMillis(),
+                    filteredTrace.getTrace()));
+        }
     }
 
     protected final <T extends ExternalInput> void ingest(Trace trace, Ingestion mapping) {
@@ -75,27 +89,24 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
 
             entityDependencies.entrySet()
                     .stream()
-                    .map(entry -> createProcessor(entry.getKey(), entityMappings.get(entry.getKey()), entry.getValue()))
-                    .map(processor -> processor.apply(beanAccessor))
-                    .map(entityIngestor::saveAll)
+                    .map(entry -> createProcessor(entry.getKey(), mapping.getName(), entityMappings.get(entry.getKey()), entry.getValue()))
+                    .map(processor -> (Supplier<List<ExternalInput>>) () -> processor.apply(beanAccessor))
+                    .map(entityIngestor::process)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                throw e;
-            } else {
-                throw new RuntimeException(e);
-            }
+            final var errorMessage = "Error occurred ingesting trace with configuration '%s'\n%s: ".formatted(mapping.getName(), trace);
+            log.error("%s\n%s".formatted(errorMessage, e.getMessage()));
+            throw new RuntimeException(errorMessage, e);
         }
     }
 
-    private <T extends ExternalInput> DefaultProcessor<T> createProcessor(String entityName, List<Mapping> mappings, List<BeanProperty> dependencies) {
-        final BiFunction<Specification<? extends ExternalInput>, Class<? extends ExternalInput>, List<? extends ExternalInput>> entityFinder = entityIngestor::findAll;
+    private <T extends ExternalInput> DefaultProcessor<T> createProcessor(String entityName, String configurationName, List<Mapping> mappings, List<BeanProperty> dependencies) {
         try {
             final var className = Class.forName("%s.%sProcessor".formatted(DefaultProcessor.class.getPackageName(), entityName));
-            return (DefaultProcessor<T>) className.getConstructor(String.class, List.class, List.class, BiFunction.class)
-                    .newInstance(entityName, mappings, dependencies, entityFinder);
+            return (DefaultProcessor<T>) className.getConstructor(String.class, String.class, List.class, List.class, EntityFinder.class)
+                    .newInstance(entityName, configurationName, mappings, dependencies, entityIngestor);
         } catch (Exception e) {
-            return new DefaultProcessor<T>(entityName, mappings, dependencies, entityFinder);
+            return new DefaultProcessor<T>(entityName, configurationName, mappings, dependencies, entityIngestor);
         }
     }
 }

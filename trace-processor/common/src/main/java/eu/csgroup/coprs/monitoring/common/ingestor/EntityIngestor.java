@@ -1,30 +1,31 @@
 package eu.csgroup.coprs.monitoring.common.ingestor;
 
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.AuxData;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.Chunk;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.Dsib;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.ExternalInput;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.*;
 import eu.csgroup.coprs.monitoring.common.jpa.EntityRepository;
 import eu.csgroup.coprs.monitoring.common.jpa.EntitySpecification;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.springframework.data.jpa.domain.Specification.where;
 
+@Slf4j
 @Configuration
 @EnableJpaRepositories(basePackages = "eu.csgroup.coprs.monitoring.common.jpa")
 @EntityScan(basePackages = EntityIngestor.BASE_PACKAGE)
-//@EnableTransactionManagement
-//@Transactional
-public class EntityIngestor {
+public class EntityIngestor implements EntityFinder {
     public static final String BASE_PACKAGE = "eu.csgroup.coprs.monitoring.common.datamodel.entities";
 
     @Autowired
@@ -39,21 +40,33 @@ public class EntityIngestor {
     @Autowired
     private EntityRepository<AuxData> adRepository;
 
-    public Iterable<ExternalInput> list() {
-        return eiRepository.findAll();
+    @Autowired
+    private EntityRepository<Product> pRepository;
+
+    public List<? extends DefaultEntity> list() {
+        return Stream.of(eiRepository, pRepository)
+                .map(JpaRepository::findAll)
+                .reduce(new Vector<>(), (l,n) -> {
+                    l.addAll(n);
+                    return l;
+                });
+    }
+
+    public <T extends DefaultEntity> List<T> list(Class<T> className) {
+        return selectRepository(className).findAll();
     }
 
 
-    public EntityRepository selectRepository(Class<? extends ExternalInput> className) {
+    public <T extends DefaultEntity> EntityRepository selectRepository(Class<T> className) {
         EntityRepository repository = null;
         if (className.equals(AuxData.class)) {
             repository = adRepository;
-        }
-        else if (className.equals(Chunk.class)) {
+        } else if (className.equals(Chunk.class)) {
             repository = cRepository;
-        }
-        else if (className.equals(Dsib.class)) {
+        } else if (className.equals(Dsib.class)) {
             repository = dRepository;
+        } else if (className.equals(Product.class)) {
+            repository = pRepository;
         }
         else {
             repository = eiRepository;
@@ -62,7 +75,7 @@ public class EntityIngestor {
         return repository;
     }
 
-    public List<ExternalInput> saveAll(List<ExternalInput> entities) {
+    public <T extends DefaultEntity> List<T> saveAll(List<T> entities) {
         if (entities == null || entities.isEmpty()) {
             return List.of();
         } else {
@@ -70,22 +83,36 @@ public class EntityIngestor {
         }
     }
 
-    public ExternalInput findEntityBy (Map<String, String> attributes) {
+    public DefaultEntity findEntityBy (Map<String, String> attributes) {
         final var clause = attributes.entrySet()
                 .stream()
-                .map(entry -> EntitySpecification.getEntityBy(entry.getKey(), entry.getValue()))
+                .map(entry -> EntitySpecification.<ExternalInput>getEntityBy(entry.getKey(), entry.getValue()))
                 .reduce(where(null), (l,n) -> l.and(n));
 
         return eiRepository.findOne(clause)
                 .orElse(null);
     }
 
-    public <T extends ExternalInput> List<? extends ExternalInput> findAll(Specification<? extends ExternalInput> specs, Class<? extends ExternalInput> className) {
-        return selectRepository(className).findAll(specs);
-    }
-
-    public List<ExternalInput> findAll(Class<? extends ExternalInput> className) {
+    public <T extends DefaultEntity> List<T> findAll(Class<T> className) {
         return selectRepository(className).findAll();
     }
 
+    @Override
+    public <T extends DefaultEntity> List<T> findAll(Specification<T> specs, Class<T> className) {
+        return selectRepository(className).findAll(specs);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public <T extends DefaultEntity> List<T> process(Supplier<List<T>> processor) {
+        return saveAll(processor.get());
+    }
+
+    /**
+     * Do not use in production context. Must only be used for test context.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deleteAll () {
+        eiRepository.deleteAll();
+        pRepository.deleteAll();
+    }
 }

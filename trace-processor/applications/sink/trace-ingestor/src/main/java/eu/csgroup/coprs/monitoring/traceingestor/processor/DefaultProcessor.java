@@ -2,7 +2,8 @@ package eu.csgroup.coprs.monitoring.traceingestor.processor;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.ExternalInput;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
+import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.jpa.EntitySpecification;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.TraceMapper;
@@ -11,17 +12,17 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public class DefaultProcessor<T extends ExternalInput> extends AbstractProcessor<BeanAccessor, T> {
+public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor<BeanAccessor, T> {
     public DefaultProcessor (
             String entityName,
+            String configurationName,
             List<Mapping> mappings,
             List<BeanProperty> dependencies,
-            BiFunction<Specification<? extends ExternalInput>, Class<? extends ExternalInput>, List<? extends ExternalInput>> entityFinder
+            EntityFinder entityFinder
     ) {
-        super(entityName, mappings, dependencies, entityFinder);
+        super(entityName, configurationName, mappings, dependencies, entityFinder);
     }
 
     private Specification<T> getFindClauses(BeanAccessor bean) {
@@ -48,18 +49,21 @@ public class DefaultProcessor<T extends ExternalInput> extends AbstractProcessor
         final var mapper = new TraceMapper<T>();
 
         final var mappingWithOnlyDependencies = mappings.stream().filter(m -> dependencies.contains(m.entityPath())).collect(Collectors.toList());
-        final var requiredEntities = mapper.map(beanAccessor, mappingWithOnlyDependencies, handler);
-        final var availableEntities = (List<T>) entityFinder.apply(getFindClauses(beanAccessor), handler.getEntityClass());
+        final var requiredEntities = mapper.map(beanAccessor, mappingWithOnlyDependencies, configurationName, handler);
+        final var availableEntities = (List<T>) entityFinder.findAll(getFindClauses(beanAccessor), handler.getEntityClass());
 
         // Feature: Handle case where parts of entities are not available (compared to required entities)
         if (availableEntities.isEmpty()) {
             handler.mergeWith(requiredEntities);
-        } else {
+        } else if (availableEntities.size() == requiredEntities.size()) {
             handler.mergeWith(availableEntities);
+        } else {
+            throw new UnsupportedOperationException("Can't handle merge and create operation simultaneously");
         }
 
 
+
         final var mappingWithoutDependencies = mappings.stream().filter(m -> ! dependencies.contains(m.entityPath())).collect(Collectors.toList());
-        return mapper.map(beanAccessor, mappingWithoutDependencies, handler);
+        return mapper.map(beanAccessor, mappingWithoutDependencies, configurationName, handler);
     }
 }

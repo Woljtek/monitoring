@@ -1,15 +1,12 @@
 package eu.csgroup.coprs.monitoring.traceingestor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import eu.csgroup.coprs.monitoring.common.bean.AutoMergeableMap;
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.Chunk;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.*;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
 import eu.csgroup.coprs.monitoring.common.datamodel.*;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.AuxData;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.Dsib;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.ExternalInput;
 import eu.csgroup.coprs.monitoring.common.message.FilteredTrace;
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.*;
 
 import org.junit.runner.RunWith;
@@ -21,7 +18,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -32,7 +28,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Import(TraceIngestorConfiguration.class)
 @ContextConfiguration(initializers = TestInitializer.class)
 @DataJpaTest
-@Transactional
+// Comment the two below annotation to test with non embedded database
+@AutoConfigureEmbeddedDatabase
 @ActiveProfiles("dev-embedded")
 //@ActiveProfiles("dev-integration")
 public class LogSinkTests {
@@ -45,8 +42,14 @@ public class LogSinkTests {
     @Autowired
     private EntityIngestor entityIngestor;
 
+
+    @After
+    public void setUpAfterTest () {
+        entityIngestor.deleteAll();
+    }
+
     @Test
-    public void testNominal () throws Exception {
+    public void testNominal () {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var dsibRef = getDsibRef();
@@ -61,7 +64,40 @@ public class LogSinkTests {
     }
 
     @Test
-    public void testMappingDsibFirst() throws Exception {
+    public void testMappingDsibFirst() {
+        // Given
+        final var sink = conf.traceIngestor(factory, entityIngestor);
+        final var dsibRef = getDsibRef();
+        final var chunkRef = getChunkRef();
+        final var auxDataRef = getAuxDataRef();
+        final var productRef = getProductRef();
+
+        // When
+        sink.accept(toMessage(dsibRef));
+        sink.accept(toMessage(chunkRef));
+        sink.accept(toMessage(auxDataRef));
+        sink.accept(toMessage(productRef));
+
+        // Then
+        assertThat(entityIngestor.list(ExternalInput.class))
+                .hasSize(3)
+                .allMatch(e -> e.getFilename() != null)
+                .allMatch(e -> e.getMission() != null)
+                .allMatch(e -> e.getIngestionDate() != null)
+                .allMatch(e -> e.getCatalogStorageDate() != null)
+                .allMatch(e -> e.getPickupPointAvailableDate() != null)
+                .allMatch(e -> e.getPickupPointSeenDate() != null);
+        assertThat(entityIngestor.list(Product.class))
+                .hasSize(1)
+                .allMatch(p -> p.getFilename() != null)
+                .allMatch(p -> p.getTimelinessName() != null)
+                .allMatch(p -> p.getTimelinessValueSeconds() != 0)
+                .allMatch(p -> p.isEndToEndProduct())
+                .allMatch(p -> !p.getCustom().isEmpty());
+    }
+
+    @Test
+    public void testMappingChunkFirst() {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var dsibRef = getDsibRef();
@@ -69,12 +105,12 @@ public class LogSinkTests {
         final var auxDataRef = getAuxDataRef();
 
         // When
-        sink.accept(toMessage(dsibRef));
         sink.accept(toMessage(chunkRef));
+        sink.accept(toMessage(dsibRef));
         sink.accept(toMessage(auxDataRef));
 
         // Then
-        assertThat(entityIngestor.list())
+        assertThat(entityIngestor.list(ExternalInput.class))
                 .hasSize(3)
                 .allMatch(e -> e.getFilename() != null)
                 .allMatch(e -> e.getMission() != null)
@@ -85,63 +121,53 @@ public class LogSinkTests {
     }
 
     @Test
-    public void testMappingChunkFirst() throws Exception {
+    public void testOneToManyMapping() {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
-        final var dsibRef = getDsibRef();
-        final var chunkRef = getChunkRef();
-        final var auxDataRef = getAuxDataRef();
-
-        // When
-        sink.accept(toMessage(chunkRef));
-        sink.accept(toMessage(dsibRef));
-        sink.accept(toMessage(auxDataRef));
-
-        // Then
-        assertThat(entityIngestor.list())
-                .hasSize(3)
-                .allMatch(e -> e.getFilename() != null)
-                .allMatch(e -> e.getMission() != null)
-                .allMatch(e -> e.getIngestionDate() != null)
-                .allMatch(e -> e.getCatalogStorageDate() != null)
-                .allMatch(e -> e.getPickupPointAvailableDate() != null)
-                .allMatch(e -> e.getPickupPointSeenDate() != null);
-    }
-
-    @Test
-    public void testOneToManyMapping() throws Exception {
-        // Given
-        final var sink = conf.traceIngestor(factory, entityIngestor);
-        final var chunksRef = getMultiChunkRef();
+        final var chunksRef = getMultiChunkRef(
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00001.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00002.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00004.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00005.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00006.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00007.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00008.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00009.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00010.raw"
+        );
 
         // When
         sink.accept(toMessage(chunksRef));
 
         // Then
+        assertThat(entityIngestor.list(Chunk.class))
+                .map(c -> {
+                    System.out.println(c);
+                    return c;
+                });
         assertThat(entityIngestor.list())
                 .hasSize(10);
     }
 
     @Test
-    public void testGlobalTransaction() throws Exception {
+    public void testGlobalTransaction() {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
-        final var chunksRef = getMultiChunkRef();
-        final var duplicateChunk = new Chunk();
-        duplicateChunk.setFilename("DCS_05_S2B_20210927072424023813_ch1_DSDB_00008.raw");
+        final var chunksRef = getMultiChunkRef("DCS_05_S2B_20210927072424023813_ch1_DSDB_00003.raw",
+                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00003.raw");
 
         // When
-        entityIngestor.saveAll(List.of(duplicateChunk));
+        final var res = assertThatThrownBy(() -> sink.accept(toMessage(chunksRef)));
 
         // Then
-        assertThatThrownBy(() -> sink.accept(toMessage(chunksRef))).isNotNull();
+        res.isNotNull();
         assertThat(entityIngestor.list())
-                .hasSize(2); // Duplicate chunk plus associated dsib
+                .hasSize(0);
     }
 
 
     @Test
-    public void testUnicityClause () throws Exception {
+    public void testUnicityClause () {
         final var sink = conf.traceIngestor(factory, entityIngestor);
         // Given
         final var dsibRef = getDsibRef();
@@ -156,7 +182,7 @@ public class LogSinkTests {
     }
 
     @Test
-    public void testEntityUpdate () throws Exception {
+    public void testEntityUpdate () {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var dsibRef = getDsibRef();
@@ -176,8 +202,7 @@ public class LogSinkTests {
     }
 
     @Test
-    // TODO
-    public void testMapEntityUpdate () throws Exception {
+    public void testMapEntityUpdate () {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var auxDataRef = getAuxDataRef();
@@ -211,7 +236,7 @@ public class LogSinkTests {
         ((Map)(output.get("test_object"))).put("object1", "value10");
         ((Map)(output.get("test_object"))).put("object2", "value2");
         ((Map)(output.get("test_object"))).put("object4", "value4");
-        final var custom = new HashMap<>();
+        final var custom = new AutoMergeableMap();
         custom.put("destination", output);
         custom.putAll(customUpdate);
 
@@ -222,12 +247,12 @@ public class LogSinkTests {
                     System.out.println(t);
                     return true;
                 })
-                .extracting("custom")
-                .isEqualTo(custom);
+                .extracting(AuxData::getCustom)
+                .matches(map -> map.equals(custom));
     }
 
     @Test
-    public void testMissingRule () throws Exception {
+    public void testMissingRule () {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var fTrace = new FilteredTrace("test", new Trace());
@@ -237,11 +262,11 @@ public class LogSinkTests {
 
         // Then
         assertThrown.isNotNull()
-                .hasMessage("No configuration found for 'test'");
+                .hasMessage("No configuration found for 'test'\n%s".formatted(fTrace.getTrace()));
     }
 
     @Test
-    public void testFindEntityByField () throws Exception {
+    public void testFindEntityByField () {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var dsibRef = getDsibRef();
@@ -259,7 +284,7 @@ public class LogSinkTests {
 
     // -- Helper -- //
 
-    private FilteredTrace getDsibRef() throws  JsonProcessingException {
+    private FilteredTrace getDsibRef() {
         var ref = getRawRef();
         ref.getTask().setName("DSIB Trace");
         ((EndTask)ref.getTask()).getOutput().put("filename", "DCS_05_S2B_20210927072424023813_ch1_DSIB.xml");
@@ -267,7 +292,7 @@ public class LogSinkTests {
         return new FilteredTrace("dsib", ref);
     }
 
-    private FilteredTrace getChunkRef() throws  JsonProcessingException {
+    private FilteredTrace getChunkRef() {
         var ref = getRawRef();
         ref.getTask().setName("CHUNK Trace");
         ((EndTask)ref.getTask()).getOutput().put("filename", "DCS_05_S2B_20210927072424023813_ch1_DSDB_00001.raw");
@@ -275,27 +300,18 @@ public class LogSinkTests {
         return new FilteredTrace("chunk", ref);
     }
 
-    private FilteredTrace getMultiChunkRef(String ... additionalChunks) throws  JsonProcessingException {
+    private FilteredTrace getMultiChunkRef(String ... additionalChunks) {
         var ref = getRawRef();
         ref.getTask().setName("CHUNK Trace");
         final var filenames = new Vector<String>();
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00001.raw");
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00002.raw");
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00004.raw");
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00005.raw");
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00006.raw");
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00007.raw");
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00008.raw");
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00009.raw");
-        filenames.add("DCS_05_S2B_20210927072424023813_ch1_DSDB_00010.raw");
-        Arrays.stream(additionalChunks)
-                .forEach(ac -> filenames.add(ac));
+        filenames.addAll(Arrays.asList(additionalChunks));
+
         ((EndTask)ref.getTask()).getOutput().put("filename", filenames);
 
         return new FilteredTrace("chunk", ref);
     }
 
-    private FilteredTrace getAuxDataRef() throws  JsonProcessingException {
+    private FilteredTrace getAuxDataRef() {
         var ref = getRawRef();
         ref.getTask().setName("AUX_DATA Trace");
         ((EndTask)ref.getTask()).getOutput().put("filename", "S2B_OPER_GIP_R2EQOG_MPC__20220315T151100_V20220317T000000_21000101T000000_B10");
@@ -303,17 +319,14 @@ public class LogSinkTests {
         return new FilteredTrace("aux_data", ref);
     }
 
-    private Trace getRawRef () throws JsonProcessingException {
+    private Trace getRawRef () {
         final var header = new Header();
         header.setType(TraceType.REPORT);
         header.setMission("S2");
 
         final var task = new EndTask();
-        task.setSatellite("S2B");
+        //task.setSatellite("S2B");
 
-        final var mapper = JsonMapper.builder()
-                .findAndAddModules()
-                .build();
         final var output = new HashMap<>();
         output.put("pickup_point_seen_date", "2019-01-21T05:24:40.000000Z");
         output.put("pickup_point_available_date", "2019-01-21T05:24:40.000000Z");
@@ -337,6 +350,35 @@ public class LogSinkTests {
         trace.setCustom(custom);
 
         return trace;
+    }
+
+    private FilteredTrace getProductRef() {
+        final var header = new Header();
+        header.setType(TraceType.REPORT);
+        header.setMission("S2");
+
+        final var task = new EndTask();
+
+        final var output = new HashMap<>();
+        output.put("timeliness_name_string", "timeliness test");
+        output.put("timeliness_value_seconds_integer", 100);
+        output.put("end_to_end_product_boolean", true);
+        output.put("product_metadata_custom_object", Map.of(
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3"
+        ));
+        task.setOutput(output);
+
+        final var input = new HashMap<>();
+        input.put("filename_string", "S2B_OPER_MSI_L0__DS_2BPS_20220529T143730_S20220529T002607_N04");
+        task.setInput(input);
+
+        final var trace = new Trace();
+        trace.setHeader(header);
+        trace.setTask(task);
+
+        return new FilteredTrace("product", trace);
     }
 
     private Message<FilteredTrace> toMessage(FilteredTrace ref) {

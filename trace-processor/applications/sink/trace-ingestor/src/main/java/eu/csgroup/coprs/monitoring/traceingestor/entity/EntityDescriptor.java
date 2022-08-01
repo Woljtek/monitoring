@@ -1,12 +1,12 @@
 package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.ExternalInput;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import lombok.*;
 
 @NoArgsConstructor
 @EqualsAndHashCode
-public class EntityDescriptor<T extends ExternalInput> {
+public class EntityDescriptor<T extends DefaultEntity> {
     @Getter
     @Setter
     private BeanAccessor bean;

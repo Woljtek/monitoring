@@ -29,9 +29,6 @@ spring:
     baselineOnMigrate: true
     baseline-version: 0
     sql-migration-prefix: V
-#  autoconfigure:
-#    exclude:
-#      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 
 hibernate:
   types:
@@ -73,13 +70,7 @@ spring:
   config:
     activate:
       on-profile: dev-embedded
-  datasource:
-    driverClassName: org.h2.Driver
-  h2:
-    console:
-      enabled: true
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     show-sql: true
     properties:
       hibernate:
@@ -112,7 +103,7 @@ spring:
     driverClassName: org.postgresql.Driver
     username: psql_user
     password: psql_password
-    url: jdbc:postgresql://localhost:5432/trace
+    url: jdbc:postgresql://localhost:5432/monitoring
   jpa:
     ## Hibernate Properties
     # The SQL dialect makes Hibernate generate better SQL for the chosen database

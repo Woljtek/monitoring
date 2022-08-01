@@ -2,7 +2,7 @@ package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.ExternalInput;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.traceingestor.mapping.Mapping;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +14,11 @@ import java.util.stream.Collectors;
 
 @Data
 @Slf4j
-public class TraceMapper<T extends ExternalInput> {
+public class TraceMapper<T extends DefaultEntity> {
 
-    public List<T> map(BeanAccessor wrapper, List<Mapping> mappings, DefaultHandler handler) {
+    public List<T> map(BeanAccessor wrapper, List<Mapping> mappings, String configurationName, DefaultHandler handler) {
         if (mappings != null && mappings.size() != 0) {
-            return new Parser(mappings.get(0).entityPath().getBeanName(), mappings).parse(wrapper, handler);
+            return new Parser(mappings.get(0).entityPath().getBeanName(), mappings, configurationName).parse(wrapper, handler);
         } else {
             return List.of();
         }
@@ -47,13 +47,14 @@ public class TraceMapper<T extends ExternalInput> {
 
         public void setPropertyValue (BeanProperty property, Object value, boolean cache) {
             current.getBean().setPropertyValue(property, value);
+            log.debug("Set value %s for property %s".formatted(value, property));
             if (cache) {
                 cachedProperties.put(property, value);
             }
         }
 
         public boolean hasNext() {
-            return current != null ? current.hasNext() : false;
+            return current != null && current.hasNext();
         }
 
         public void nextEntity () {
@@ -62,7 +63,6 @@ public class TraceMapper<T extends ExternalInput> {
             } else {
                 current = handler.getNextEntity();
                 cachedProperties.entrySet()
-                        .stream()
                         .forEach(entry -> current.getBean().setPropertyValue(
                                 entry.getKey(),
                                 entry.getValue()));
@@ -79,7 +79,7 @@ public class TraceMapper<T extends ExternalInput> {
                         .map(EntityDescriptor::getEntity)
                         .map(handler::clone)
                         .peek(ed -> ed.getBean().setPropertyValue(property, next))
-                        .forEach(ed -> tempCache.add(ed));
+                        .forEach(tempCache::add);
             }
 
             cached = tempCache;
@@ -98,6 +98,8 @@ public class TraceMapper<T extends ExternalInput> {
 
         private final List<Mapping> rules;
 
+        private final String configurationName;
+  
         public List<T> parse(BeanAccessor wrapper, DefaultHandler handler) {
             final var entityCache = new EntityCache(handler);
             parse(rules.iterator(), wrapper, entityCache);
@@ -133,7 +135,7 @@ public class TraceMapper<T extends ExternalInput> {
                             }
                         }
                     } else {
-                        log.warn("No value found for '%s'".formatted(rule.tracePath()));
+                        log.warn("No value found for '%s' for configuration '%s'\n%s".formatted(rule.tracePath(), configurationName, wrapper.getDelegate().getWrappedInstance()));
                     }
                 } catch (NullValueInNestedPathException e) {
                     log.warn(e.getMessage());

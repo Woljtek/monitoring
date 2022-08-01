@@ -4,13 +4,12 @@ import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.Chunk;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.Dsib;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.ExternalInput;
+import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.jpa.EntitySpecification;
 import eu.csgroup.coprs.monitoring.traceingestor.mapping.Mapping;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -20,11 +19,12 @@ public class ChunkProcessor extends DefaultProcessor<Chunk> {
 
     public ChunkProcessor (
             String entityName,
+            String configurationName,
             List<Mapping> mappings,
             List<BeanProperty> dependencies,
-            BiFunction<Specification<? extends ExternalInput>, Class<? extends ExternalInput>, List<? extends ExternalInput>> entityFinder
+            EntityFinder entityFinder
     ) {
-        super(entityName, mappings, dependencies, entityFinder);
+        super(entityName, configurationName, mappings, dependencies, entityFinder);
     }
 
     @Override
@@ -33,18 +33,23 @@ public class ChunkProcessor extends DefaultProcessor<Chunk> {
 
         final var missingDsibByFilename = processedEntities.stream()
                 .filter(c -> c.getDsib().getId() == null)
-                .peek(c -> c.getDsib().setFilename(chunkToDsibFilename(c.getFilename())))
+                .peek(this::setDefaultDsibValue)
                 .collect(Collectors.groupingBy(c -> c.getDsib().getFilename()));
 
         final var spec = Specification.<Dsib>where(null).and(
-                EntitySpecification.getEntityBy("filename", missingDsibByFilename.keySet().iterator().next()));
-        entityFinder.apply(spec, Dsib.class)
+                EntitySpecification.getEntityBy("filename", missingDsibByFilename.keySet()));
+        entityFinder.findAll(spec, Dsib.class)
                 .forEach(d -> {
                      missingDsibByFilename.get(d.getFilename())
                             .forEach(c -> c.setDsib((Dsib)d));
                 });
 
         return processedEntities;
+    }
+
+    private void setDefaultDsibValue(Chunk chunk) {
+        chunk.getDsib().setFilename(chunkToDsibFilename(chunk.getFilename()));
+        chunk.getDsib().setMission(chunk.getMission());
     }
 
     private String chunkToDsibFilename(String chunkFilename) {

@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ## [0.10.0-rc1] - 2022-08-XX
 #### Added
 - [#355 - [RS core Monitoring] Feed SQL data with information from ingestion service traces](https://github.com/COPRS/rs-issues/issues/355)
+- [#411 - [RS core Monitoring] Compute product information from RS core Metadata Extraction trace (catalog data)](https://github.com/COPRS/rs-issues/issues/411)
 
 ## [0.9.0-rc1] - 2022-07-06
 ### Added

@@ -57,4 +57,16 @@ public class BeanProperty {
             propertyName = propertyName.substring(lastDelimiter + 1);
         }
     }
+
+    public String getBeanPropertyPath() {
+        return getBeanPropertyPath(false);
+    }
+
+    public String getBeanPropertyPath (boolean withBeanName) {
+        if (withBeanName) {
+            return PropertyUtil.getPath(beanName, beanPropertyPath);
+        } else {
+            return beanPropertyPath;
+        }
+    }
 }

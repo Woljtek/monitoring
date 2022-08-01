@@ -1,6 +1,7 @@
 package eu.csgroup.coprs.monitoring.common.datamodel.entities;
 
 import lombok.*;
+
 import javax.persistence.*;
 
 @Data
@@ -13,7 +14,8 @@ import javax.persistence.*;
 @PrimaryKeyJoinColumn(name="parent_id", referencedColumnName = "id")
 public class Chunk extends ExternalInput {
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "dsib_id", referencedColumnName = "parent_id")
     private Dsib dsib = new Dsib();
 
     @Override

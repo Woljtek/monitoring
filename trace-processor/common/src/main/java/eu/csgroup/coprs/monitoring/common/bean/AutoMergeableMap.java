@@ -18,7 +18,14 @@ public class AutoMergeableMap extends HashMap<Object, Object> {
     }
 
     public AutoMergeableMap(Map map) {
-        super(map);
+        super();
+        ((Set<Entry>)(map.entrySet())).forEach(entry -> this.put(entry.getKey(), entry.getValue()));
+    }
+
+    @Override
+    public void putAll(Map map) {
+        for (Map.Entry e : (Set<Entry>)map.entrySet())
+            put(e.getKey(), e.getValue());
     }
 
     @Override
@@ -29,8 +36,8 @@ public class AutoMergeableMap extends HashMap<Object, Object> {
             oldValue = get(key);
 
             newValue = merge(oldValue, value);
-        } else if (value instanceof Map<?,?>) {
-            newValue = convertMap((Map)value);
+        } else if (value instanceof Map<?,?> || value instanceof Collection<?>) {
+            newValue = convertObject(value);
         }
 
         if (oldValue != newValue) {
@@ -71,7 +78,7 @@ public class AutoMergeableMap extends HashMap<Object, Object> {
     private Map convertMap(Map map) {
         var collector = Collectors.<Entry, Object, Object, AutoMergeableMap>toMap(
                 Map.Entry::getKey,
-                Map.Entry::getValue,
+                entry -> convertObject(entry.getValue()),
                 (o1, o2) -> o1,
                 AutoMergeableMap::new);
 
@@ -83,7 +90,7 @@ public class AutoMergeableMap extends HashMap<Object, Object> {
     private Object convertObject(Object obj) {
         if (obj instanceof Collection<?> && ! (obj instanceof HashSet<?>)) {
             return new HashSet((Collection)obj);
-        } else if (obj instanceof Map<?,?> && ! (obj instanceof HashMap<?,?>)) {
+        } else if (obj instanceof Map<?,?> && ! (obj instanceof AutoMergeableMap)) {
             return convertMap((Map) obj);
         } else {
             return obj;

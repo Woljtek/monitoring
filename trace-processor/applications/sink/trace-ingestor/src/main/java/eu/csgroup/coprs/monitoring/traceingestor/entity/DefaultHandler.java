@@ -2,8 +2,8 @@ package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.InstantPropertyEditor;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.ExternalInput;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
@@ -13,7 +13,7 @@ import java.util.*;
 
 
 @RequiredArgsConstructor
-public class DefaultHandler<T extends ExternalInput> {
+public class DefaultHandler<T extends DefaultEntity> {
     private final String entityName;
 
     private Class<T> className;
