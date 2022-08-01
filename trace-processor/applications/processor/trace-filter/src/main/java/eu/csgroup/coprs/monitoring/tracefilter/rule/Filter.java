@@ -31,6 +31,10 @@ public class Filter implements Predicate<BeanWrapper> {
         // Wrap rule check
         final Function<Rule, Boolean> applyRule = rule -> this.checkRule(rule, beanWrapper);
 
+        if (rules == null || rules.isEmpty()) {
+            throw new UnsupportedOperationException("Filter '%s' with empty rules is not supported");
+        }
+
         return rules.stream()
                 .map(applyRule)
                 .reduce(true, (last, next) -> last & next);
