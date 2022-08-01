@@ -149,7 +149,7 @@ public class TraceDeserializerTests {
         header.setType(TraceType.REPORT);
         header.setTimestamp(Instant.parse("2021-08-30T15:02:24.125000Z"));
         header.setLevel(TraceLevel.INFO);
-        header.setMission(Mission.S3);
+        header.setMission("S3");
         header.setRsChainName("trace-processor");
         header.setRsChainVersion("1.1.9-rc1");
         header.setWorkflow(Workflow.NOMINAL);
@@ -164,7 +164,7 @@ public class TraceDeserializerTests {
         task.setEvent(Event.BEGIN);
         task.setDataRateMebibytesSec(783740.123);
         task.setDataVolumeMebibytes(783740.123);
-        task.setSatellite(Satellite.S2B);
+        task.setSatellite("S2B");
         task.setInput(
                 Map.of(
                         "key", "value1",
@@ -195,7 +195,7 @@ public class TraceDeserializerTests {
         header.setType(TraceType.REPORT);
         header.setTimestamp(Instant.parse("2021-08-30T15:02:24.125000Z"));
         header.setLevel(TraceLevel.INFO);
-        header.setMission(Mission.S3);
+        header.setMission("S3");
         header.setRsChainName("trace-processor");
         header.setRsChainVersion("1.1.9-rc1");
         header.setWorkflow(Workflow.NOMINAL);
@@ -210,7 +210,7 @@ public class TraceDeserializerTests {
         task.setEvent(Event.END);
         task.setDataRateMebibytesSec(783740.123);
         task.setDataVolumeMebibytes(783740.123);
-        task.setSatellite(Satellite.S2B);
+        task.setSatellite("S2B");
         task.setInput(
                 Map.of(
                         "key", "value1",

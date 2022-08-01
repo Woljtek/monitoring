@@ -1,0 +1,39 @@
+ingestions:
+  -
+    name: dsib
+    mappings:
+      header.mission: dsib.mission
+      task.output[filename]: dsib.filename
+      task.output[satellite]: dsib.satellite
+      task.output[pickup_point_seen_date]: dsib.pickupPointSeenDate
+      task.output[pickup_point_available_date]: dsib.pickupPointAvailableDate
+      task.output[ingestion_date]: dsib.ingestionDate
+      task.output[catalog_storage_date]: dsib.catalogStorageDate
+    dependencies:
+      - dsib.filename
+  -
+    name: chunk
+    mappings:
+      header.mission: chunk.mission
+      task.output[filename]: chunk.filename
+      task.output[pickup_point_seen_date]: chunk.pickup_point_seen_date
+      task.output[pickup_point_available_date]: chunk.pickup_point_available_date
+      task.output[ingestion_date]: chunk.ingestion_date
+      task.output[catalog_storage_date]: chunk.catalog_storage_date
+    dependencies:
+      - chunk.filename
+  -
+    name: aux_data
+    mappings:
+      header.mission: aux_data.mission
+      task.output[filename]: aux_data.filename
+      task.output[pickup_point_seen_date]: aux_data.pickup_point_seen_date
+      task.output[pickup_point_available_date]: aux_data.pickup_point_available_date
+      task.output[ingestion_date]: aux_data.ingestion_date
+      task.output[catalog_storage_date]: aux_data.catalog_storage_date
+      task.output: aux_data.custom[destination]
+      custom[test_field_string]: aux_data.custom[test_field_string]
+      custom[test_field_strings]: aux_data.custom[test_field_strings]
+      custom[test_field_object]: aux_data.custom[test_field_object]
+    dependencies:
+      - aux_data.filename

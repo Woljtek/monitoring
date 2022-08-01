@@ -36,18 +36,35 @@ public class PropertyUtil {
         }
     }
 
+    public static String[] splitPath (String path, int limit) {
+        return path.split(Pattern.quote(PROPERTY_DELIMITER), limit);
+    }
+
     public static String[] splitPath (String path) {
         return path.split(Pattern.quote(PROPERTY_DELIMITER));
     }
 
+    /**
+     * Remove snake and camel case formatting (set property in lower case).
+     *
+     * @param formattedPropertyName
+     * @return
+     */
+    public static String removeAllFormat (String formattedPropertyName) {
+        return formattedPropertyName.replaceAll("_", "").toLowerCase();
+    }
+
     public static String snake2CamelCasePath (String snakePropertyPath) {
         return Arrays.stream(splitPath(snakePropertyPath))
-                .peek(pathPart -> System.out.println("Path part: %s".formatted(pathPart)))
-                .map(PropertyUtil::snake2CamelCasePropertyName)
+                .map(prop -> PropertyUtil.snake2CamelCasePropertyName(prop, false))
                 .reduce("", PropertyUtil::getPath);
     }
 
     public static String snake2CamelCasePropertyName (String snakePropertyName) {
+        return snake2CamelCasePropertyName(snakePropertyName, false);
+    }
+
+    private static String snake2CamelCasePropertyName (String snakePropertyName, boolean pascalCase) {
         final var bracketIndex = snakePropertyName.indexOf(INDEX_START);
         var part2Camelise = snakePropertyName;
         var partNot2Camelise = "";
@@ -67,7 +84,7 @@ public class PropertyUtil {
                 var newPart = raw;
 
                 // Do not capitalize first part (beginning of property name), keep raw value as is
-                if (pos != 0) {
+                if (pos != 0 || pascalCase) {
                     newPart = StringUtils.capitalize(raw);
                 }
                 camelCasePropertyName.append(newPart);
@@ -82,7 +99,7 @@ public class PropertyUtil {
             var endProp = raw;
 
             // No _ in property name so do not convert it and keep raw value as is.
-            if (pos != 0) {
+            if (pos != 0 || pascalCase) {
                 endProp = StringUtils.capitalize(raw);
             }
             camelCasePropertyName.append(endProp);
@@ -91,5 +108,26 @@ public class PropertyUtil {
         camelCasePropertyName.append(partNot2Camelise);
 
         return camelCasePropertyName.toString();
+    }
+
+    public static String snake2PascalCasePropertyPath (String snakePropertyPath) {
+        return snake2CamelCasePath(snakePropertyPath);
+    }
+
+    public static String snake2PascalCasePropertyName (String snakePropertyName) {
+        return snake2CamelCasePropertyName(snakePropertyName, true);
+    }
+
+    public static String pascal2SnakeCasePropertyName (String pascalPropertyName) {
+        final var array = pascalPropertyName.split("[A-Z]");
+        StringBuilder snakePropertyNameBuilder = new StringBuilder(array[0].toLowerCase());
+        int index = 1;
+
+        while (index < array.length) {
+            snakePropertyNameBuilder.append("_");
+            snakePropertyNameBuilder.append(array[index]);
+        }
+
+        return snakePropertyNameBuilder.toString();
     }
 }

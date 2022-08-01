@@ -35,7 +35,7 @@ public class Task {
     @JsonProperty("data_volume_mebibytes")
     private double dataVolumeMebibytes;
 
-    private Satellite satellite;
+    private String satellite;
 
     @NotNull
     private Map input;

@@ -16,6 +16,7 @@
     </parent>
 
     <modules>
+        <module>trace-ingestor</module>
     </modules>
 
 </project>

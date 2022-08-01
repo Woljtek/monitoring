@@ -27,7 +27,7 @@ public class Header {
     private TraceLevel level;
 
     @NotNull
-    private Mission mission;
+    private String mission;
 
     @JsonProperty("rs_chain_name")
     @Size(max= PropertyNames.STRING_FIELD_256_LIMIT, message="header.rs_chain_name cannot exceed " + PropertyNames.STRING_FIELD_10K_LIMIT + " characters")
