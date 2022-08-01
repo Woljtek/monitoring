@@ -3,6 +3,7 @@ package eu.csgroup.coprs.monitoring.tracefilter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
 import eu.csgroup.coprs.monitoring.tracefilter.json.JsonValidator;
 import eu.csgroup.coprs.monitoring.tracefilter.rule.FilterGroup;
@@ -91,7 +92,7 @@ public class TraceFilterTests {
     @Test
     public void testValidRuleOnList() {
         // Given
-        final var rule = new Rule("test", ".*_DSIB\\.xml");
+        final var rule = new Rule(new BeanProperty("test.property"), ".*_DSIB\\.xml");
 
         // When
         final var res = rule.test(List.of(
@@ -107,7 +108,7 @@ public class TraceFilterTests {
     @Test
     public void testInvalidRuleOnList() {
         // Given
-        final var rule = new Rule("test", ".*_DSIB\\.xml");
+        final var rule = new Rule(new BeanProperty("test.property"), ".*_DSIB\\.xml");
 
         // When
         final var res = rule.test(List.of(

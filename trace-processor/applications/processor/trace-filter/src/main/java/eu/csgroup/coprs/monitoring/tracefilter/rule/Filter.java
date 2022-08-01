@@ -1,5 +1,6 @@
 package eu.csgroup.coprs.monitoring.tracefilter.rule;
 
+import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
@@ -22,7 +23,7 @@ public class Filter implements Predicate<BeanWrapper> {
     public void setRules (Map<String, String> rules) {
         this.rules = new Vector<>();
         rules.entrySet().stream().forEach(entry -> {
-            this.rules.add(new Rule(entry.getKey(), entry.getValue()));
+            this.rules.add(new Rule(new BeanProperty(entry.getKey()), entry.getValue()));
         });
     }
 
@@ -44,7 +45,7 @@ public class Filter implements Predicate<BeanWrapper> {
         var match = false;
         Object value = null;
         try {
-            value = beanWrapper.getPropertyValue(rule.getKey());
+            value = beanWrapper.getPropertyValue(rule.getProperty().getBeanPropertyPath(true));
             if (value != null) {
                 match = rule.test(value);
             }
@@ -52,7 +53,7 @@ public class Filter implements Predicate<BeanWrapper> {
             log.trace(e.getMessage());
             match = false;
         }
-        log.trace("Apply rule (path: %s; value: %s) on value '%s' => match: %s".formatted(rule.getKey(), rule.getRawValue(), value, match));
+        log.trace("Apply rule (path: %s; value: %s) on value '%s' => match: %s".formatted(rule.getProperty().getBeanPropertyPath(true), rule.getRawValue(), value, match));
 
         return match;
     }

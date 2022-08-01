@@ -5,6 +5,7 @@ filters:
       header.mission: S2
       header.type: REPORT
       task.event: END
+      task.error_code: 0
       task.status: OK
       #      message.content: End processing of
       #      task.output[filename_strings][0]: .*_V.*
@@ -16,6 +17,7 @@ filters:
       header.mission: S2
       header.type: REPORT
       task.event: END
+      task.error_code: 0
       task.status: OK
       message.content: End processing of
       task.output[filename_strings][0]: .*_DSIB\.xml
@@ -25,6 +27,7 @@ filters:
       header.mission: S2
       header.type: REPORT
       task.event: END
+      task.error_code: 0
       task.status: OK
       message.content: End processing of
       task.output[filename_strings][0]: .*ch2_DSDB.* |.*\.raw
