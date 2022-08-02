@@ -13,7 +13,7 @@ on:
 env:
   REGISTRY_USER: ${{ secrets.CS_ARTIFACTORY_USER }}
   REGISTRY_PWD: ${{ secrets.CS_ARTIFACTORY_PASSWORD }}
-  REGISTRY_BASE: artifactory.coprs.esa-copernicus.eu/rs-docker
+  REGISTRY_BASE: artifactory.coprs.esa-copernicus.eu/rs-docker/monitoring
 
 jobs:
 
