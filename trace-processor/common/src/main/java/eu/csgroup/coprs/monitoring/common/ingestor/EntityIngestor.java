@@ -112,6 +112,7 @@ public class EntityIngestor implements EntityFinder {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteAll () {
+        cRepository.deleteAll();
         eiRepository.deleteAll();
         pRepository.deleteAll();
     }
