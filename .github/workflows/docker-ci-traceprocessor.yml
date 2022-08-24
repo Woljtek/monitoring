@@ -1,19 +1,18 @@
-name: Docker Trace Processor 
+name: Docker Trace Processor
 
 on:
   push:
     paths:
       - 'trace-processor/**'
       - '.github/workflows/docker-ci-traceprocessor.yml'
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
-      - "[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
 
 env:
   REGISTRY_USER: ${{ secrets.CS_ARTIFACTORY_USER }}
   REGISTRY_PWD: ${{ secrets.CS_ARTIFACTORY_PASSWORD }}
   REGISTRY_BASE: artifactory.coprs.esa-copernicus.eu/rs-docker/monitoring
+  SONARQUBE_HOST: ${{ secrets.SONARQUBE_HOST }}
+  SONARQUBE_TOKEN: ${{ secrets.CS_SONARQUBE_TOKEN }}
 
 jobs:
 
@@ -40,11 +39,26 @@ jobs:
           echo "REGISTRY_USER=${{ env.REGISTRY_USER }}" >> $GITHUB_ENV
           echo "REGISTRY_PWD=${{ env.REGISTRY_PWD }}" >> $GITHUB_ENV
           echo "REGISTRY_BASE=${{ env.REGISTRY_BASE }}" >> $GITHUB_ENV
+          # Sonar
+          echo "SONARQUBE_HOST=${{ env.SONARQUBE_HOST }}" >> $GITHUB_ENV
+          echo "SONARQUBE_TOKEN=${{ env.SONARQUBE_TOKEN }}" >> $GITHUB_ENV
           # Git
           GIT_BRANCH=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
           echo "GIT_BRANCH=$GIT_BRANCH" >> $GITHUB_ENV
           GIT_TAG=${GITHUB_REF/refs\/tags\//}
           echo "GIT_TAG=$GIT_TAG" >> $GITHUB_ENV
 
+      - name: Build with Maven (for tag)
+        if: startsWith(env.GIT_TAG, 'refs') != true
+        run: mvn clean install -f trace-processor -Drevision=${{ env.GIT_TAG }}
+
       - name: Build with Maven
-        run: mvn clean deploy -Djib.dest-registry=${{ env.REGISTRY_BASE }} -Djib.dest-username=${{ env.REGISTRY_USER }} -Djib.dest-password="${{ env.REGISTRY_PWD }}" -Drevision=${{ env.GIT_TAG }} -f trace-processor
+        if: startsWith(env.GIT_TAG, 'refs') == true
+        run: mvn clean install -f trace-processor
+
+      - name: Check code with SonarQube
+        run: mvn sonar:sonar -Dsonar.projectKey=trace-processor -Dsonar.host.url=${{ env.SONARQUBE_HOST }} -Dsonar.login=${{ env.SONARQUBE_TOKEN }} -Dsonar.branch.name=${{ env.GIT_BRANCH }} -f trace-processor
+
+      - name: Deploy in artifactory
+        if: startsWith(env.GIT_TAG, 'refs') != true
+        run: mvn deploy -Djib.dest-registry=${{ env.REGISTRY_BASE }} -Djib.dest-username=${{ env.REGISTRY_USER }} -Djib.dest-password="${{ env.REGISTRY_PWD }}" -Drevision=${{ env.GIT_TAG }} -f trace-processor
