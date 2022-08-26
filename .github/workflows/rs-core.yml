@@ -33,6 +33,15 @@ jobs:
         with:
           fetch-depth: 0 # fetch all history so multiple commits can be scanned
 
+      - name: Build MONITORING
+        uses: baileyjm02/markdown-to-pdf@v1
+        with:
+          input_path: rs-cores/MONITORING/Release_Note.md
+          output_dir: rs-cores/MONITORING/S2_L0U/
+          table_of_contents: false
+          # image_dir:
+          build_html: false
+
       - name: Set environment variables
         run: |
           # Artifactory
