@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
 import eu.csgroup.coprs.monitoring.common.datamodel.TraceLog;
 import eu.csgroup.coprs.monitoring.common.message.FilteredTrace;
@@ -43,28 +44,28 @@ public class TraceFilterProcessor
             }
 
             // Map json to bean anc check if json is compliant to ICD
-            final var trace = jsonValidator.readAndValidate(rawJson, TraceLog.class).getTrace();
+            final var traceLog = jsonValidator.readAndValidate(rawJson, TraceLog.class);
 
             // Create wrapper to access value with path
-            final var beanWrapper = PropertyAccessorFactory.forBeanPropertyAccess(trace);
-            beanWrapper.setAutoGrowNestedPaths(true);
+            final var beanAccessor = BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(traceLog));
+            beanAccessor.getDelegate().setAutoGrowNestedPaths(true);
 
             // Prepare log result
-            var traceLog = new StringBuilder("Trace handled");
+            var traceLogDebug = new StringBuilder("Trace handled");
 
-            var matchingFilter = Optional.of(beanWrapper).flatMap(factory.getBean(FilterGroup.class));
+            var matchingFilter = Optional.of(beanAccessor).flatMap(factory.getBean(FilterGroup.class));
 
             // Finalize log result and send it
-            matchingFilter.ifPresentOrElse(filterName -> traceLog.append("filter '").append(filterName).append("' applied"),
-                () -> traceLog.append("no filter applied")
+            matchingFilter.ifPresentOrElse(filterName -> traceLogDebug.append("filter '").append(filterName).append("' applied"),
+                () -> traceLogDebug.append("no filter applied")
             );
-            log.debug(traceLog.append("(").append(rawJson).append(")").toString());
+            log.debug(traceLogDebug.append("(").append(rawJson).append(")").toString());
 
             // Reset cached error trace
             lastProcessedRawTrace = null;
 
             // Create message
-            return matchingFilter.map(filter -> new FilteredTrace(filter.getName(), trace))
+            return matchingFilter.map(filter -> new FilteredTrace(filter.getName(), traceLog))
                 .map(ft -> MessageBuilder.withPayload(ft).build())
                 .map(Collections::singletonList)
                 .orElseGet(Collections::emptyList);

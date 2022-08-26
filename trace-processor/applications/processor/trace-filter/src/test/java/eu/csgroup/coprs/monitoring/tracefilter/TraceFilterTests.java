@@ -129,11 +129,6 @@ public class TraceFilterTests {
         }
     }
 
-    @Test
-    public void testFilterConf () {
-
-    }
-
     private Message<String> toMessage(String jsonContent) {
         return new GenericMessage<>(jsonContent);
     }

@@ -31,6 +31,7 @@ public class Product extends DefaultEntity {
     @GeneratedValue(generator = "product_id_seq", strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String filename;
 
     @Type( type = "jsonb" )

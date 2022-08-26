@@ -2,32 +2,32 @@ filters:
   -
     name: S2-AUX_DATA
     rules:
-      header.mission: S2
-      header.type: REPORT
-      task.event: END
-      task.error_code: 0
-      task.status: OK
+      log.trace.header.mission: S2
+      log.trace.header.type: REPORT
+      log.trace.task.event: END
+      log.trace.task.error_code: 0
+      log.trace.task.status: OK
       #      message.content: End processing of
       #      task.output[filename_strings][0]: .*_V.*
-      message.content: End metadata extraction
-      task.input[filename_strings][0]: .*_V.*
+      log.trace.message.content: End metadata extraction
+      log.trace.task.input[filename_strings][0]: .*_V.*
   -
     name: S2-DSIB
     rules:
-      header.mission: S2
-      header.type: REPORT
-      task.event: END
-      task.error_code: 0
-      task.status: OK
-      message.content: End processing of
-      task.output[filename_strings][0]: .*_DSIB\.xml
+      log.trace.header.mission: S2
+      log.trace.header.type: REPORT
+      log.trace.task.event: END
+      log.trace.task.error_code: 0
+      log.trace.task.status: OK
+      log.trace.message.content: End processing of
+      log.trace.task.output[filename_strings][0]: .*_DSIB\.xml
   -
     name: S2-CHUNK
     rules:
-      header.mission: S2
-      header.type: REPORT
-      task.event: END
-      task.error_code: 0
-      task.status: OK
-      message.content: End processing of
-      task.output[filename_strings][0]: .*ch2_DSDB.* |.*\.raw
+      log.trace.header.mission: S2
+      log.trace.header.type: REPORT
+      log.trace.task.event: END
+      log.trace.task.error_code: 0
+      log.trace.task.status: OK
+      log.trace.message.content: End processing of
+      log.trace.task.output[filename_strings][0]: .*ch2_DSDB.* |.*\.raw

@@ -43,7 +43,7 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
 
         // Create reader with reload notifier
         builder =
-                new ReloadingFileBasedConfigurationBuilder<FileBasedConfiguration>(YAMLConfiguration.class)
+                new ReloadingFileBasedConfigurationBuilder<FileBasedConfiguration>(CustomYamlConfiguration.class)
                         .configure(params.fileBased()
                                 .setFile(propertiesFile));
 
@@ -74,17 +74,6 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
 
 
     }
-
-    private String getPropertyName(ImmutableNode rootNode, ImmutableNode childNode) {
-        final var duplicate = rootNode != null ? rootNode.getChildren(childNode.getNodeName()) : List.of();
-        final var propName = PropertyUtil.surroundPropertyName(childNode.getNodeName());
-        if (duplicate.size() > 1) {
-            return  "%s[%s]".formatted(propName, duplicate.indexOf(childNode));
-        } else {
-            return propName;
-        }
-    }
-
 
     public FileBasedConfiguration getConfiguration () {
         try {
@@ -123,6 +112,32 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
                 .toArray(String[]::new);
     }
 
+    private String getPropertyName(ImmutableNode rootNode, ImmutableNode childNode, Object rawConf) {
+        final var duplicate = rootNode != null ? rootNode.getChildren(childNode.getNodeName()) : List.of();
+        final var propName = PropertyUtil.surroundPropertyName(childNode.getNodeName());
+        if (rawConf instanceof Collection<?>) {
+            return  "%s[%s]".formatted(propName, duplicate.indexOf(childNode));
+        } else {
+            return propName;
+        }
+    }
+
+    public int getPropertyIndex(ImmutableNode rootNode, ImmutableNode currentNode) {
+        return rootNode.getChildren(currentNode.getNodeName()).indexOf(currentNode);
+    }
+
+    public Object getRawConf(ImmutableNode rootNode, ImmutableNode currentNode, Object rootRawConf) {
+        var rawConf = rootRawConf;
+        if (rootRawConf instanceof Map<?,?>) {
+            rawConf = ((Map)rootRawConf).get(currentNode.getNodeName());
+        } else if (rootRawConf instanceof Collection<?>) {
+            int index = getPropertyIndex(rootNode, currentNode);
+            rawConf = ((List)rawConf).get(index);
+        }
+
+        return rawConf;
+    }
+
     private record LeafProperties (
             String path,
             ImmutableNode delegate
@@ -132,30 +147,40 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
     public List<LeafProperties> getLeaf() {
         if (leafProperties == null) {
             final var propertiesConfiguration = getConfiguration();
-            final var nodeHandler = ((YAMLConfiguration) propertiesConfiguration).getNodeModel().getNodeHandler();
+            final var nodeHandler = ((CustomYamlConfiguration) propertiesConfiguration).getNodeModel().getNodeHandler();
+            final var rawConf = ((CustomYamlConfiguration) propertiesConfiguration).getCache();
 
             final var rootNode = nodeHandler.getRootNode();
-            leafProperties = getLeaf(null, rootNode, "");
+            leafProperties = getLeaf(null, rootNode, "", rawConf);
             leafProperties.forEach(leaf -> log.trace("Found property: %s".formatted(leaf.path)));
         }
 
         return leafProperties;
     }
 
-    public List<LeafProperties> getLeaf(ImmutableNode rootNode, ImmutableNode currentNode, String path) {
+    public List<LeafProperties> getLeaf(ImmutableNode rootNode, ImmutableNode currentNode, String path, Object rootRawConf) {
         if (currentNode.getChildren().isEmpty()) {
             return List.of(
                     new LeafProperties(
-                            PropertyUtil.getPath(path, getPropertyName(rootNode, currentNode)),
+                            PropertyUtil.getPath(path, getPropertyName(rootNode, currentNode, rootRawConf)),
                             currentNode));
         } else {
+            var rawConf = rootRawConf;
+            if (rootNode != null) {
+                rawConf = getRawConf(rootNode, currentNode, rootRawConf);
+            }
+            final var currentRawConf = rawConf;
+
             return currentNode.getChildren()
                     .stream()
                     .map(childNode -> getLeaf(
                             currentNode,
                             childNode,
-                            PropertyUtil.getPath(path, getPropertyName(rootNode, currentNode))))
-                    .reduce(new Vector<>(), (l,n) -> {
+                            PropertyUtil.getPath(
+                                    path,
+                                    getPropertyName(rootNode, currentNode, rootRawConf)),
+                            getRawConf(currentNode, childNode, currentRawConf))
+                    ).reduce(new Vector<>(), (l,n) -> {
                         l.addAll(n);
                         return l;
                     });

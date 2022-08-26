@@ -7,19 +7,19 @@ import eu.csgroup.coprs.monitoring.traceingestor.mapping.Mapping;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
-import org.springframework.beans.NullValueInNestedPathException;
+import org.springframework.beans.InvalidPropertyException;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 @Slf4j
 public class TraceMapper<T extends DefaultEntity> {
 
-    public List<T> map(BeanAccessor wrapper, List<Mapping> mappings, String configurationName, DefaultHandler handler) {
-        if (mappings != null && mappings.size() != 0) {
-            return new Parser(mappings.get(0).entityPath().getBeanName(), mappings, configurationName).parse(wrapper, handler);
-        } else {
+    public List<BeanAccessor> map(BeanAccessor wrapper, List<Mapping> mappings, String configurationName, DefaultHandler handler) {
+        try {
+            return new Parser(mappings, configurationName).parse(wrapper, handler);
+        } catch (TraceMapperInterruptedException e) {
+            log.warn("", e);
             return List.of();
         }
     }
@@ -94,52 +94,71 @@ public class TraceMapper<T extends DefaultEntity> {
 
     @Data
     private class Parser {
-        private final String entityName;
 
         private final List<Mapping> rules;
 
         private final String configurationName;
   
-        public List<T> parse(BeanAccessor wrapper, DefaultHandler handler) {
+        public List<BeanAccessor> parse(BeanAccessor wrapper, DefaultHandler handler) throws TraceMapperInterruptedException {
             final var entityCache = new EntityCache(handler);
             parse(rules.iterator(), wrapper, entityCache);
 
             return entityCache.cached
                     .stream()
-                    .map(EntityDescriptor::getEntity)
-                    .collect(Collectors.toList());
+                    .map(EntityDescriptor::getBean)
+                    .toList();
         }
 
-        public void parse(Iterator<Mapping> iterator, BeanAccessor wrapper, EntityCache entityCache) {
-            List<T> entities = new Vector<>();
+        public void parse(Iterator<Mapping> iterator, BeanAccessor wrapper, EntityCache entityCache) throws TraceMapperInterruptedException {
             while (iterator.hasNext()) {
                 var rule = iterator.next();
-
+                Object value = null;
                 try {
-                    var value = wrapper.getPropertyValue(rule.tracePath());
-
-                    // Do not set null property to avoid non handled null value conversion
-                    if (value != null) {
-                        try {
-                            entityCache.setPropertyValue(rule.entityPath(), value);
-                        } catch (ConversionNotSupportedException e) {
-                            // Attempt to convert multi value property to single value property
-                            if (value instanceof Collection<?>) {
-                                // Continue to parse non multi value properties
-                                parse(iterator, wrapper, entityCache);
-
-                                // Then handle multi value property
-                                handlePropertyWithMultiValue(rule, ((Iterable) value).iterator(), entityCache);
-                            } else {
-                                throw e;
-                            }
-                        }
-                    } else {
-                        log.warn("No value found for '%s' for configuration '%s'\n%s".formatted(rule.tracePath(), configurationName, wrapper.getDelegate().getWrappedInstance()));
-                    }
-                } catch (NullValueInNestedPathException e) {
+                    value = wrapper.getPropertyValue(rule.getFrom());
+                } catch (InvalidPropertyException e) {
                     log.warn(e.getMessage());
                 }
+
+                if (value != null) {
+                    try {
+                        value = ConversionUtil.convert(rule.getMatch(), rule.getConvert(), value);
+                        // Do not set null property to avoid non handled null value conversion
+                        if (value != null) {
+                            entityCache.setPropertyValue(rule.getTo(), value);
+                        } else {
+                            throw new TraceMapperInterruptedException("Discard mapping of entity %s because value %s does not match or can't be converted %s".formatted(
+                                    entityCache.getCurrent().getEntity().getClass().getSimpleName(),
+                                    value,
+                                    rule
+                            ));
+                        }
+                    } catch (ConversionNotSupportedException | ClassCastException e) {
+                        // Attempt to convert multi value property to single value property
+                        if (value instanceof Collection<?>) {
+                            log.debug("Fill property with multi value");
+                            // Continue to parse non multi value properties
+                            parse(iterator, wrapper, entityCache);
+
+                            // Then handle multi value property
+                            var valIter = ((Iterable) value).iterator();
+                            if (rule.getMatch() != null) {
+                                valIter = ((Collection) value).stream()
+                                        .map(val -> ConversionUtil.convert(rule.getMatch(), rule.getConvert(), (String) val))
+                                        .filter(Objects::nonNull)
+                                        .iterator();
+                            }
+
+                            handlePropertyWithMultiValue(rule, valIter, entityCache);
+                        } else {
+                            throw e;
+                        }
+                    }
+                } else if (rule.isRemoveEntityIfNull()) {
+                    throw new TraceMapperInterruptedException("Value for property %s can't be null".formatted(rule.getTo().getRawPropertyPath()));
+                } else {
+                    log.warn("No value found for '%s' for configuration '%s'\n%s".formatted(rule.getFrom(), configurationName, wrapper.getDelegate().getWrappedInstance()));
+                }
+
             }
 
             entityCache.flush();
@@ -147,12 +166,18 @@ public class TraceMapper<T extends DefaultEntity> {
 
         public void handlePropertyWithMultiValue(Mapping rule, Iterator multiValueProperty, EntityCache entityCache) {
             try {
-                entityCache.setPropertyValue(rule.entityPath(), multiValueProperty.next(), false);
+                entityCache.setPropertyValue(rule.getTo(), multiValueProperty.next(), false);
 
-                entityCache.duplicate(rule.entityPath(), multiValueProperty);
+                entityCache.duplicate(rule.getTo(), multiValueProperty);
             } catch (NoSuchElementException e) {
                 // Handled
             }
+        }
+    }
+
+    private static class TraceMapperInterruptedException extends Exception {
+        public TraceMapperInterruptedException (String message) {
+            super(message);
         }
     }
 }

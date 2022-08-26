@@ -1,6 +1,6 @@
 package eu.csgroup.coprs.monitoring.common.datamodel;
 
-public enum TraceLevel {
+public enum Level {
     INFO,
     WARNING,
     ERROR,

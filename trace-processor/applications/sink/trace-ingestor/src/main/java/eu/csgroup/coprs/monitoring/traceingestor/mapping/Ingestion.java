@@ -1,24 +1,29 @@
 package eu.csgroup.coprs.monitoring.traceingestor.mapping;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
+import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Ingestion {
-    public static final String TRACE_PREFIX = "trace.%s";
-
     private String name;
-    private List<Mapping> mappings;
-    private List<BeanProperty> dependencies;
+    private Collection<Mapping> mappings;
+    private List<BeanProperty> dependencies = new ArrayList<>();
+    private Map<String, Alias> alias = new HashMap<>();
 
-    public void setMappings(Map<String, String> mappings) {
-        this.mappings = new Vector<>();
-        mappings.entrySet().stream().forEach(entry -> {
-            this.mappings.add(Mapping.from(TRACE_PREFIX.formatted(entry.getKey()), entry.getValue()));
-        });
+    public void setAlias(Map<String, Alias> associations) {
+        this.alias = associations.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        entry -> PropertyUtil.snake2PascalCasePropertyName(entry.getKey()),
+                        Map.Entry::getValue)
+                );
     }
 }

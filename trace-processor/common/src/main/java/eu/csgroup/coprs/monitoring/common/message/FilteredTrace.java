@@ -1,6 +1,7 @@
 package eu.csgroup.coprs.monitoring.common.message;
 
 import eu.csgroup.coprs.monitoring.common.datamodel.Trace;
+import eu.csgroup.coprs.monitoring.common.datamodel.TraceLog;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -8,5 +9,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class FilteredTrace {
     private String ruleName;
-    private Trace trace;
+    private TraceLog log;
 }

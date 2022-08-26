@@ -1,5 +1,6 @@
 package eu.csgroup.coprs.monitoring.tracefilter.rule;
 
+import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ import java.util.function.Predicate;
 
 @Data
 @Slf4j
-public class Filter implements Predicate<BeanWrapper> {
+public class Filter implements Predicate<BeanAccessor> {
     private String name;
     //private List<Rule> rules;
     private List<Rule> rules;
@@ -28,9 +29,9 @@ public class Filter implements Predicate<BeanWrapper> {
     }
 
     @Override
-    public boolean test(BeanWrapper beanWrapper) {
+    public boolean test(BeanAccessor beanAccessor) {
         // Wrap rule check
-        final Function<Rule, Boolean> applyRule = rule -> this.checkRule(rule, beanWrapper);
+        final Function<Rule, Boolean> applyRule = rule -> this.checkRule(rule, beanAccessor);
 
         if (rules == null || rules.isEmpty()) {
             throw new UnsupportedOperationException("Filter '%s' with empty rules is not supported");
@@ -38,14 +39,14 @@ public class Filter implements Predicate<BeanWrapper> {
 
         return rules.stream()
                 .map(applyRule)
-                .reduce(true, (last, next) -> last & next);
+                .reduce(true, (last, next) -> last && next);
     }
 
-    private boolean checkRule(Rule rule, BeanWrapper beanWrapper) {
+    private boolean checkRule(Rule rule, BeanAccessor beanAccessor) {
         var match = false;
         Object value = null;
         try {
-            value = beanWrapper.getPropertyValue(rule.getProperty().getBeanPropertyPath(true));
+            value = beanAccessor.getPropertyValue(rule.getProperty());
             if (value != null) {
                 match = rule.test(value);
             }

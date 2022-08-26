@@ -11,7 +11,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import java.util.List;
 
 @NoRepositoryBean
-public interface EntityRepository<T extends DefaultEntity> extends JpaRepository<T, Long>, JpaSpecificationExecutor<T>  {
+public interface EntityRepository<T extends DefaultEntity, R> extends JpaRepository<T, R>, JpaSpecificationExecutor<T>  {
     //@Query("select e from #{#entityName} e where e.?#{[0]} = ?#{[1]}")
     //public Iterable<T> findAll(String fieldName, String fieldValue);
 

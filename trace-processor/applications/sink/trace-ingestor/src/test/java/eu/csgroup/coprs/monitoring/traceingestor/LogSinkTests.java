@@ -94,6 +94,10 @@ public class LogSinkTests {
                 .allMatch(p -> p.getTimelinessValueSeconds() != 0)
                 .allMatch(p -> p.isEndToEndProduct())
                 .allMatch(p -> !p.getCustom().isEmpty());
+        assertThat(entityIngestor.list(InputListInternal.class))
+                .hasSize(0);
+        assertThat(entityIngestor.list(OutputList.class))
+                .hasSize(0);
     }
 
     @Test
@@ -150,23 +154,6 @@ public class LogSinkTests {
     }
 
     @Test
-    public void testGlobalTransaction() {
-        // Given
-        final var sink = conf.traceIngestor(factory, entityIngestor);
-        final var chunksRef = getMultiChunkRef("DCS_05_S2B_20210927072424023813_ch1_DSDB_00003.raw",
-                "DCS_05_S2B_20210927072424023813_ch1_DSDB_00003.raw");
-
-        // When
-        final var res = assertThatThrownBy(() -> sink.accept(toMessage(chunksRef)));
-
-        // Then
-        res.isNotNull();
-        assertThat(entityIngestor.list())
-                .hasSize(0);
-    }
-
-
-    @Test
     public void testUnicityClause () {
         final var sink = conf.traceIngestor(factory, entityIngestor);
         // Given
@@ -186,13 +173,13 @@ public class LogSinkTests {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var dsibRef = getDsibRef();
-        final var filename = ((EndTask) dsibRef.getTrace().getTask()).getOutput().get("filename").toString();
-        final var oldMissionRef = dsibRef.getTrace().getHeader().getMission();
+        final var filename = ((EndTask) dsibRef.getLog().getTrace().getTask()).getOutput().get("filename").toString();
+        final var oldMissionRef = dsibRef.getLog().getTrace().getHeader().getMission();
 
         // When
         sink.accept(toMessage(dsibRef));
-        dsibRef.getTrace().getHeader().setMission("S1");
-        ((EndTask) dsibRef.getTrace().getTask()).getOutput().put("channel_id", "ch_2");
+        dsibRef.getLog().getTrace().getHeader().setMission("S1");
+        ((EndTask) dsibRef.getLog().getTrace().getTask()).getOutput().put("channel_id", "ch_2");
         sink.accept(toMessage(dsibRef));
 
         // Then
@@ -206,7 +193,7 @@ public class LogSinkTests {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var auxDataRef = getAuxDataRef();
-        final var output = ((EndTask) auxDataRef.getTrace().getTask()).getOutput();
+        final var output = ((EndTask) auxDataRef.getLog().getTrace().getTask()).getOutput();
 
         final var outputUpdate = Map.of(
                 "test_string", "string10",
@@ -223,8 +210,8 @@ public class LogSinkTests {
 
         // When
         sink.accept(toMessage(auxDataRef));
-        ((EndTask) auxDataRef.getTrace().getTask()).setOutput(outputUpdate);
-        auxDataRef.getTrace().setCustom(customUpdate);
+        ((EndTask) auxDataRef.getLog().getTrace().getTask()).setOutput(outputUpdate);
+        auxDataRef.getLog().getTrace().setCustom(customUpdate);
         sink.accept(toMessage(auxDataRef));
 
         // Then
@@ -255,14 +242,14 @@ public class LogSinkTests {
     public void testMissingRule () {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
-        final var fTrace = new FilteredTrace("test", new Trace());
+        final var fTrace = new FilteredTrace("test", new TraceLog());
 
         // When
         final var assertThrown = assertThatThrownBy(() -> sink.accept(toMessage(fTrace)));
 
         // Then
         assertThrown.isNotNull()
-                .hasMessage("No configuration found for 'test'\n%s".formatted(fTrace.getTrace()));
+                .hasMessage("No configuration found for 'test'\n%s".formatted(fTrace.getLog()));
     }
 
     @Test
@@ -270,7 +257,7 @@ public class LogSinkTests {
         // Given
         final var sink = conf.traceIngestor(factory, entityIngestor);
         final var dsibRef = getDsibRef();
-        final var filename = ((EndTask)dsibRef.getTrace().getTask()).getOutput().get("filename").toString();
+        final var filename = ((EndTask)dsibRef.getLog().getTrace().getTask()).getOutput().get("filename").toString();
 
         // When
         sink.accept(toMessage(dsibRef));
@@ -286,40 +273,40 @@ public class LogSinkTests {
 
     private FilteredTrace getDsibRef() {
         var ref = getRawRef();
-        ref.getTask().setName("DSIB Trace");
-        ((EndTask)ref.getTask()).getOutput().put("filename", "DCS_05_S2B_20210927072424023813_ch1_DSIB.xml");
+        ref.getTrace().getTask().setName("DSIB Trace");
+        ((EndTask)ref.getTrace().getTask()).getOutput().put("filename", "DCS_05_S2B_20210927072424023813_ch1_DSIB.xml");
 
         return new FilteredTrace("dsib", ref);
     }
 
     private FilteredTrace getChunkRef() {
         var ref = getRawRef();
-        ref.getTask().setName("CHUNK Trace");
-        ((EndTask)ref.getTask()).getOutput().put("filename", "DCS_05_S2B_20210927072424023813_ch1_DSDB_00001.raw");
+        ref.getTrace().getTask().setName("CHUNK Trace");
+        ((EndTask)ref.getTrace().getTask()).getOutput().put("filename", "DCS_05_S2B_20210927072424023813_ch1_DSDB_00001.raw");
 
         return new FilteredTrace("chunk", ref);
     }
 
     private FilteredTrace getMultiChunkRef(String ... additionalChunks) {
         var ref = getRawRef();
-        ref.getTask().setName("CHUNK Trace");
+        ref.getTrace().getTask().setName("CHUNK Trace");
         final var filenames = new Vector<String>();
         filenames.addAll(Arrays.asList(additionalChunks));
 
-        ((EndTask)ref.getTask()).getOutput().put("filename", filenames);
+        ((EndTask)ref.getTrace().getTask()).getOutput().put("filename", filenames);
 
         return new FilteredTrace("chunk", ref);
     }
 
     private FilteredTrace getAuxDataRef() {
         var ref = getRawRef();
-        ref.getTask().setName("AUX_DATA Trace");
-        ((EndTask)ref.getTask()).getOutput().put("filename", "S2B_OPER_GIP_R2EQOG_MPC__20220315T151100_V20220317T000000_21000101T000000_B10");
+        ref.getTrace().getTask().setName("AUX_DATA Trace");
+        ((EndTask)ref.getTrace().getTask()).getOutput().put("filename", "S2B_OPER_GIP_R2EQOG_MPC__20220315T151100_V20220317T000000_21000101T000000_B10");
 
         return new FilteredTrace("aux_data", ref);
     }
 
-    private Trace getRawRef () {
+    private TraceLog getRawRef () {
         final var header = new Header();
         header.setType(TraceType.REPORT);
         header.setMission("S2");
@@ -349,7 +336,10 @@ public class LogSinkTests {
         custom.put("key3", "value3");
         trace.setCustom(custom);
 
-        return trace;
+        final var traceLog = new TraceLog();
+        traceLog.setTrace(trace);
+
+        return traceLog;
     }
 
     private FilteredTrace getProductRef() {
@@ -378,7 +368,10 @@ public class LogSinkTests {
         trace.setHeader(header);
         trace.setTask(task);
 
-        return new FilteredTrace("product", trace);
+        final var traceLog = new TraceLog();
+        traceLog.setTrace(trace);
+
+        return new FilteredTrace("product", traceLog);
     }
 
     private Message<FilteredTrace> toMessage(FilteredTrace ref) {

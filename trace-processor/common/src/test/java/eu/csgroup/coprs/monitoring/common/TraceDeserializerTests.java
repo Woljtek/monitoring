@@ -148,7 +148,7 @@ public class TraceDeserializerTests {
         final var header = new Header();
         header.setType(TraceType.REPORT);
         header.setTimestamp(Instant.parse("2021-08-30T15:02:24.125000Z"));
-        header.setLevel(TraceLevel.INFO);
+        header.setLevel(Level.INFO);
         header.setMission("S3");
         header.setRsChainName("trace-processor");
         header.setRsChainVersion("1.1.9-rc1");
@@ -194,7 +194,7 @@ public class TraceDeserializerTests {
         final var header = new Header();
         header.setType(TraceType.REPORT);
         header.setTimestamp(Instant.parse("2021-08-30T15:02:24.125000Z"));
-        header.setLevel(TraceLevel.INFO);
+        header.setLevel(Level.INFO);
         header.setMission("S3");
         header.setRsChainName("trace-processor");
         header.setRsChainVersion("1.1.9-rc1");
@@ -235,12 +235,12 @@ public class TraceDeserializerTests {
                         "key_strings", List.of("value3", "value4", "value5")
                 )
         );
-        task.setMissingOutput(
+        task.setMissingOutput(List.of(
                 Map.of(
                         "key", "value1",
                         "key_string", "value2",
                         "key_strings", List.of("value3", "value4", "value5")
-                )
+                ))
         );
 
         final var trace = new Trace();

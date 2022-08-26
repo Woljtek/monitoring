@@ -3,7 +3,8 @@ package eu.csgroup.coprs.monitoring.traceingestor.entity;
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.InstantPropertyEditor;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
-import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
+import eu.csgroup.coprs.monitoring.common.ingestor.EntityHelper;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
@@ -14,9 +15,10 @@ import java.util.*;
 
 @RequiredArgsConstructor
 public class DefaultHandler<T extends DefaultEntity> {
-    private final String entityName;
+    //private String entityName;
 
-    private Class<T> className;
+    @Getter
+    private final Class<T> entityClass;
 
     private List<T> mergeableEntities;
 
@@ -47,27 +49,21 @@ public class DefaultHandler<T extends DefaultEntity> {
 
     public EntityDescriptor clone (T entity) {
         final var entityDesc = new EntityDescriptor();
-        final var clone = (T)entity.copy();
-        // Avoid erasing an existing entity in repository with wrong value
-        clone.setId(null);
+        final var clone = EntityHelper.copy(entity);
         entityDesc.setBean(new BeanAccessor(getWrapper(clone)));
 
         return entityDesc;
     }
 
-    public Class<T> getEntityClass() {
+    /*public Class<T> getEntityClass() {
         if (className == null) {
-            try {
-                className = (Class<T>) Class.forName("%s.%s".formatted(EntityIngestor.BASE_PACKAGE, entityName));
-            } catch (ClassNotFoundException e) {
-                throw new EntityHandlerException("Entity with name %s does not exists".formatted(entityName), e);
-            }
+            className = getEntityClass(entityName);
         }
         return className;
-    }
+    }*/
 
     private T getDefaultEntity() {
-        return createDefaultInstanceFor(getEntityClass());
+        return createDefaultInstanceFor(entityClass);
     }
 
     private <E> E createDefaultInstanceFor(Class<E> className) {

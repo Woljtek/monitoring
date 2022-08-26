@@ -30,7 +30,7 @@ public class Rule implements Predicate<Object> {
         if (value instanceof Iterable<?>) {
             return StreamSupport.stream(((Iterable<?>)value).spliterator(), false)
                     .map(indexedValue -> compile().matcher(indexedValue.toString()).matches())
-                    .reduce(true, (l,n) -> l & n);
+                    .reduce(true, (l,n) -> l && n);
         } else {
             return compile().matcher(value.toString()).matches();
         }

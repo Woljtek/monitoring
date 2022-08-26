@@ -9,112 +9,117 @@ data:
       -
         name: IngestionTrigger_Dsib
         rules:
-          task.name: IngestionTrigger
-          task.event: END
-          task.input[filename_string]: DCS_.+?_DSIB\.xml$
+          log.trace.task.name: IngestionTrigger
+          log.trace.task.event: END
+          log.trace.task.input[filename_string]: DCS_.+?_DSIB\.xml$
       -
         name: IngestionTrigger_Chunk
         rules:
-          task.name: IngestionTrigger
-          task.event: END
-          task.input[filename_string]: DCS_.+?\.raw$
+          log.trace.task.name: IngestionTrigger
+          log.trace.task.event: END
+          log.trace.task.input[filename_string]: DCS_.+?\.raw$
       -
         name: IngestionTrigger_AuxData_S1
         rules:
-          task.name: IngestionTrigger
-          task.event: END
-          task.input[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
+          log.trace.task.name: IngestionTrigger
+          log.trace.task.event: END
+          log.trace.task.input[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
       -
         name: IngestionTrigger_AuxData_S2
         rules:
-          task.name: IngestionTrigger
-          task.event: END
-          task.input[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
+          log.trace.task.name: IngestionTrigger
+          log.trace.task.event: END
+          log.trace.task.input[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
       -
         name: IngestionTrigger_AuxData_S3
         rules:
-          task.name: IngestionTrigger
-          task.event: END
-          task.input[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
+          log.trace.task.name: IngestionTrigger
+          log.trace.task.event: END
+          log.trace.task.input[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
       -
         name: IngestionWorker_Dsib
         rules:
-          task.name: IngestionWorker
-          task.event: END
-          task.status: OK
-          task.output[filename_string]: DCS_.+?_DSIB\.xml$
+          log.trace.task.name: IngestionWorker
+          log.trace.task.event: END
+          log.trace.task.status: OK
+          log.trace.task.output[filename_string]: DCS_.+?_DSIB\.xml$
       -
         name: IngestionWorker_Chunk
         rules:
-          task.name: IngestionWorker
-          task.event: END
-          task.status: OK
-          task.output[filename_string]: DCS_.+?\.raw$
+          log.trace.task.name: IngestionWorker
+          log.trace.task.event: END
+          log.trace.task.status: OK
+          log.trace.task.output[filename_string]: DCS_.+?\.raw$
       -
         name: IngestionWorker_AuxData_S1
         rules:
-          task.name: IngestionWorker
-          task.status: OK
-          task.event: END
-          task.output[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
+          log.trace.task.name: IngestionWorker
+          log.trace.task.status: OK
+          log.trace.task.event: END
+          log.trace.task.output[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
       -
         name: IngestionWorker_AuxData_S2
         rules:
-          task.name: IngestionWorker
-          task.status: OK
-          task.event: END
-          task.output[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
+          log.trace.task.name: IngestionWorker
+          log.trace.task.status: OK
+          log.trace.task.event: END
+          log.trace.task.output[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
       -
         name: IngestionWorker_AuxData_S3
         rules:
-          task.name: IngestionWorker
-          task.status: OK
-          task.event: END
-          task.output[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
+          log.trace.task.name: IngestionWorker
+          log.trace.task.status: OK
+          log.trace.task.event: END
+          log.trace.task.output[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
       -
         name: MetadataExtraction_Dsib
         rules:
-          task.name: MetadataExtraction
-          task.event: END
-          task.error_code: 0
-          task.status: OK
-          task.input[filename_string]: DCS_.+?_DSIB\.xml$          
+          log.trace.task.name: MetadataExtraction
+          log.trace.task.event: END
+          log.trace.task.error_code: 0
+          log.trace.task.status: OK
+          log.trace.task.input[filename_string]: DCS_.+?_DSIB\.xml$          
       -
         name: MetadataExtraction_Chunk
         rules:
-          task.name: MetadataExtraction
-          task.event: END
-          task.error_code: 0
-          task.status: OK
-          task.input[filename_string]: DCS_.+?\.raw$          
+          log.trace.task.name: MetadataExtraction
+          log.trace.task.event: END
+          log.trace.task.error_code: 0
+          log.trace.task.status: OK
+          log.trace.task.input[filename_string]: DCS_.+?\.raw$          
       -
         name: MetadataExtraction_AuxData_S1
         rules:
-          task.name: MetadataExtraction
-          task.event: END
-          task.error_code: 0
-          task.status: OK
-          task.input[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
+          log.trace.task.name: MetadataExtraction
+          log.trace.task.event: END
+          log.trace.task.error_code: 0
+          log.trace.task.status: OK
+          log.trace.task.input[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
       -
         name: MetadataExtraction_AuxData_S2
         rules:
-          task.name: MetadataExtraction
-          task.event: END
-          task.error_code: 0
-          task.status: OK
-          task.input[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
+          log.trace.task.name: MetadataExtraction
+          log.trace.task.event: END
+          log.trace.task.error_code: 0
+          log.trace.task.status: OK
+          log.trace.task.input[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
       -
         name: MetadataExtraction_AuxData_S3
         rules:
-          task.name: MetadataExtraction
-          task.event: END
-          task.error_code: 0
-          task.status: OK
-          task.input[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
+          log.trace.task.name: MetadataExtraction
+          log.trace.task.event: END
+          log.trace.task.error_code: 0
+          log.trace.task.status: OK
+          log.trace.task.input[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
       -
         name: MetadataExtraction_Product
         rules:
-          task.name: MetadataExtraction
-          task.event: END
-          task.error_code: 0
-          task.status: OK
+          log.trace.task.name: MetadataExtraction
+          log.trace.task.event: END
+          log.trace.task.error_code: 0
+          log.trace.task.status: OK
+      -
+        name: JobProcessing_Product
+        rules:
+          log.trace.task.name: JobProcessing
+          log.trace.task.event: END

@@ -7,5 +7,5 @@ import javax.transaction.Transactional;
 
 //@Transactional
 @Repository
-public interface ExternalInputRepository extends EntityRepository<ExternalInput> {
+public interface ExternalInputRepository extends EntityRepository<ExternalInput, Long> {
 }

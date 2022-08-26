@@ -40,11 +40,11 @@
       "key_string": "value2",
       "key_strings": ["value3", "value4", "value5"]
     },
-    "missing_output": {
+    "missing_output": [{
       "key": "value1",
       "key_string": "value2",
       "key_strings": ["value3", "value4", "value5"]
-    }
+    }]
   },
   "custom": {
     "key": "value1",

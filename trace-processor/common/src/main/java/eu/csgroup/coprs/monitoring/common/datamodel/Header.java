@@ -24,7 +24,7 @@ public class Header {
     private Instant timestamp;
 
     @NotNull
-    private TraceLevel level;
+    private Level level;
 
     @NotNull
     private String mission;

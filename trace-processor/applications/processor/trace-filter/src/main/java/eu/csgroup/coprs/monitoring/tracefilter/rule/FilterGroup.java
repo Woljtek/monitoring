@@ -1,5 +1,6 @@
 package eu.csgroup.coprs.monitoring.tracefilter.rule;
 
+import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.properties.ReloadableYamlPropertySourceFactory;
 
 import lombok.Data;
@@ -20,11 +21,11 @@ import java.util.function.Predicate;
 @PropertySource(name = "filterGroup", value = "${filter.path}", factory = ReloadableYamlPropertySourceFactory.class)
 @ConfigurationProperties()
 @Slf4j
-public class FilterGroup implements Function<BeanWrapper, Optional<Filter>> {
+public class FilterGroup implements Function<BeanAccessor, Optional<Filter>> {
     List<Filter> filters;
 
     @Override
-    public Optional<Filter> apply(BeanWrapper node) {
+    public Optional<Filter> apply(BeanAccessor node) {
         final Predicate<Filter> checkFilter = filter -> filter.test(node);
 
         return filters

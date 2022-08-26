@@ -2,7 +2,11 @@ package eu.csgroup.coprs.monitoring.common.datamodel.entities;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import eu.csgroup.coprs.monitoring.common.bean.AutoMergeableMap;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
@@ -10,10 +14,14 @@ import javax.persistence.Entity;
 import java.time.Instant;
 
 @Data
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class ExternalInput extends DefaultEntity {
+@Embeddable
+public class ExternalInput extends DefaultEntity {
     @Id
     @SequenceGenerator(sequenceName="external_input_id_seq", name = "external_input_id_seq", allocationSize=1)
     @GeneratedValue(generator = "external_input_id_seq", strategy = GenerationType.SEQUENCE)
@@ -35,4 +43,9 @@ public abstract class ExternalInput extends DefaultEntity {
     @Type( type = "jsonb" )
     @Column(columnDefinition = "jsonb")
     private AutoMergeableMap custom;
+
+    @Override
+    public Object copy() {
+        return this.toBuilder().build();
+    }
 }

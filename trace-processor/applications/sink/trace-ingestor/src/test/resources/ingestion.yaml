@@ -2,48 +2,152 @@ ingestions:
   -
     name: dsib
     mappings:
-      header.mission: dsib.mission
-      task.output[filename]: dsib.filename
-      task.output[satellite]: dsib.satellite
-      task.output[pickup_point_seen_date]: dsib.pickupPointSeenDate
-      task.output[pickup_point_available_date]: dsib.pickupPointAvailableDate
-      task.output[ingestion_date]: dsib.ingestionDate
-      task.output[catalog_storage_date]: dsib.catalogStorageDate
-    dependencies:
-      - dsib.filename
+      - from: log.trace.header.mission
+        to: dsib.mission
+      - from: log.trace.task.output[filename]
+        to: dsib.filename
+      - from: log.trace.task.output[satellite]
+        to: dsib.satellite
+      - from: log.trace.task.output[pickup_point_seen_date]
+        to: dsib.pickupPointSeenDate
+      - from: log.trace.task.output[pickup_point_available_date]
+        to: dsib.pickupPointAvailableDate
+      - from: log.trace.task.output[ingestion_date]
+        to: dsib.ingestionDate
+      - from: log.trace.task.output[catalog_storage_date]
+        to: dsib.catalogStorageDate
   -
     name: chunk
     mappings:
-      header.mission: chunk.mission
-      task.output[filename]: chunk.filename
-      task.output[pickup_point_seen_date]: chunk.pickup_point_seen_date
-      task.output[pickup_point_available_date]: chunk.pickup_point_available_date
-      task.output[ingestion_date]: chunk.ingestion_date
-      task.output[catalog_storage_date]: chunk.catalog_storage_date
-    dependencies:
-      - chunk.filename
+      - from: log.trace.header.mission
+        to: chunk.mission
+      - from: log.trace.task.output[filename]
+        to: chunk.filename
+      - from: log.trace.task.output[pickup_point_seen_date]
+        to: chunk.pickup_point_seen_date
+      - from: log.trace.task.output[pickup_point_available_date]
+        to: chunk.pickup_point_available_date
+      - from: log.trace.task.output[ingestion_date]
+        to: chunk.ingestion_date
+      - from: log.trace.task.output[catalog_storage_date]
+        to: chunk.catalog_storage_date
   -
     name: aux_data
     mappings:
-      header.mission: aux_data.mission
-      task.output[filename]: aux_data.filename
-      task.output[pickup_point_seen_date]: aux_data.pickup_point_seen_date
-      task.output[pickup_point_available_date]: aux_data.pickup_point_available_date
-      task.output[ingestion_date]: aux_data.ingestion_date
-      task.output[catalog_storage_date]: aux_data.catalog_storage_date
-      task.output: aux_data.custom[destination]
-      custom[test_field_string]: aux_data.custom[test_field_string]
-      custom[test_field_strings]: aux_data.custom[test_field_strings]
-      custom[test_field_object]: aux_data.custom[test_field_object]
-    dependencies:
-      - aux_data.filename
+      - from: log.trace.header.mission
+        to: aux_data.mission
+      - from: log.trace.task.output[filename]
+        to: aux_data.filename
+      - from: log.trace.task.output[pickup_point_seen_date]
+        to: aux_data.pickup_point_seen_date
+      - from: log.trace.task.output[pickup_point_available_date]
+        to: aux_data.pickup_point_available_date
+      - from: log.trace.task.output[ingestion_date]
+        to: aux_data.ingestion_date
+      - from: log.trace.task.output[catalog_storage_date]
+        to: aux_data.catalog_storage_date
+      - from: log.trace.task.output
+        to: aux_data.custom[destination]
+      - from: log.trace.custom[test_field_string]
+        to: aux_data.custom[test_field_string]
+      - from: log.trace.custom[test_field_strings]
+        to: aux_data.custom[test_field_strings]
+      - from: log.trace.custom[test_field_object]
+        to: aux_data.custom[test_field_object]
   -
     name: product
     mappings:
-      task.input[filename_string]: product.filename
-      task.output[timeliness_name_string]: product.timeliness_name
-      task.output[timeliness_value_seconds_integer]: product.timeliness_value_seconds
-      task.output[end_to_end_product_boolean]: product.end_to_end_product
-      task.output[product_metadata_custom_object]: product.custom
-    dependencies:
-      - product.filename
+      - from: log.trace.task.input[filename_string]
+        to: product.filename
+      - from: log.trace.task.output[timeliness_name_string]
+        to: product.timeliness_name
+      - from: log.trace.task.output[timeliness_value_seconds_integer]
+        to: product.timeliness_value_seconds
+      - from: log.trace.task.output[end_to_end_product_boolean]
+        to: product.end_to_end_product
+      - from: log.trace.task.output[product_metadata_custom_object]
+        to: product.custom
+  -
+    name: processing_all
+    mappings:
+      - from: log.trace.task.input[filename_strings]
+        match: DCS_.+?\.raw$
+        to: chunk.filename
+      - from: log.trace.header.mission
+        to: chunk.mission
+      - from: log.trace.task.input[filename_strings]
+        match: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
+        to: aux_data.filename
+      - from: log.trace.header.mission
+        to: aux_data.mission
+      - from: log.trace.task.output[filename_strings]
+        match: ^.+(?=.zip)|.+$
+        convert: "%1$s"
+        to: output_product.filename
+      - from: log.trace.task.input[filename_strings]
+        match: ^GS2B.+(?=.zip)|GS2B.+$
+        convert: "%1$s"
+        to: input_product.filename
+      - from: log.trace.task.status
+        to: processing.status
+      - from: log.trace.header.mission
+        to: processing.mission
+      - from: log.trace.header.level
+        to: processing.level
+      - from: log.trace.header.workflow
+        to: processing.workflow
+      - from: log.trace.task.missing_output[0][product_metadata_custom_object]
+        remove_entity_if_null: true
+        to: missing_products.product_metadata_custom
+      - from: log.trace.task.missing_output[0][end_to_end_product_boolean]
+        to: missing_products.end_to_end_product
+      - from: log.trace.task.missing_output[0][estimated_count_integer]
+        to: missing_products.estimated_count
+    alias:
+      input_product:
+        entity: product
+        restrict: input_list_internal
+      output_product:
+        entity: product
+        restrict: output_list
+  -
+    name: processing_input
+    mappings:
+      - from: log.trace.task.input[filename_strings]
+        match: DCS_.+?\.raw$
+        to: chunk.filename
+      - from: log.trace.header.mission
+        to: chunk.mission
+      - from: log.trace.task.input[filename_strings]
+        match: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
+        to: aux_data.filename
+      - from: log.trace.header.mission
+        to: aux_data.mission
+      - from: log.trace.task.status
+        to: processing.status
+      - from: log.trace.header.mission
+        to: processing.mission
+      - from: log.trace.header.level
+        to: processing.level
+      - from: log.trace.header.workflow
+        to: processing.workflow
+  -
+    name: processing_output
+    mappings:
+      - from: log.trace.task.output[filename_strings]
+        match: ^.+(?=.zip)|.+$
+        convert: "%1$s"
+        to: output_product.filename
+      - from: log.trace.task.status
+        to: processing.status
+      - from: log.trace.header.mission
+        to: processing.mission
+      - from: log.trace.header.level
+        to: processing.level
+      - from: log.trace.header.workflow
+        to: processing.workflow
+    # Replace with alias
+    alias:
+      output_product:
+        entity: product
+        restrict: output_list

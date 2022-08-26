@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.Map;
 
 @Data
@@ -31,5 +32,5 @@ public class EndTask extends Task {
     private Map quality;
 
     @JsonProperty("missing_output")
-    private Map missingOutput;
+    private Collection missingOutput;
 }
