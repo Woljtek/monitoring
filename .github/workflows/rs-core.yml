@@ -37,7 +37,7 @@ jobs:
         uses: baileyjm02/markdown-to-pdf@v1
         with:
           input_path: rs-cores/MONITORING/Release_Note.md
-          output_dir: rs-cores/MONITORING/S2_L0U/
+          output_dir: rs-cores/MONITORING/
           table_of_contents: false
           # image_dir:
           build_html: false
