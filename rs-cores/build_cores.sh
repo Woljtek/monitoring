@@ -35,7 +35,7 @@ function build() {
   mv Executables "${ROOT_NAME}"_Executables
   mv Release_Note.pdf "${ROOT_NAME}"_Release_Note.pdf
 
-  zip -qq -r "${ZIP_NAME}" ./*
+  zip -qq -r "${ZIP_NAME}" ./* -x ./*.md
 
   mv "${ZIP_NAME}" ../
 
