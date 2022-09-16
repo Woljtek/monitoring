@@ -96,12 +96,12 @@ ingestions:
         to: processing.level
       - from: log.trace.header.workflow
         to: processing.workflow
-      - from: log.trace.task.missing_output[0][product_metadata_custom_object]
+      - from: log.trace.task.missing_output[product_metadata_custom_object]
         remove_entity_if_null: true
         to: missing_products.product_metadata_custom
-      - from: log.trace.task.missing_output[0][end_to_end_product_boolean]
+      - from: log.trace.task.missing_output[end_to_end_product_boolean]
         to: missing_products.end_to_end_product
-      - from: log.trace.task.missing_output[0][estimated_count_integer]
+      - from: log.trace.task.missing_output[estimated_count_integer]
         to: missing_products.estimated_count
     alias:
       input_product:

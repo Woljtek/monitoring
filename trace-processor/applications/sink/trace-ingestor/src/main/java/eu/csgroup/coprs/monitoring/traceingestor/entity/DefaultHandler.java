@@ -6,7 +6,6 @@ import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 
 import java.time.Instant;
@@ -42,7 +41,7 @@ public class DefaultHandler<T extends DefaultEntity> {
             entity = getDefaultEntity();
         }
 
-        entityDesc.setBean(new BeanAccessor(getWrapper(entity)));
+        entityDesc.setBean(getWrapper(entity));
 
         return entityDesc;
     }
@@ -50,17 +49,10 @@ public class DefaultHandler<T extends DefaultEntity> {
     public EntityDescriptor clone (T entity) {
         final var entityDesc = new EntityDescriptor();
         final var clone = EntityHelper.copy(entity);
-        entityDesc.setBean(new BeanAccessor(getWrapper(clone)));
+        entityDesc.setBean(getWrapper(clone));
 
         return entityDesc;
     }
-
-    /*public Class<T> getEntityClass() {
-        if (className == null) {
-            className = getEntityClass(entityName);
-        }
-        return className;
-    }*/
 
     private T getDefaultEntity() {
         return createDefaultInstanceFor(entityClass);
@@ -74,11 +66,11 @@ public class DefaultHandler<T extends DefaultEntity> {
         }
     }
 
-    private BeanWrapper getWrapper (T entity) {
+    public BeanAccessor getWrapper (T entity) {
         var wrapper = PropertyAccessorFactory.forBeanPropertyAccess(entity);
         wrapper.setAutoGrowNestedPaths(true);
         wrapper.registerCustomEditor(Instant.class, new InstantPropertyEditor());
 
-        return wrapper;
+        return new BeanAccessor(wrapper);
     }
 }

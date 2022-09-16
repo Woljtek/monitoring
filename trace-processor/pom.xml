@@ -90,7 +90,7 @@
         <h2.version>2.1.214</h2.version>
 
         <!-- ==== Module versions ==== -->
-        <revision>0.11.0</revision>
+        <revision>1.1.1-dev</revision>
 
         <common.revision>${revision}</common.revision>
         <applications.revision>${revision}</applications.revision>

@@ -17,12 +17,13 @@ import javax.persistence.*;
 public class MissingProducts extends DefaultEntity {
 
     @Id
-    private Long processing_failed_id;
+    @SequenceGenerator(sequenceName="missing_products_id_seq", name = "missing_products_id_seq", allocationSize=1)
+    @GeneratedValue(generator = "missing_products_id_seq", strategy = GenerationType.SEQUENCE)
+    private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @MapsId
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "processing_failed_id", referencedColumnName = "id")
-    private Processing processing;
+    private Processing processing = new Processing();
 
     @Type( type = "jsonb" )
     @Column(columnDefinition = "jsonb")
@@ -37,7 +38,7 @@ public class MissingProducts extends DefaultEntity {
 
     @Override
     public void setId(Long id) {
-        processing_failed_id = id;
+        this.id = id;
     }
 
     @Override

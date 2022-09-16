@@ -1,4 +1,4 @@
-package eu.csgroup.coprs.monitoring.traceingestor.mapping;
+package eu.csgroup.coprs.monitoring.traceingestor.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
