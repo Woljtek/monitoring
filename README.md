@@ -92,3 +92,9 @@ The artifactory repository should contain:
 
 ## Trace processor
 [![Docker Trace Processor](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-traceprocessor.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-traceprocessor.yml)
+
+# Copyright and license
+
+Copyright (C) 2021-2022, European Space Agency (ESA) https://www.esa.int/
+
+The Reference System Software as a whole is distributed under the Apache License, version 2.0. A copy of this license is available in the [LICENSE](LICENSE) file. Reference System Software depends on third-party components and code snippets released under their own license (obviously, all compatible with the one of the Reference System Software). These dependencies are listed in the [NOTICE](NOTICE.md) file.
