@@ -123,3 +123,5 @@ data:
         rules:
           log.trace.task.name: JobProcessing
           log.trace.task.event: END
+          log.trace.task.error_code: 0
+          log.trace.task.status: OK
