@@ -1,10 +1,10 @@
-# User's Manual
+# Installation manual
 
 ## Document properties
 
 |    |   |
 | -: | - |
-|    **Reference** | CCSGF-CSC-RS-PRD-SUM-MON |
+|    **Reference** | CCSGF-CSC-RS-PRD-SIM-MON |
 |        **Issue** | 1 |
 |   **Issue date** | 16 Sep 2022 |
 |  **Prepared by** | **Cyrille BOUISSON**  *(Architect / Technical Manager)* |
@@ -15,7 +15,7 @@
 
 ## Document Summary
 
-This document is the User's Manual for Infrastructure subsystem of Reference System.
+This document is the Installation Manual for Monitoring subsystem of Reference System.
 
 ## Document Change log
 
@@ -25,4 +25,4 @@ This document is the User's Manual for Infrastructure subsystem of Reference Sys
 
 ## Content
 
-Please refer to [rs-core release note](./../../rs-cores/MONITORING/Release_Note.md)
+The installation manual is already in the [root readme of the repository](../../README.md)
