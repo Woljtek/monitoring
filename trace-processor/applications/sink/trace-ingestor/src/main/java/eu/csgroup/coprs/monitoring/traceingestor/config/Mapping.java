@@ -1,4 +1,4 @@
-package eu.csgroup.coprs.monitoring.traceingestor.mapping;
+package eu.csgroup.coprs.monitoring.traceingestor.config;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import lombok.Data;

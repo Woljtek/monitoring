@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -88,8 +89,9 @@ public class ProcessingIngestionTests {
         // Then
         final var processing = entityIngestor.findAll(Processing.class).get(0);
         assertThat(entityIngestor.findAll(MissingProducts.class))
-                .hasSize(1)
-                .extracting(MissingProducts::getProcessing_failed_id)
+                .hasSize(3)
+                .extracting(MissingProducts::getProcessing)
+                .extracting(Processing::getId)
                 .allMatch(processingFailedId -> processingFailedId.equals(processing.getId()));
     }
 
@@ -147,12 +149,17 @@ public class ProcessingIngestionTests {
     private FilteredTrace getProcessingRefWithMissingProducts (String filterName) {
         final var ref = getProcessingRef(filterName);
 
-        final var missingOutput = new HashMap<String, Object>();
-        missingOutput.put("estimated_count", 8);
-        missingOutput.put("end_to_end_product", true);
-        missingOutput.put("product_metadata_custom_object", Map.of("key1", "value1", "key2", "value2"));
+        final var missingOutput1 = new HashMap<String, Object>();
+        missingOutput1.put("estimated_count_integer", 8);
+        missingOutput1.put("end_to_end_product", true);
+        missingOutput1.put("product_metadata_custom_object", List.of(Map.of("pmco1", "value1"), Map.of("pmco2", "value2")));
 
-        ((EndTask)(ref.getLog().getTrace().getTask())).setMissingOutput(List.of(missingOutput));
+        final var missingOutput2 = new HashMap<String, Object>();
+        missingOutput2.put("estimated_count_integer", 2);
+        missingOutput2.put("end_to_end_product", false);
+        missingOutput2.put("product_metadata_custom_object", List.of(Map.of("pmco3", "value3")));
+
+        ((EndTask)(ref.getLog().getTrace().getTask())).setMissingOutput(List.of(missingOutput1, missingOutput2));
 
         return ref;
     }

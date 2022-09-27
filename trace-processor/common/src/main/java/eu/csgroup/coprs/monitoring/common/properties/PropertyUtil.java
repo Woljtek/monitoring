@@ -2,7 +2,7 @@ package eu.csgroup.coprs.monitoring.common.properties;
 
 import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class PropertyUtil {
@@ -31,6 +31,8 @@ public class PropertyUtil {
     public static String getPath (String rootPath, String propertyName) {
         if (rootPath == null || rootPath.isEmpty()) {
             return propertyName;
+        } else if (propertyName.startsWith(INDEX_START)) {
+            return "%s%s".formatted(rootPath, propertyName);
         } else {
             return "%s%s%s".formatted(rootPath, PROPERTY_DELIMITER, propertyName);
         }
@@ -41,7 +43,63 @@ public class PropertyUtil {
     }
 
     public static String[] splitPath (String path) {
-        return path.split(Pattern.quote(PROPERTY_DELIMITER));
+        return Arrays.stream(path.split(Pattern.quote(PROPERTY_DELIMITER)))
+                .map(PropertyUtil::splitIndex)
+                .flatMap(Collection::stream)
+                .toArray(String[]::new);
+    }
+
+    private static List<String> splitIndex (String path) {
+        final var parts = new ArrayList<String>();
+        Collections.addAll(
+                parts,
+                path.split("\\" + INDEX_END + "\\" + INDEX_START)
+        );
+
+        if (parts.size() != 1) {
+            final var length = parts.size();
+
+            // Add to each part ] that was removed by the first split
+            // (except fot the last part that was not removed)
+            // [product_metadata_custom_object => [product_metadata_custom_object]
+            for (int index = 0; index < length - 1; index++) {
+                parts.set(index, parts.get(index) + INDEX_END);
+            }
+
+            // Add to each part [ that was removed by the first split
+            // (except for the first part that was not removed)
+            // product_metadata_custom_object] => [product_metadata_custom_object]
+            for (int index = 1; index < length; index++) {
+                parts.set(index, INDEX_START + parts.get(index));
+            }
+        }
+
+        // Split following path: missing_output[product_metadata_custom_object] into missing_output, [product_metadata_custom_object]
+        final var tempParts = new ArrayList<>(parts);
+        parts.clear();
+        for (String part: tempParts) {
+            if (part.contains(INDEX_START) && ! part.startsWith(INDEX_START)) {
+                parts.add(part.substring(0, part.indexOf(INDEX_START)));
+                parts.add(part.substring(part.indexOf(INDEX_START)));
+            } else {
+                parts.add(part);
+            }
+        }
+
+        return parts;
+    }
+
+    public static String getParentPath(String path) {
+        var bracketIndex = path.lastIndexOf(INDEX_START);
+        var propertyDelimiterIndex = path.lastIndexOf(PROPERTY_DELIMITER);
+
+        if (bracketIndex > propertyDelimiterIndex) {
+            return path.substring(0, bracketIndex);
+        } else if (bracketIndex < propertyDelimiterIndex){
+            return path.substring(0, propertyDelimiterIndex);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -70,7 +128,7 @@ public class PropertyUtil {
         var partNot2Camelise = "";
         if (bracketIndex != -1) {
             part2Camelise = snakePropertyName.substring(0,bracketIndex);
-            partNot2Camelise = snakePropertyName.substring(bracketIndex, snakePropertyName.length());
+            partNot2Camelise = snakePropertyName.substring(bracketIndex);
         }
 
         int pos = 0;
@@ -126,6 +184,8 @@ public class PropertyUtil {
         while (index < array.length) {
             snakePropertyNameBuilder.append("_");
             snakePropertyNameBuilder.append(array[index]);
+
+            index++;
         }
 
         return snakePropertyNameBuilder.toString();

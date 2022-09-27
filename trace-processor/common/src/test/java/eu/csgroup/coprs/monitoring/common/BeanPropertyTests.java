@@ -24,7 +24,7 @@ public class BeanPropertyTests {
         expectedProperties.put("filters[0].rules.task.event", "END");
         expectedProperties.put("filters[0].rules.task.status", "OK");
         expectedProperties.put("filters[0].rules.message.content", "End metadata extraction");
-        expectedProperties.put("filters[0].rules.[task.input[filename_strings][0]]", ".*_V.*");
+        expectedProperties.put("filters[0].rules[task.input[filename_strings][0]]", ".*_V.*");
 
         expectedProperties.put( "filters[1].name", "S2-DSIB");
         expectedProperties.put("filters[1].rules.header.mission", "S2");
@@ -32,7 +32,7 @@ public class BeanPropertyTests {
         expectedProperties.put("filters[1].rules.task.event", "END");
         expectedProperties.put("filters[1].rules.task.status", "OK");
         expectedProperties.put("filters[1].rules.message.content", "End processing of");
-        expectedProperties.put("filters[1].rules.[task.output[filename_strings][0]]", ".*_DSIB\\.xml");
+        expectedProperties.put("filters[1].rules[task.output[filename_strings][0]]", ".*_DSIB\\.xml");
 
         expectedProperties.put("filters[2].name", "S2-CHUNK");
         expectedProperties.put("filters[2].rules.header.mission", "S2");
@@ -40,7 +40,7 @@ public class BeanPropertyTests {
         expectedProperties.put("filters[2].rules.task.event", "END");
         expectedProperties.put("filters[2].rules.task.status", "OK");
         expectedProperties.put("filters[2].rules.message.content", "End processing of");
-        expectedProperties.put("filters[2].rules.[task.output[filename_strings][0]]", ".*ch2_DSDB.* |.*\\.raw");
+        expectedProperties.put("filters[2].rules[task.output[filename_strings][0]]", ".*ch2_DSDB.* |.*\\.raw");
 
         // When
         final var retrievedProperties = Arrays.stream(beanProp.getPropertyNames()).toList();

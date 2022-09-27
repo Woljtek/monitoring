@@ -2,7 +2,7 @@ package eu.csgroup.coprs.monitoring.traceingestor;
 
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
-import eu.csgroup.coprs.monitoring.traceingestor.mapping.IngestionGroup;
+import eu.csgroup.coprs.monitoring.traceingestor.config.IngestionGroup;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

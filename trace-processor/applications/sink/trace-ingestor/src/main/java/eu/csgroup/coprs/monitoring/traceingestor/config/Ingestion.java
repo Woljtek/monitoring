@@ -1,4 +1,4 @@
-package eu.csgroup.coprs.monitoring.traceingestor.mapping;
+package eu.csgroup.coprs.monitoring.traceingestor.config;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class Ingestion {
     private String name;
-    private Collection<Mapping> mappings;
+    private List<Mapping> mappings;
     private List<BeanProperty> dependencies = new ArrayList<>();
     private Map<String, Alias> alias = new HashMap<>();
 

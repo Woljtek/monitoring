@@ -1,7 +1,7 @@
 package eu.csgroup.coprs.monitoring.traceingestor.processor;
 
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityMetadata;
-import eu.csgroup.coprs.monitoring.traceingestor.mapping.Ingestion;
+import eu.csgroup.coprs.monitoring.traceingestor.config.Ingestion;
 import lombok.Data;
 
 import java.util.*;
