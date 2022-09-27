@@ -1,36 +1,31 @@
 :arrow_heading_up: Go back to the [Reference System Sotfware repository](https://github.com/COPRS/reference-system-software) :arrow_heading_up:
 
----
 # Monitoring
 
-## Overview
+This repository contains [RS-CORE Monitoring](#rs-core-monitoring) to handle trace to be able to monitor state of product produced by ingestion chain and even all Sentinel processing chain.
 
-This repository contains components to handle trace to be able to monitor state 
-of product produced by ingestion chain and even all Sentinel processing chain.
+The repository also contains two FINOPS components:
+- [object-storage-exporter](#object-storage-exporter)
+- [resources-exporter](#resources-exporter)
 
-### Available components
+## RS-CORE Monitoring
 
-This repository contains one RS-Core component to process trace by filtering desired one and ingesting them in database.
-The [trace-processor](rs-cores/MONITORING) component as the following workflow:
+[![RS-CORE Monitoring](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-traceprocessor.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-traceprocessor.yml)
+
+**RS-CORE Monitoring** process trace by filtering desired one and ingesting them in database.
 ![](trace-processor/inputs/trace-processor_workflow.png)
 
-The repository also contains two FINOPS component:
-- [object-storage-exporter](finops/object-storage-exporter/helm)
-- [resources-exporter](finops/resources-exporter/helm)
+The description of each component of RS-Core is described [here](./trace-processor/README.md)
 
-## Installation
+### Installation
 
-Each component will provide its own specific installation instructions, which may be found in their respective directory (see [above](#available-components)).
-
-`Next section describe process to install only trace-processor RS-Core component.`
-
-### Prerequisites
+#### Prerequisites
 
 - Infrastructure : all the required tools (such as Kafka and PostgreSQL) are included in the RS infrastructure installation.  
   See  [Reference System Software Infrastructure](https://github.com/COPRS/infrastructure) for details.
 - PostgreSQL database name **monitoring** is created 
 
-### Build
+#### Build
 
 In order to build the project from source, first clone the GitHub repository :
 
@@ -52,17 +47,17 @@ And finally build the zip files:
 
 The zip files will be found in the rs-core folder.
 
-### Using Ansible
+#### Using Ansible
 
 Run the `deploy-rs-addon.yaml` playbook with the following variables:
 
 - **stream_name**: name given to the stream in *Spring Cloud Dataflow*
 - **rs_addon_location**: direct download url of the zip file or zip location on the bastion
 
-### Manual Install
+#### Manual Install
 
 Download and extract the zip file for the RS-Core to install.  
-If necessary, edit the parameters as required (See the specific core release note for parameters description).
+If necessary, edit the parameters as required (See [Release Note](./rs-cores/MONITORING/Release_Note.md) for parameters description).
 
 - Create all objects defined by files in _Executables/additional_resources_
 - Using the SCDF GUI:
@@ -74,24 +69,125 @@ If necessary, edit the parameters as required (See the specific core release not
 
 Using the SCDF GUI, undeploy then destroy the stream relative to the RS-Core.
 
+## FINOPS components
+
+[![Docker CI FINOPS](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-finops.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-finops.yml)
+
+
+[![Helm FINOPS](https://github.com/COPRS/monitoring/actions/workflows/helm-finops.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/helm-finops.yml)
+
+These components provide metrics about Cloud Providers resources.
+
+### Object Storage Exporter
+
+This component provide metrics on real time use of storage (object storage)
+
+#### Installation
+
+##### Prerequisites
+
+- Infrastructure : all the required tools (such as Prometheus) are included in the RS infrastructure installation.  
+  See  [Reference System Software Infrastructure](https://github.com/COPRS/infrastructure) for details.
+
+##### Build
+
+In order to build the project from source, first clone the GitHub repository :
+
+```shellsession
+git clone https://github.com/COPRS/monitoring.git
+```
+
+Then build the docker images:
+
+```shellsession
+docker build -t <name_image>:<tag> ./finops/object-storage-exporter
+```
+
+##### Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```shellsession
+helm repo add rs-artifactory-monitoring https://artifactory.coprs.esa-copernicus.eu/artifactory/rs-helm
+helm install my-release rs-artifactory-monitoring/finops-object-storage-exporter
+```
+
+These commands deploy Object Storage Exporter on the Kubernetes cluster in the default configuration. [Parameters](./finops/object-storage-exporter/README.md#parameters-of-the-chart) that can be configured during installation.
+
+> Tip: List all releases using `helm list`
+
+### Uninstalling the Chart
+
+To uninstall/delete the `my-release` resources:
+
+```shellsession
+helm delete my-release
+```
+
+The command removes all the Kubernetes components associated with the chart and deletes the release. Use the option `--purge` to delete all history too.
+
+### Resources Exporter
+
+This component provide metrics on real time use of resources (machines, managed services)
+
+#### Installation
+
+##### Prerequisites
+
+- Infrastructure : all the required tools (such as Prometheus) are included in the RS infrastructure installation.  
+  See  [Reference System Software Infrastructure](https://github.com/COPRS/infrastructure) for details.
+
+##### Build
+
+In order to build the project from source, first clone the GitHub repository :
+
+```shellsession
+git clone https://github.com/COPRS/monitoring.git
+```
+
+Then build the docker images:
+
+```shellsession
+docker build -t <name_image>:<tag> ./finops/resources-exporter
+```
+
+##### Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```shellsession
+helm repo add rs-artifactory-monitoring https://artifactory.coprs.esa-copernicus.eu/artifactory/rs-helm
+helm install my-release rs-artifactory-monitoring/finops-resources-exporter
+```
+
+These commands deploy Resources Exporter on the Kubernetes cluster in the default configuration. [Parameters](./finops/resources-exporter/README.md#parameters-of-the-chart) that can be configured during installation.
+
+> Tip: List all releases using `helm list`
+
+### Uninstalling the Chart
+
+To uninstall/delete the `my-release` resources:
+
+```shellsession
+helm delete my-release
+```
+
+The command removes all the Kubernetes components associated with the chart and deletes the release. Use the option `--purge` to delete all history too.
+
 ## Repository Content
 
 The artifactory repository should contain:
 
-- Docker images for the custom components of the core in:  
-  https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-docker-private/monitoring
-- A zip file (its name includes the version number) for the core in:  
-  https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-zip-private
-- A tar gz file containing helm content for FINOPS component in:
-  https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-helm-private/monitoring
+- Docker images for all components : https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-docker/monitoring
+- RS-Core Monitoring : https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-zip
+- Helm Chart for FINOPS components : https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-helm/monitoring
+
+
+<br>
 
 ---
-## FINOPS
-[![Helm FINOPS](https://github.com/COPRS/monitoring/actions/workflows/helm-finops.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/helm-finops.yml)
-[![Docker CI FINOPS](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-finops.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-finops.yml)
 
-## Trace processor
-[![Docker Trace Processor](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-traceprocessor.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-traceprocessor.yml)
+<br>
 
 # Copyright and license
 
