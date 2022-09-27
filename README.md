@@ -23,7 +23,7 @@ The description of each component of RS-Core is described [here](./trace-process
 
 - Infrastructure : all the required tools (such as Kafka and PostgreSQL) are included in the RS infrastructure installation.  
   See  [Reference System Software Infrastructure](https://github.com/COPRS/infrastructure) for details.
-- PostgreSQL database name **monitoring** is created 
+- In PostgreSQL, you have to create an empty database (for example: **monitoring**) with a user (and his password) having read/write access to it. This information will be updated in [RS-CORE configuration files](./rs-cores/MONITORING/Release_Note.md)
 
 #### Build
 
