@@ -126,7 +126,7 @@ The same approach has been adopted with success on the Sentinel-1 Cloud PDGS pro
 
 ## Monitoring services
 
-It's based on the Monitoring Chain that is decribed in [ ADD INF ]
+Monitoring services are based on the Monitoring Chain that is decribed in [ ADD INF ]
 
 ![Monitoring Chain with Computed Data Overview](./../media/monitoring_pi_overview.png)
 
@@ -134,15 +134,15 @@ The computed data are PI/KPI data. These data are determined through different m
 
 ### Data Model
 
-It's described [here](../../trace-processor/README.md)
+The Data Model is described in trace-processor component ([trace-processor/README.md](../../trace-processor/README.md))
 
 ### RS-CORE Monitoring
 
-It's described here :
+The RS-CORE Monitoring is described here :
 - [Overview](../../README.md#overview)
 - [Micro services](../../trace-processor/README.md)
 - [Release Note](../../rs-cores/MONITORING/Release_Note.md)
 
 ### Monitoring HMI
 
-It's decribed in chapter **Monitoring services > Monitoring** of [ ADD INF ]
+The Monitoring HMI is decribed in chapter **Monitoring services > Monitoring** of [ ADD INF ]
