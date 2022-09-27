@@ -28,7 +28,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         while(! toProcess.isEmpty()) {
             final var processorDesc = toProcess.poll();
             final var entityMetadata = processorDesc.getEntityMetadata();
-            log.debug("Process %s\n".formatted(processorDesc.getName()));
+            log.debug("Process %s%n".formatted(processorDesc.getName()));
 
             final var relyOnProc = processorDesc.getRelyOnProc()
                     .values()
@@ -78,17 +78,9 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                             ).toList();
                 }
 
-                // If the entity is referenced by more than 1 entity
-                // process save operation to ensure entity uniqueness in database.
-                // If the entity is single process save operation directly
-                // /!\ Not needed JPA will handle this case for use (update reference with id)
-                /*if (entityMetadata.getReferencedBy().size() > 1) {
-                    finalEntities = entityIngestor.saveAll(finalEntities);
-                }*/
-
                 cachedEntities.put(processorDesc.getName(), finalEntities);
             } else {
-                System.out.printf("Cannot Process %s (dependency missing)%n", processorDesc.getEntityMetadata().getEntityName());
+                log.debug("Cannot Process %s (dependency missing)%n".formatted(processorDesc.getEntityMetadata().getEntityName()));
                 toProcess.add(processorDesc);
             }
         }
@@ -102,14 +94,12 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
 
     private List<DefaultEntity> associate(
             DefaultEntity containerEntity,
-            Map<Class, List<DefaultEntity>> cachedReferences,
-            Map<Class, DefaultAssociation> associationMap,
+            Map<Class<DefaultEntity>, List<DefaultEntity>> cachedReferences,
+            Map<Class<DefaultEntity>, DefaultAssociation<DefaultEntity, DefaultEntity>> associationMap,
             EntityFinder entityFinder) {
         var associatedEntities = List.of(containerEntity);
 
-        final var associationEntryIt = associationMap.entrySet().iterator();
-        while (associationEntryIt.hasNext()) {
-            var currentAssociationEntry = associationEntryIt.next();
+        for (Map.Entry<Class<DefaultEntity>, DefaultAssociation<DefaultEntity, DefaultEntity>> currentAssociationEntry : associationMap.entrySet()) {
             var currentReferences = cachedReferences.get(currentAssociationEntry.getKey());
 
             associatedEntities = associatedEntities.stream()
@@ -121,13 +111,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         return associatedEntities;
     }
 
-    private <T extends DefaultEntity> DefaultProcessor<T> createProcessor(ProcessorDescription processorDesc, EntityFinder entityFinder) {
-        /*try {
-            final var className = Class.forName("%s.%sProcessor".formatted(DefaultProcessor.class.getPackageName(), processorDesc.getEntityName()));
-            return (DefaultProcessor<T>) className.getConstructor(String.class, Ingestion.class, EntityFinder.class)
-                    .newInstance(processorDesc, entityFinder);
-        } catch (Exception e) {*/
-            return new DefaultProcessor<T>(processorDesc, entityFinder);
-        //}
+    private DefaultProcessor createProcessor(ProcessorDescription processorDesc, EntityFinder entityFinder) {
+        return new DefaultProcessor(processorDesc, entityFinder);
     }
 }

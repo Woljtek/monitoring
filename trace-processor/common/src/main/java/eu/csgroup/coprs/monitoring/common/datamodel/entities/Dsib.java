@@ -2,7 +2,6 @@ package eu.csgroup.coprs.monitoring.common.datamodel.entities;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import net.bytebuddy.implementation.bind.annotation.Super;
 
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;

@@ -6,6 +6,10 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class PropertyUtil {
+
+    private PropertyUtil () {
+        
+    }
     public static final String PROPERTY_DELIMITER = ".";
 
     public static final String ESCAPED_DELIMITER = "..";
@@ -103,13 +107,13 @@ public class PropertyUtil {
     }
 
     /**
-     * Remove snake and camel case formatting (set property in lower case).
+     * Remove snake, camel and pascal case formatting (set property in lower case).
      *
-     * @param formattedPropertyName
-     * @return
+     * @param formattedPropertyName Property name in snake,camel or pascal case
+     * @return property without snale, camel and pascal case identifier
      */
     public static String removeAllFormat (String formattedPropertyName) {
-        return formattedPropertyName.replaceAll("_", "").toLowerCase();
+        return formattedPropertyName.replace("_", "").toLowerCase();
     }
 
     public static String snake2CamelCasePath (String snakePropertyPath) {

@@ -38,5 +38,5 @@ public class Task {
     private String satellite;
 
     @NotNull
-    private Map input;
+    private Map<String, Object> input;
 }

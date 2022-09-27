@@ -60,7 +60,7 @@ public class LogSinkTests {
         // Then
         assertThat(entityIngestor.findAll(Dsib.class))
                 .hasSize(1)
-                .allMatch(entity -> entity instanceof Dsib);
+                .allMatch(Objects::nonNull);
     }
 
     @Test
@@ -92,12 +92,12 @@ public class LogSinkTests {
                 .allMatch(p -> p.getFilename() != null)
                 .allMatch(p -> p.getTimelinessName() != null)
                 .allMatch(p -> p.getTimelinessValueSeconds() != 0)
-                .allMatch(p -> p.isEndToEndProduct())
+                .allMatch(Product::isEndToEndProduct)
                 .allMatch(p -> !p.getCustom().isEmpty());
         assertThat(entityIngestor.list(InputListInternal.class))
-                .hasSize(0);
+                .isEmpty();
         assertThat(entityIngestor.list(OutputList.class))
-                .hasSize(0);
+                .isEmpty();
     }
 
     @Test
@@ -144,12 +144,11 @@ public class LogSinkTests {
         sink.accept(toMessage(chunksRef));
 
         // Then
+        assertThat(entityIngestor.list(Dsib.class))
+                .hasSize(1);
         assertThat(entityIngestor.list(Chunk.class))
-                .map(c -> {
-                    System.out.println(c);
-                    return c;
-                });
-        assertThat(entityIngestor.list())
+                .hasSize(9);
+        assertThat(entityIngestor.list(ExternalInput.class))
                 .hasSize(10);
     }
 
@@ -216,13 +215,13 @@ public class LogSinkTests {
 
         // Then
         output.put("test_string", outputUpdate.get("test_string"));
-        final var collection = new HashSet((Collection)output.get("test_strings"));
+        final var collection = new HashSet<Object>((Collection<Object>)output.get("test_strings"));
         collection.add("string2");
         collection.add("string4");
         output.put("test_strings", collection);
-        ((Map)(output.get("test_object"))).put("object1", "value10");
-        ((Map)(output.get("test_object"))).put("object2", "value2");
-        ((Map)(output.get("test_object"))).put("object4", "value4");
+        ((Map<String, Object>)(output.get("test_object"))).put("object1", "value10");
+        ((Map<String, Object>)(output.get("test_object"))).put("object2", "value2");
+        ((Map<String, Object>)(output.get("test_object"))).put("object4", "value4");
         final var custom = new AutoMergeableMap();
         custom.put("destination", output);
         custom.putAll(customUpdate);
@@ -290,8 +289,7 @@ public class LogSinkTests {
     private FilteredTrace getMultiChunkRef(String ... additionalChunks) {
         var ref = getRawRef();
         ref.getTrace().getTask().setName("CHUNK Trace");
-        final var filenames = new Vector<String>();
-        filenames.addAll(Arrays.asList(additionalChunks));
+        final var filenames = new ArrayList<>(Arrays.asList(additionalChunks));
 
         ((EndTask)ref.getTrace().getTask()).getOutput().put("filename", filenames);
 
@@ -314,23 +312,23 @@ public class LogSinkTests {
         final var task = new EndTask();
         //task.setSatellite("S2B");
 
-        final var output = new HashMap<>();
+        final var output = new HashMap<String, Object>();
         output.put("pickup_point_seen_date", "2019-01-21T05:24:40.000000Z");
         output.put("pickup_point_available_date", "2019-01-21T05:24:40.000000Z");
         output.put("ingestion_date", "2019-01-21T05:24:40.000000Z");
         output.put("catalog_storage_date", "2019-01-21T05:24:40.000000Z");
         output.put("channel_id", "ch_1");
         output.put("station", "XBIP");
-        output.put("test_strings", new Vector(List.of("string1", "string3")));
+        output.put("test_strings", new ArrayList<>(List.of("string1", "string3")));
         output.put("test_string", "string10");
-        output.put("test_object", new HashMap(Map.of("object1", "value1", "object3", "value3")));
+        output.put("test_object", new HashMap<>(Map.<String, Object>of("object1", "value1", "object3", "value3")));
         task.setOutput(output);
 
         final var trace = new Trace();
         trace.setHeader(header);
         trace.setTask(task);
 
-        final var custom = new HashMap<>();
+        final var custom = new HashMap<String, Object>();
         custom.put("key1", "value1");
         custom.put("key2", "value2");
         custom.put("key3", "value3");
@@ -349,7 +347,7 @@ public class LogSinkTests {
 
         final var task = new EndTask();
 
-        final var output = new HashMap<>();
+        final var output = new HashMap<String, Object>();
         output.put("timeliness_name_string", "timeliness test");
         output.put("timeliness_value_seconds_integer", 100);
         output.put("end_to_end_product_boolean", true);
@@ -360,7 +358,7 @@ public class LogSinkTests {
         ));
         task.setOutput(output);
 
-        final var input = new HashMap<>();
+        final var input = new HashMap<String, Object>();
         input.put("filename_string", "S2B_OPER_MSI_L0__DS_2BPS_20220529T143730_S20220529T002607_N04");
         task.setInput(input);
 

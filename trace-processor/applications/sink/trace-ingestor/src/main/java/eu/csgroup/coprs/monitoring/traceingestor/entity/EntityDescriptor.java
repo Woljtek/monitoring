@@ -6,20 +6,17 @@ import lombok.*;
 
 @NoArgsConstructor
 @EqualsAndHashCode
-public class EntityDescriptor<T extends DefaultEntity> {
+public class EntityDescriptor {
     @Getter
     @Setter
     private BeanAccessor bean;
 
-    /**
-     * Tell which property must not be set/updated
-     */
-    @Getter
-    @Setter
-    /*private List<BeanProperty> lockedProperties = new Vector<>();*/
+
     /**
      * Indicate if entity as some value set
      */
+    @Getter
+    @Setter
     private boolean preFilled = false;
 
     /**
@@ -28,8 +25,8 @@ public class EntityDescriptor<T extends DefaultEntity> {
     @Setter
     private boolean hasNext = false;
 
-    public T getEntity () {
-        return (T) bean.getDelegate().getWrappedInstance();
+    public DefaultEntity getEntity () {
+        return (DefaultEntity) bean.getDelegate().getWrappedInstance();
     }
 
     public boolean hasNext() {

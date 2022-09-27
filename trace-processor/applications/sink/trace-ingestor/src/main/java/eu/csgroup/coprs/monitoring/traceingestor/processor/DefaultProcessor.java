@@ -11,51 +11,48 @@ import eu.csgroup.coprs.monitoring.traceingestor.mapper.TraceMapper;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyLeaf;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyNode;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.*;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor<BeanAccessor, T> {
-    public DefaultProcessor (
-            ProcessorDescription processorDesc,
-            EntityFinder entityFinder
-    ) {
-        super(processorDesc, entityFinder);
-    }
-
-    private Specification<T> getFindClauses(Map<Mapping, Object> dependenciesValue ) {
+public record DefaultProcessor(ProcessorDescription processorDesc,
+                               EntityFinder entityFinder) implements Function<BeanAccessor, List<DefaultEntity>> {
+    private Specification<DefaultEntity> getFindClauses(Map<Mapping, Object> dependenciesValue) {
         // Feature: Handle arrays equality case
         return dependenciesValue.entrySet().stream()
-                .map(entry -> EntitySpecification.<T>getEntityBy(
+                .map(entry -> EntitySpecification.getEntityBy(
                         entry.getKey().getTo().getRawBeanPropertyPath(),
                         entry.getValue())
                 ).reduce(Specification.where(null), Specification::and);
     }
 
-    private List<Mapping> getBeanPropertyDependencies () {
-         return processorDesc.getEntityMetadata()
-                 .getDependencies()
-                 .stream()
-                 .map(field -> processorDesc.getIngestionConfig()
-                         .getMappings()
-                         .stream()
-                         .filter(mapping -> mapping.getTo().getBeanPropertyPath().equals(field.getName()))
-                         .findFirst()
-                         .orElse(null)
-                 ).filter(Objects::nonNull)
-                 .toList();
+    private List<Mapping> getBeanPropertyDependencies() {
+        return processorDesc.getEntityMetadata()
+                .getDependencies()
+                .stream()
+                .map(field -> processorDesc.getIngestionConfig()
+                        .getMappings()
+                        .stream()
+                        .filter(mapping -> mapping.getTo().getBeanPropertyPath().equals(field.getName()))
+                        .findFirst()
+                        .orElse(null)
+                ).filter(Objects::nonNull)
+                .toList();
     }
 
-    private Collection<TreePropertyLeaf> extractLeafs (TreePropertyNode tree) {
+    private Collection<TreePropertyLeaf> extractLeafs(TreePropertyNode tree) {
         return new ArrayList<>(tree.getLeafs().values());
     }
 
-    private Object reducePropertyValues (List<TreePropertyLeaf> leafs) {
+    private Object reducePropertyValues(List<TreePropertyLeaf> leafs) {
         if (leafs.size() == 1) {
             final var leaf = leafs.get(0);
             return TraceMapper.mapPropertyValue(leaf.getRule(), leaf.getRawValue());
@@ -67,7 +64,7 @@ public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor
         }
     }
 
-    private Optional<T> getAvailableEntity(T requiredEntity, List<Mapping> beanPropDep, Map<List<Object>, T> availableEntityValues, DefaultHandler<T> handler) {
+    private Optional<DefaultEntity> getAvailableEntity(DefaultEntity requiredEntity, List<Mapping> beanPropDep, Map<List<Object>, DefaultEntity> availableEntityValues, DefaultHandler handler) {
         final var requiredEntityBean = handler.getWrapper(requiredEntity);
 
         final var requiredEntityValues = beanPropDep.stream()
@@ -78,18 +75,18 @@ public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor
     }
 
     @Override
-    public List<T> apply(BeanAccessor beanAccessor) {
-        final var handler = new DefaultHandler<T>(processorDesc.getEntityMetadata().getEntityClass());
-        final var mapper = new TraceMapper<T>(beanAccessor, processorDesc.getIngestionConfig().getName());
+    public List<DefaultEntity> apply(BeanAccessor beanAccessor) {
+        final var handler = new DefaultHandler(processorDesc.getEntityMetadata().getEntityClass());
+        final var mapper = new TraceMapper(beanAccessor, processorDesc.getIngestionConfig().getName());
         final var treePropertyValue = new Parser(processorDesc.getIngestionConfig().getMappings()).parse(beanAccessor);
 
-        final var availableEntities = new ArrayList<T>();
+        final var availableEntities = new ArrayList<DefaultEntity>();
 
 
         // Retrieve mapping that refer to an entity field marked as unique.
         final var beanPropDep = getBeanPropertyDependencies();
 
-        if (beanPropDep.size() != 0) {
+        if (!beanPropDep.isEmpty()) {
             // Can be single value or array
             final var dependencyValue = extractLeafs(treePropertyValue).stream()
                     .filter(leaf -> beanPropDep.contains(leaf.getRule()))
@@ -108,7 +105,7 @@ public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor
             }
 
             final var requiredEntities = mapper.map(treePropertyValue, handler)
-                    .stream().map(bean -> (T)bean.getDelegate().getWrappedInstance())
+                    .stream().map(bean -> (DefaultEntity) bean.getDelegate().getWrappedInstance())
                     .toList();
 
             log.debug("Number of available entities %s".formatted(availableEntities));
@@ -121,7 +118,7 @@ public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor
             } else {
                 final var availableEntityValues = availableEntities.stream()
                         .collect(Collectors.toMap(
-                                entity ->  {
+                                entity -> {
                                     final var entityBean = handler.getWrapper(entity);
                                     return beanPropDep.stream()
                                             .map(rule -> entityBean.getPropertyValue(rule.getTo()))
@@ -145,13 +142,13 @@ public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor
                 .filter(m -> beanPropDep.stream()
                         .filter(mwod -> mwod.getTo().equals(m.getTo()))
                         .toList().isEmpty())
-                        .toList();
+                .toList();
         var res = mapper.map(mappingWithoutDependencies, handler);
 
         // Check result (remove duplicate and entity where field must not be null)
         final var dependencies = processorDesc.getEntityMetadata()
                 .getDependencies();
-        if (dependencies != null && ! dependencies.isEmpty()) {
+        if (dependencies != null && !dependencies.isEmpty()) {
             final var map = res.stream()
                     .filter(entity -> mustNotBeNullDependencies(dependencies, entity))
                     .collect(Collectors.groupingBy(entity -> groupByDependencies(dependencies, entity)))
@@ -162,18 +159,18 @@ public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor
                             Map.Entry::getKey,
                             entry -> entry.getValue()
                                     .stream()
-                                    .map(bean -> (T)bean.getDelegate().getWrappedInstance())
+                                    .map(bean -> (DefaultEntity) bean.getDelegate().getWrappedInstance())
                                     .collect(Collectors.toSet()))
                     );
 
             map.forEach((key, value) -> {
                 if (value.size() > 1) {
-                    throw new RuntimeException("Cannot have multiple entities for dependencies %s: %s".formatted(key, value));
+                    throw new ProcessorException("Cannot have multiple entities for dependencies %s: %s".formatted(key, value));
                 }
             });
             return map.values().stream().flatMap(Collection::stream).toList();
         } else {
-            return res.stream().map(bean -> (T)bean.getDelegate().getWrappedInstance()).toList();
+            return res.stream().map(bean -> (DefaultEntity) bean.getDelegate().getWrappedInstance()).toList();
         }
     }
 
@@ -181,13 +178,13 @@ public class DefaultProcessor<T extends DefaultEntity> extends AbstractProcessor
         return dependencies.stream()
                 .filter(field -> field.getAnnotation(Column.class).unique())
                 .map(field -> {
-                        final var propName = "%s.%s".formatted(
-                                beanEntity.getDelegate().getWrappedClass().getSimpleName(),
-                                field.getName()
-                        );
+                    final var propName = "%s.%s".formatted(
+                            beanEntity.getDelegate().getWrappedClass().getSimpleName(),
+                            field.getName()
+                    );
 
-                        return beanEntity.getPropertyValue(new BeanProperty(propName)) != null;
-                }).reduce(true, (l,n) -> l && n);
+                    return beanEntity.getPropertyValue(new BeanProperty(propName)) != null;
+                }).reduce(true, (l, n) -> l && n);
     }
 
     private List<Object> groupByDependencies(Collection<Field> dependencies, BeanAccessor beanEntity) {

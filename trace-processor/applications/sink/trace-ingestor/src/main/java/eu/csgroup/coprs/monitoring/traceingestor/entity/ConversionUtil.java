@@ -6,6 +6,10 @@ import java.util.regex.Pattern;
 
 public final class ConversionUtil {
 
+    private ConversionUtil () {
+
+    }
+
     public static Object convert(Pattern match, String replace, Object value) {
         if (value != null && match != null) {
             return convert(match, replace, (String)value);

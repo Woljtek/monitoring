@@ -13,27 +13,25 @@ import java.util.*;
 
 
 @RequiredArgsConstructor
-public class DefaultHandler<T extends DefaultEntity> {
-    //private String entityName;
+public class DefaultHandler {
 
     @Getter
-    private final Class<T> entityClass;
+    private final Class<DefaultEntity> entityClass;
 
-    private List<T> mergeableEntities;
+    private List<DefaultEntity> mergeableEntities;
 
 
-    public void mergeWith(List<T> entities) {
+    public void mergeWith(List<DefaultEntity> entities) {
         mergeableEntities = new Vector<>(entities);
     }
 
 
-    public EntityDescriptor<T> getNextEntity() {
-        final var entityDesc = new EntityDescriptor<T>();
+    public EntityDescriptor getNextEntity() {
+        final var entityDesc = new EntityDescriptor();
 
-        T entity = null;
-        if (mergeableEntities != null && mergeableEntities.size() != 0) {
+        DefaultEntity entity;
+        if (mergeableEntities != null && ! mergeableEntities.isEmpty()) {
             entity = mergeableEntities.remove(0);
-            //entityDesc.setLockedProperties(clauses);
             entityDesc.setPreFilled(true);
             entityDesc.setHasNext(! mergeableEntities.isEmpty());
         } else {
@@ -46,15 +44,15 @@ public class DefaultHandler<T extends DefaultEntity> {
         return entityDesc;
     }
 
-    public EntityDescriptor clone (T entity) {
+    public EntityDescriptor clone (DefaultEntity entity) {
         final var entityDesc = new EntityDescriptor();
-        final var clone = EntityHelper.copy(entity);
+        final var clone = EntityHelper.copy(entity, true);
         entityDesc.setBean(getWrapper(clone));
 
         return entityDesc;
     }
 
-    private T getDefaultEntity() {
+    private DefaultEntity getDefaultEntity() {
         return createDefaultInstanceFor(entityClass);
     }
 
@@ -66,7 +64,7 @@ public class DefaultHandler<T extends DefaultEntity> {
         }
     }
 
-    public BeanAccessor getWrapper (T entity) {
+    public BeanAccessor getWrapper (DefaultEntity entity) {
         var wrapper = PropertyAccessorFactory.forBeanPropertyAccess(entity);
         wrapper.setAutoGrowNestedPaths(true);
         wrapper.registerCustomEditor(Instant.class, new InstantPropertyEditor());

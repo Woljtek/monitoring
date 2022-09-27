@@ -11,6 +11,8 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 
 @Data
@@ -21,7 +23,11 @@ import java.time.Instant;
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 @Inheritance(strategy = InheritanceType.JOINED)
 @Embeddable
-public class ExternalInput extends DefaultEntity {
+public class ExternalInput implements DefaultEntity, Serializable {
+    @Serial
+    @Transient
+    private static final long serialVersionUID = -9103395168532456518L;
+
     @Id
     @SequenceGenerator(sequenceName="external_input_id_seq", name = "external_input_id_seq", allocationSize=1)
     @GeneratedValue(generator = "external_input_id_seq", strategy = GenerationType.SEQUENCE)
@@ -45,7 +51,12 @@ public class ExternalInput extends DefaultEntity {
     private AutoMergeableMap custom;
 
     @Override
-    public Object copy() {
+    public ExternalInput copy() {
         return this.toBuilder().build();
+    }
+
+    @Override
+    public void resetId() {
+        id = null;
     }
 }

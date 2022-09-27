@@ -20,17 +20,16 @@ public class EndTask extends Task {
     @JsonProperty("error_code")
     private int errorCode;
 
-    //TODO Set as Duration and not double
     @NotNull
     @JsonProperty("duration_in_seconds")
     private Double durationInSeconds;
 
     @NotNull
-    private Map output;
+    private Map<String, Object> output;
 
     @NotNull
-    private Map quality;
+    private Map<String, Object> quality;
 
     @JsonProperty("missing_output")
-    private Collection missingOutput;
+    private Collection<Object> missingOutput;
 }

@@ -1,6 +1,11 @@
 package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
+import java.io.Serial;
+
 public class EntityHandlerException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = -5191711481626759514L;
+
     public EntityHandlerException () {
         super();
     }

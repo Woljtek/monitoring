@@ -10,13 +10,10 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Column;
+import javax.persistence.*;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 
 @Data
@@ -25,7 +22,12 @@ import java.time.Instant;
 @NoArgsConstructor
 @Entity
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
-public class Product extends DefaultEntity {
+public class Product implements DefaultEntity, Serializable {
+    @Transient
+    @Serial
+    private static final long serialVersionUID = -1088870334322071348L;
+
+
     @Id
     @SequenceGenerator(sequenceName="product_id_seq", name = "product_id_seq", allocationSize=1)
     @GeneratedValue(generator = "product_id_seq", strategy = GenerationType.SEQUENCE)
@@ -54,7 +56,12 @@ public class Product extends DefaultEntity {
     private boolean late;
 
     @Override
-    public Object copy() {
+    public Product copy() {
         return this.toBuilder().build();
+    }
+
+    @Override
+    public void resetId() {
+        this.id = null;
     }
 }

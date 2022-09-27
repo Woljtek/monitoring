@@ -74,7 +74,7 @@ public class ProcessingIngestionTests {
         assertThat(entityIngestor.findAll(OutputList.class))
                 .hasSize(4);
         assertThat(entityIngestor.findAll(MissingProducts.class))
-                .hasSize(0);
+                .isEmpty();
     }
 
     @Test
@@ -127,7 +127,7 @@ public class ProcessingIngestionTests {
 
         // Then
         assertThat(entityIngestor.findAll(Product.class))
-                .hasSize(0);
+                .isEmpty();
     }
 
     @Test
@@ -141,7 +141,7 @@ public class ProcessingIngestionTests {
 
         // Then
         assertThat(entityIngestor.findAll(ExternalInput.class))
-                .hasSize(0);
+                .isEmpty();
     }
 
 
@@ -173,7 +173,7 @@ public class ProcessingIngestionTests {
         final var task = new EndTask();
         //task.setSatellite("S2B");
 
-        final var output = new HashMap<>();
+        final var output = new HashMap<String, Object>();
         output.put("filename_strings", List.of(
                 "GS2B_20170322T000000_013601_N02.01",
                 "GS2B_20170322T000000_013601_N02.02.zip",
@@ -182,7 +182,7 @@ public class ProcessingIngestionTests {
         );
         task.setOutput(output);
 
-        final var input = new HashMap<>();
+        final var input = new HashMap<String, Object>();
         input.put("filename_strings", List.of(
                 "DCS_05_S2B_20210927072424023813_ch1_DSDB_00001.raw",
                 "DCS_05_S2B_20210927072424023813_ch1_DSDB_00002.raw",
@@ -202,7 +202,7 @@ public class ProcessingIngestionTests {
         trace.setHeader(header);
         trace.setTask(task);
 
-        final var custom = new HashMap<>();
+        final var custom = new HashMap<String, Object>();
         custom.put("key1", "value1");
         custom.put("key2", "value2");
         custom.put("key3", "value3");

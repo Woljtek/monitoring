@@ -4,7 +4,7 @@ import javax.validation.ConstraintViolation;
 import java.util.Set;
 
 public class JsonValidationException extends Exception {
-    private String violationMessage;
+    private final StringBuilder violationMessage = new StringBuilder();
 
     public JsonValidationException() {
         super();
@@ -19,7 +19,7 @@ public class JsonValidationException extends Exception {
     }
 
     public JsonValidationException(String message, Throwable throwable) {
-        super(message);
+        super(message, throwable);
     }
 
     @Override
@@ -43,12 +43,17 @@ public class JsonValidationException extends Exception {
     }
 
     public <T> void setViolations(Set<ConstraintViolation<T>> violations) {
-        violationMessage = "";
+        violationMessage.delete(0, violationMessage.length());
+
         for (ConstraintViolation<?> violation : violations) {
             if (! violationMessage.isEmpty()) {
-                violationMessage += "\n";
+                violationMessage.append("\n");
             }
-            violationMessage += violation.getRootBeanClass().getSimpleName() + "." + violation.getPropertyPath() + " " + violation.getMessage();
+            violationMessage.append(violation.getRootBeanClass().getSimpleName())
+                    .append(".")
+                    .append(violation.getPropertyPath())
+                    .append(" ")
+                    .append(violation.getMessage());
         }
     }
 }

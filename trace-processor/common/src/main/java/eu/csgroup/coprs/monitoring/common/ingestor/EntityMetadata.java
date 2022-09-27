@@ -1,5 +1,6 @@
 package eu.csgroup.coprs.monitoring.common.ingestor;
 
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -11,30 +12,26 @@ import java.util.*;
 @Setter
 @ToString
 public class EntityMetadata {
-    private Class entityClass;
+    private Class<DefaultEntity> entityClass;
 
     private String entityName;
 
     private Map<EntityMetadata, Deque<Field>> relyOn = new HashMap<>();
 
-    private Collection<Class> referencedBy = new HashSet<>();
+    private Collection<Class<DefaultEntity>> referencedBy = new HashSet<>();
 
     private Collection<Field> dependencies = new HashSet<>();
 
     /**
      * Polymorphism
      */
-    private Collection<Class> child = new HashSet<>();
+    private Collection<Class<DefaultEntity>> child = new HashSet<>();
 
-    public void addChild (Class entityClass) {
+    public void addChild (Class<DefaultEntity> entityClass) {
         child.add(entityClass);
     }
 
-    public void addReferencedBy (Class entityClass) {
+    public void addReferencedBy (Class<DefaultEntity> entityClass) {
         referencedBy.add(entityClass);
-    }
-
-    public void addDependency (Field dependency) {
-        dependencies.add(dependency);
     }
 }

@@ -2,33 +2,26 @@ package eu.csgroup.coprs.monitoring.traceingestor.mapper;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.ConversionUtil;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityDescriptor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 
 import java.util.*;
 
-@Data
 @Slf4j
-public class TraceMapper<T extends DefaultEntity> {
-    private final BeanAccessor wrapper;
-
-    private final String configurationName;
-
-    public List<BeanAccessor> map(List<Mapping> mappings, DefaultHandler<T> handler) {
-        final var tree = new Parser(mappings/*, configurationName*/).parse(wrapper);
+public record TraceMapper(BeanAccessor wrapper, String configurationName) {
+    public List<BeanAccessor> map(List<Mapping> mappings, DefaultHandler handler) {
+        final var tree = new Parser(mappings).parse(wrapper);
 
         return map(tree, handler);
     }
 
-    public List<BeanAccessor> map(TreePropertyNode tree, DefaultHandler<T> handler) {
+    public List<BeanAccessor> map(TreePropertyNode tree, DefaultHandler handler) {
         try {
-            var entityCache = new EntityCache<T>(handler);
+            var entityCache = new EntityCache(handler);
             map(tree, entityCache);
 
             entityCache.flush();
@@ -43,11 +36,9 @@ public class TraceMapper<T extends DefaultEntity> {
         }
     }
 
-    private void map (/*String rootPath,*/ TreePropertyNode tree, EntityCache entityCache) throws InterruptedOperationException {
+    private void map(TreePropertyNode tree, EntityCache entityCache) throws InterruptedOperationException {
         final var propertyCache = new HashMap<BeanProperty, Object>();
-        for (TreePropertyLeaf leaf: tree.getLeafs().values()) {
-            //final var propertyPath = PropertyUtil.getPath(rootPath, leaf.getPath());
-            //final var rawValue = wrapper.getPropertyValue(new BeanProperty(propertyPath));
+        for (TreePropertyLeaf leaf : tree.getLeafs().values()) {
             final var value = mapPropertyValue(leaf.getRule(), leaf.getRawValue());
 
             // Do not set null property value to avoid non handled null value conversion
@@ -57,55 +48,45 @@ public class TraceMapper<T extends DefaultEntity> {
                     propertyCache.put(leaf.getRule().getTo(), value);
                 } catch (ConversionNotSupportedException e) {
                     if (value instanceof final Collection<?> collection) {
-                        if (collection.size() > 0) {
-                            final var collectionIt = collection.iterator();
-
-                            while (collectionIt.hasNext()) {
-                                final var singleValue = collectionIt.next();
-
-                                // Do not set null property value and so create new entity
-                                entityCache.setPropertyValue(leaf.getRule().getTo(), singleValue, false);
-
-                                if (collectionIt.hasNext()) {
-                                    entityCache.nextEntity();
-                                }
-                            }
-
-                        } else if (leaf.getRule().isRemoveEntityIfNull()) {
-                            throw new InterruptedOperationException("Value for property %s can't be null".formatted(leaf.getRule().getTo().getRawPropertyPath()));
-                        }
+                        mapCollection(leaf, entityCache, collection);
                     } else {
                         throw e;
                     }
                 }
             } else {
-                log.warn("No value found for '%s' for configuration '%s'\n%s".formatted(leaf.getRule().getFrom(), configurationName, wrapper.getDelegate().getWrappedInstance()));
+                log.warn("No value found for '%s' for configuration '%s'%n%s".formatted(leaf.getRule().getFrom(), configurationName, wrapper.getDelegate().getWrappedInstance()));
             }
         }
 
         final var nodeIt = tree.getNodes().values().iterator();
         while (nodeIt.hasNext()) {
             final var node = nodeIt.next();
-            map(node, new EntityCache<T>(entityCache, propertyCache));
+            map(node, new EntityCache(entityCache, propertyCache));
 
             if (nodeIt.hasNext()) {
                 entityCache.nextEntity();
             }
         }
+    }
 
-        /*for (TreePropertyNode node: tree.getNodes().values()) {
-            final var propertyPath = PropertyUtil.getPath(rootPath, node.getPath());
-            //final var collectionSize = ((Collection<?>)wrapper.getPropertyValue(new BeanProperty(propertyPath))).size();
-            for (int index = 0; index < collectionSize; index++) {
-                final var propertyPathIndex = "%s[%s]".formatted(propertyPath, index);
+    private void mapCollection (TreePropertyLeaf leaf, EntityCache entityCache, Collection<?> collection) {
+        if (! collection.isEmpty()) {
+            final var collectionIt = collection.iterator();
 
-                map(propertyPathIndex, node, new EntityCache(entityCache, propertyCache));
+            while (collectionIt.hasNext()) {
+                final var singleValue = collectionIt.next();
 
-                if (index != collectionSize - 1) {
+                // Do not set null property value and so create new entity
+                entityCache.setPropertyValue(leaf.getRule().getTo(), singleValue, false);
+
+                if (collectionIt.hasNext()) {
                     entityCache.nextEntity();
                 }
             }
-        }*/
+
+        } else if (leaf.getRule().isRemoveEntityIfNull()) {
+            throw new InterruptedOperationException("Value for property %s can't be null".formatted(leaf.getRule().getTo().getRawPropertyPath()));
+        }
     }
 
 
@@ -133,7 +114,6 @@ public class TraceMapper<T extends DefaultEntity> {
                     throw e;
                 }
             }
-
 
 
         } else if (rule.isRemoveEntityIfNull()) {

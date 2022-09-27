@@ -1,6 +1,6 @@
 package eu.csgroup.coprs.monitoring.traceingestor.association;
 
-import lombok.Data;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -12,7 +12,7 @@ import java.util.Map;
 public class AssociationFactory {
     private static final AssociationFactory INSTANCE = new AssociationFactory();
 
-    private final Map<Entry, Constructor<DefaultAssociation>> cache = new HashMap<>();
+    private final Map<Entry, Constructor<DefaultAssociation<DefaultEntity, DefaultEntity>>> cache = new HashMap<>();
 
     private AssociationFactory() {
 
@@ -23,7 +23,7 @@ public class AssociationFactory {
         return INSTANCE;
     }
 
-    public DefaultAssociation selectAssociation (Class containerClass, Class referenceClass, Deque<Field> associationFields) {
+    public DefaultAssociation<DefaultEntity, DefaultEntity> selectAssociation (Class<DefaultEntity> containerClass, Class<DefaultEntity> referenceClass, Deque<Field> associationFields) {
         final var entry = new Entry(containerClass, referenceClass);
 
         var entityAssociation = cache.get(entry);
@@ -31,13 +31,13 @@ public class AssociationFactory {
             try {
                 final var className = Class.forName("%s.%sTo%sAssociation"
                         .formatted(DefaultAssociation.class.getPackageName(), containerClass.getSimpleName(), referenceClass.getSimpleName()));
-                entityAssociation = ((Class<DefaultAssociation>)className).getConstructor(Class.class, Deque.class);
+
+                entityAssociation = getConstructor(className);
             } catch (NoSuchMethodException | ClassNotFoundException e1) {
                 try {
-                    entityAssociation = DefaultAssociation.class.getConstructor(Class.class, Deque.class);
+                    entityAssociation = getConstructor(DefaultAssociation.class);
                 } catch (NoSuchMethodException e2) {
-                    // TODO
-                    throw new RuntimeException(e2);
+                    throw new AssociationException("Unable to retrieve constructor for default association class", e2);
                 }
             }
 
@@ -45,17 +45,23 @@ public class AssociationFactory {
         }
 
         try {
-            return entityAssociation.newInstance(containerClass, associationFields);
+            return entityAssociation.newInstance(associationFields);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            throw new AssociationException(
+                    "Unable to instantiate association class between %s and %s".formatted(
+                            containerClass.getSimpleName(),
+                            referenceClass.getSimpleName()),
+                    e
+            );
         }
 
 
     }
 
-    @Data
-    private static class Entry {
-        private final Class containerClass;
-        private final Class referenceClass;
+    @SuppressWarnings("unchecked")
+    Constructor<DefaultAssociation<DefaultEntity, DefaultEntity>> getConstructor(Class<?> defaultAssociationClass) throws NoSuchMethodException{
+        return ((Class<DefaultAssociation<DefaultEntity, DefaultEntity>>)defaultAssociationClass).getConstructor(Deque.class);
+    }
+    private record Entry(Class<DefaultEntity> containerClass, Class<DefaultEntity> referenceClass) {
     }
 }

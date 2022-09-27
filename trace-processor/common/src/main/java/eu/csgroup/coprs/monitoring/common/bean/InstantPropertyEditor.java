@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 public class InstantPropertyEditor implements PropertyEditor {
     private Instant instant;
 
-    private DateTimeFormatter formatter;
+    private final DateTimeFormatter formatter;
 
 
     public InstantPropertyEditor () {
@@ -29,16 +29,16 @@ public class InstantPropertyEditor implements PropertyEditor {
     public void setValue(Object value) {
         if (value == null) {
             instant = null;
-        } else if (value instanceof Instant) {
-            instant = (Instant) value;
+        } else if (value instanceof Instant castInstant) {
+            instant = castInstant;
         } else {
-            String rawDate = null;
-            if (value instanceof TextNode) {
-                rawDate = ((TextNode) value).asText();
+            String rawDate;
+            if (value instanceof TextNode textNode) {
+                rawDate = textNode.asText();
             } else {
                 rawDate = value.toString();
             }
-            instant = Instant.parse(rawDate.toString());
+            instant = Instant.parse(rawDate);
         }
     }
 
@@ -52,9 +52,10 @@ public class InstantPropertyEditor implements PropertyEditor {
         return false;
     }
 
+
     @Override
     public void paintValue(Graphics gfx, Rectangle box) {
-
+        // Intentionally empty because unused
     }
 
     @Override
@@ -89,11 +90,11 @@ public class InstantPropertyEditor implements PropertyEditor {
 
     @Override
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-
+        // Intentionally empty because unused
     }
 
     @Override
     public void removePropertyChangeListener(PropertyChangeListener listener) {
-
+        // Intentionally empty because unused
     }
 }

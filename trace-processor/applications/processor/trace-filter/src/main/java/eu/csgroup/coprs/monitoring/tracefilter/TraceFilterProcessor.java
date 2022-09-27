@@ -74,8 +74,8 @@ public class TraceFilterProcessor
             return Collections.emptyList();
         } catch (Exception e) {
             lastProcessedRawTrace = rawJson;
-            final var errorMessage = "Error occurred handling trace \n%s: ".formatted(rawJson);
-            throw new RuntimeException(errorMessage, e);
+            final var errorMessage = "Error occurred handling trace %n%s: ".formatted(rawJson);
+            throw new FilterException(errorMessage, e);
         }
     }
 
@@ -92,8 +92,8 @@ public class TraceFilterProcessor
      * @return Updated structure
      */
     public String undecorate (String dirtyJson) {
-        return dirtyJson.replaceAll("\\\\\"", "\"")
-                .replaceAll("\"\\{", "{")
-                .replaceAll("}\"", "}");
+        return dirtyJson.replace("\\\"", "\"")
+                .replace("\"{", "{")
+                .replace("}\"", "}");
     }
 }

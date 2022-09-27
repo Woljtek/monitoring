@@ -20,30 +20,4 @@ public class Mapping {
         private String convert;
 
         private boolean removeEntityIfNull = false;
-
-
-        public Mapping (BeanProperty from, BeanProperty to) {
-                this.from = from;
-                this.to = to;
-        }
-
-        public void setMatch(String match) {
-                this.match = Pattern.compile(match);
-        }
-
-        /*public Mapping(BeanProperty from) {
-                this.from = from;
-        }
-
-        public Mapping(BeanProperty from, BeanProperty to) {
-                this.from = from;
-                this.to = to;
-        }*/
-
-    /*public static Mapping from(String tracePath, String entityPath) {
-        return new Mapping(
-                new BeanProperty(tracePath),
-                new BeanProperty(entityPath)
-        );
-    }*/
 }

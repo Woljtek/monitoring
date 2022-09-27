@@ -6,26 +6,26 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@EqualsAndHashCode()
+@ToString()
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class OutputList extends DefaultEntity {
+public class OutputList implements DefaultEntity {
 
     @EmbeddedId
     private OutputListId id = new OutputListId();
 
     @Override
-    public Object copy() {
+    public OutputList copy() {
         return this.toBuilder()
                 .id(this.id.toBuilder().build())
                 .build();
     }
 
     @Override
-    public void setId(Long id) {
-
+    public void resetId() {
+        this.id = new OutputListId();
     }
 }

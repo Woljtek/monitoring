@@ -3,6 +3,7 @@ package eu.csgroup.coprs.monitoring.common.datamodel.entities;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 
 @Data
@@ -13,6 +14,10 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Embeddable
 public class InputListExternalId implements Serializable {
+    @Transient
+    @Serial
+    private static final long serialVersionUID = 678559889187487080L;
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "external_input_id")
     private ExternalInput externalInput;

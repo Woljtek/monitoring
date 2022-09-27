@@ -5,26 +5,26 @@ import lombok.*;
 import javax.persistence.*;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@EqualsAndHashCode()
+@ToString()
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class InputListExternal extends DefaultEntity {
+public class InputListExternal implements DefaultEntity {
 
     @EmbeddedId
     private InputListExternalId id = new InputListExternalId();
 
     @Override
-    public Object copy() {
+    public InputListExternal copy() {
         return this.toBuilder()
                 .id(this.id.toBuilder().build())
                 .build();
     }
 
     @Override
-    public void setId(Long id) {
-
+    public void resetId() {
+        this.id = new InputListExternalId();
     }
 }

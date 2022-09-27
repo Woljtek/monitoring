@@ -16,7 +16,6 @@ public class TraceLog {
     @JsonProperty("@timestamp")
     private double timestamp;
 
-    //@JsonFormat(shape=JsonFormat.Shape.STRING, pattern= PropertyNames.TRACE_LOG_TIME_PATTERN, timezone = PropertyNames.DEFAULT_TIMEZONE)
     private String time;
 
     private String stream;
@@ -28,5 +27,5 @@ public class TraceLog {
     @JsonProperty("log")
     private Trace trace;
 
-    private Map kubernetes;
+    private Map<String, Object> kubernetes;
 }

@@ -11,18 +11,25 @@ import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@EqualsAndHashCode()
+@ToString()
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @TypeDef(name="pgsql_enum", typeClass =  PostgreSQLEnumType.class)
 @Embeddable
-public class Processing extends DefaultEntity {
+public class Processing implements DefaultEntity, Serializable {
+    @Transient
+    @Serial
+    private static final long serialVersionUID = -311807617227639758L;
+
+
     @Id
     @SequenceGenerator(sequenceName="external_input_id_seq", name = "external_input_id_seq", allocationSize=1)
     @GeneratedValue(generator = "external_input_id_seq", strategy = GenerationType.SEQUENCE)
@@ -61,9 +68,12 @@ public class Processing extends DefaultEntity {
 
 
     @Override
-    public Object copy() {
+    public Processing copy() {
         return this.toBuilder().build();
     }
 
-
+    @Override
+    public void resetId() {
+        this.id = null;
+    }
 }

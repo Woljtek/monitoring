@@ -21,14 +21,15 @@ public class JsonValidator {
         final var res = mapper.readValue(content, valueType);
 
         // Validate
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        final var violations = validator.validate(res);
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            Validator validator = factory.getValidator();
+            final var violations = validator.validate(res);
 
-        if (! violations.isEmpty()) {
-            final var exception = new JsonValidationException ();
-            exception.setViolations(violations);
-            throw exception;
+            if (!violations.isEmpty()) {
+                final var exception = new JsonValidationException();
+                exception.setViolations(violations);
+                throw exception;
+            }
         }
 
         return res;

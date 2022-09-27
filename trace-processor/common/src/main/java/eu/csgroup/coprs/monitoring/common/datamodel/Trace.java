@@ -21,5 +21,5 @@ public class Trace {
     @Valid
     private Task task;
 
-    private Map custom;
+    private Map<String, Object> custom;
 }

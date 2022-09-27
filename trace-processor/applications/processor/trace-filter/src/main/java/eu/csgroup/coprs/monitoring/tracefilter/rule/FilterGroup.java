@@ -6,7 +6,6 @@ import eu.csgroup.coprs.monitoring.common.properties.ReloadableYamlPropertySourc
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.BeanWrapper;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -30,7 +29,10 @@ public class FilterGroup implements Function<BeanAccessor, Optional<Filter>> {
 
         return filters
                 .stream()
-                .peek(filter -> log.trace("Apply filter %s".formatted(filter.getName())))
+                .map(filter -> {
+                    log.trace("Apply filter %s".formatted(filter.getName()));
+                    return filter;
+                })
                 .filter(checkFilter)
                 .findFirst();
     }

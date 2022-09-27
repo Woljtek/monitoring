@@ -18,7 +18,7 @@ public class BeanAccessor {
     }
 
     public Object getPropertyValue(BeanProperty property) {
-        Object res = null;
+        Object res;
         if (! cache.containsKey(property.getBeanPropertyPath())) {
             res = delegate.getPropertyValue(property.getBeanPropertyPath());
             cache.put(property.getBeanPropertyPath(), res);

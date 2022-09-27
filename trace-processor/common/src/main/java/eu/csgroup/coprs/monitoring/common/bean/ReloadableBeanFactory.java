@@ -10,6 +10,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -27,8 +28,8 @@ public class ReloadableBeanFactory {
         return getBeanConfiguration(className)
                 .flatMap(beanConfig -> {
                     final var psAnno = className.getAnnotation(org.springframework.context.annotation.PropertySource.class);
-                    String psName = null;
-                    if (psAnno != null && psAnno.name() != null) {
+                    String psName;
+                    if (psAnno != null) {
                         psName = psAnno.name();
                     } else {
                         psName = beanConfig.getName();
@@ -45,17 +46,22 @@ public class ReloadableBeanFactory {
             final var bean = beanConfig.getInstance();
             context.getAutowireCapableBeanFactory().destroyBean(bean);
 
-            final var newBean = context.getAutowireCapableBeanFactory().createBean(bean.getClass());
+            final var newBean = context.getAutowireCapableBeanFactory().createBean(className);
             reloadableBean.setReloaded();
-            return (T) newBean;
+            return newBean;
         } else {
-            return (T) beanConfig.getInstance();
+            return castObjectToParameterizedType(beanConfig.getInstance());
         }
     }
 
-    private Optional<ConfigurationPropertiesBean> getBeanConfiguration (Class className) {
+    @SuppressWarnings("unchecked")
+    private <T> T castObjectToParameterizedType (Object object) {
+        return (T) object;
+    }
+
+    private <T> Optional<ConfigurationPropertiesBean> getBeanConfiguration (Class<T> className) {
         final var beanConfig =  ConfigurationPropertiesBean.getAll(context).values().stream()
-            .filter(cpb -> ClassUtils.getUserClass(cpb.asBindTarget().getType().getRawClass()).equals(className))
+            .filter(cpb -> ClassUtils.getUserClass(Objects.requireNonNull(cpb.asBindTarget().getType().getRawClass())).equals(className))
             .findFirst();
 
         if (beanConfig.isEmpty()) {
@@ -67,15 +73,15 @@ public class ReloadableBeanFactory {
 
     private Optional<ReloadableBean> findReloadablePropertySource (String propertySourceName) {
         final var propertySource = findPropertySource(propertySourceName);
-        if (propertySource != null && ReloadableBean.class.isInstance(propertySource)) {
-            return Optional.of((ReloadableBean) propertySource);
+        if (propertySource instanceof ReloadableBean reloadableBean) {
+            return Optional.of(reloadableBean);
         } else {
             log.warn("Bean with name '%s' is not reloadable".formatted(propertySourceName));
             return Optional.empty();
         }
     }
 
-    private PropertySource findPropertySource (String propertySourceName) {
+    private PropertySource<?> findPropertySource (String propertySourceName) {
         return getPropertySources()
                 .filter(ps -> propertySourceName.equals(ps.getName()))
                 .findFirst()

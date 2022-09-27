@@ -2,19 +2,18 @@ package eu.csgroup.coprs.monitoring.common.datamodel.entities;
 
 import eu.csgroup.coprs.monitoring.common.bean.AutoMergeableMap;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode()
+@ToString()
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class MissingProducts extends DefaultEntity {
+public class MissingProducts implements DefaultEntity {
 
     @Id
     @SequenceGenerator(sequenceName="missing_products_id_seq", name = "missing_products_id_seq", allocationSize=1)
@@ -37,8 +36,8 @@ public class MissingProducts extends DefaultEntity {
 
 
     @Override
-    public void setId(Long id) {
-        this.id = id;
+    public void resetId() {
+        this.id = null;
     }
 
     @Override

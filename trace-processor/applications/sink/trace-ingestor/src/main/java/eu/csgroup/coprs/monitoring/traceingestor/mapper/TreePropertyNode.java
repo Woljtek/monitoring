@@ -1,16 +1,18 @@
 package eu.csgroup.coprs.monitoring.traceingestor.mapper;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Getter
+@EqualsAndHashCode(callSuper = true)
 public class TreePropertyNode extends TreeProperty {
 
-    private Map<String, TreePropertyLeaf> leafs = new HashMap<>();
+    private final Map<String, TreePropertyLeaf> leafs = new HashMap<>();
 
-    private Map<String, TreePropertyNode> nodes = new HashMap<>();
+    private final Map<String, TreePropertyNode> nodes = new HashMap<>();
 
     public TreePropertyNode(String path) {
         super(path);

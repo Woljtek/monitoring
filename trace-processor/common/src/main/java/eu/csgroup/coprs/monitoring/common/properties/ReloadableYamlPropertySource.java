@@ -31,7 +31,7 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
     /**
      * Expression engine comptible with spring convention
      */
-    private ExpressionEngine expressionEngine;
+    private final ExpressionEngine expressionEngine;
 
 
     public ReloadableYamlPropertySource(String name, final String path) {
@@ -129,13 +129,18 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
     public Object getRawConf(ImmutableNode rootNode, ImmutableNode currentNode, Object rootRawConf) {
         var rawConf = rootRawConf;
         if (rootRawConf instanceof Map<?,?>) {
-            rawConf = ((Map)rootRawConf).get(currentNode.getNodeName());
+            rawConf = this.<Map<String, String>>castObject(rootRawConf).get(currentNode.getNodeName());
         } else if (rootRawConf instanceof Collection<?>) {
             int index = getPropertyIndex(rootNode, currentNode);
-            rawConf = ((List)rawConf).get(index);
+            rawConf = this.<List<String>>castObject(rawConf).get(index);
         }
 
         return rawConf;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T castObject (Object object) {
+        return (T) object;
     }
 
     private record LeafProperties (
@@ -194,5 +199,21 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
 
     public void setReloaded () {
         dirty.set(false);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ReloadableYamlPropertySource that)) return false;
+        if (!super.equals(o)) return false;
+        return Objects.equals(builder, that.builder)
+                && Objects.equals(dirty, that.dirty)
+                && Objects.equals(leafProperties, that.leafProperties)
+                && Objects.equals(expressionEngine, that.expressionEngine);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), builder, dirty, leafProperties, expressionEngine);
     }
 }

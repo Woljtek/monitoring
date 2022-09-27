@@ -17,13 +17,10 @@ public class ReloadableYamlPropertySourceFactory extends DefaultPropertySourceFa
 
         Resource internal = encodedResource.getResource();
 
-        if (internal instanceof FileSystemResource)
-            return new ReloadableYamlPropertySource(s, ((FileSystemResource) internal)
-                    .getPath());
-        if (internal instanceof FileUrlResource)
-            return new ReloadableYamlPropertySource(s, ((FileUrlResource) internal)
-                    .getURL()
-                    .getPath());
+        if (internal instanceof FileSystemResource fileSystemResource)
+            return new ReloadableYamlPropertySource(s, fileSystemResource.getPath());
+        if (internal instanceof FileUrlResource fileUrlResource)
+            return new ReloadableYamlPropertySource(s, fileUrlResource.getURL().getPath());
         if (internal instanceof ClassPathResource)
             return new ReloadableYamlPropertySource(s, internal
                     .getFile()

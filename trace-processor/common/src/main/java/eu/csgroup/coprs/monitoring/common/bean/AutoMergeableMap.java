@@ -8,28 +8,27 @@ import java.util.stream.Collectors;
  * Auto mergeable map which apply merge functionnality (not based on {@link Map#merge(Object, Object, BiFunction)})
  * automatically when putting a value.
  * Depending on old value and new value type merge result will vary.
- *
+ * <p>
  * When merging value(s) into collection or map, a new one is created and the old one is left intact.
  */
-public class AutoMergeableMap extends HashMap<Object, Object> {
+public class AutoMergeableMap extends HashMap<String, Object> {
 
     public AutoMergeableMap() {
         super();
     }
 
-    public AutoMergeableMap(Map map) {
+    public AutoMergeableMap(Map<String, Object> map) {
         super();
-        ((Set<Entry>)(map.entrySet())).forEach(entry -> this.put(entry.getKey(), entry.getValue()));
+        putAll(map);
     }
 
     @Override
-    public void putAll(Map map) {
-        for (Map.Entry e : (Set<Entry>)map.entrySet())
-            put(e.getKey(), e.getValue());
+    public void putAll(Map<? extends String, ?> map) {
+        map.forEach(this::put);
     }
 
     @Override
-    public Object put(Object key, Object value) {
+    public Object put(String key, Object value) {
         var newValue = value;
         Object oldValue = null;
         if (containsKey(key)) {
@@ -46,11 +45,11 @@ public class AutoMergeableMap extends HashMap<Object, Object> {
         return oldValue;
     }
 
-    private Collection updateList (Collection oldValue, Object value) {
-        final var mergedValue = new HashSet<>(oldValue);
+    private Collection<?> updateList (Collection<?> oldValue, Object value) {
+        final var mergedValue = new HashSet<Object>(oldValue);
 
         if (value instanceof Collection<?>) {
-            mergedValue.addAll((Collection) value);
+            mergedValue.addAll((Collection<?>) value);
         } else {
             mergedValue.add(value);
         }
@@ -58,7 +57,7 @@ public class AutoMergeableMap extends HashMap<Object, Object> {
         return mergedValue;
     }
 
-    private Map updateMap (Map oldValue, Map value) {
+    private Map<String, Object> updateMap (Map<String, Object> oldValue, Map<String, Object> value) {
         final var mergedValue = new AutoMergeableMap(oldValue);
 
         value.forEach((k, v) -> mergedValue.merge(k, v, this::merge));
@@ -67,33 +66,38 @@ public class AutoMergeableMap extends HashMap<Object, Object> {
 
     private Object merge(Object oldValue, Object newValue) {
         if (oldValue instanceof Collection<?>) {
-            return updateList((Collection) oldValue, newValue);
+            return updateList((Collection<?>) oldValue, newValue);
         } else if (oldValue instanceof Map<?,?> && newValue instanceof Map<?,?>) {
-            return updateMap((Map)oldValue, (Map)newValue);
+            return updateMap(castObjectToMap(oldValue), castObjectToMap(newValue));
         } else {
             return newValue;
         }
     }
 
-    private Map convertMap(Map map) {
-        var collector = Collectors.<Entry, Object, Object, AutoMergeableMap>toMap(
+    private Map<String, Object> convertMap(Map<String, Object> map) {
+        var collector = Collectors.<Entry<String, Object>, String, Object, AutoMergeableMap>toMap(
                 Map.Entry::getKey,
                 entry -> convertObject(entry.getValue()),
                 (o1, o2) -> o1,
                 AutoMergeableMap::new);
 
-        return (Map)(map.entrySet()
+        return map.entrySet()
                 .stream()
-                .collect(collector));
+                .collect(collector);
     }
 
     private Object convertObject(Object obj) {
         if (obj instanceof Collection<?> && ! (obj instanceof HashSet<?>)) {
-            return new HashSet((Collection)obj);
+            return new HashSet<Object>((Collection<?>)obj);
         } else if (obj instanceof Map<?,?> && ! (obj instanceof AutoMergeableMap)) {
-            return convertMap((Map) obj);
+            return convertMap(castObjectToMap(obj));
         } else {
             return obj;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> castObjectToMap(Object object) {
+        return (Map<String, Object>) object;
     }
 }

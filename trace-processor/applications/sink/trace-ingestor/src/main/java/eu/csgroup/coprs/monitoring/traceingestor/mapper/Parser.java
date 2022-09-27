@@ -5,18 +5,14 @@ import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.InvalidPropertyException;
 
 import java.util.*;
 
 @Slf4j
-@Data
-public class Parser {
-    private final List<Mapping> rules;
-
-    //private final String configurationName;
-
+public record Parser(List<Mapping> rules) {
     public TreePropertyNode parse(BeanAccessor wrapper) {
         return parse(rules.iterator(), wrapper);
     }
@@ -47,7 +43,6 @@ public class Parser {
 
     private void parsePropertyNode(TreePropertyNode tree, BeanAccessor wrapper, Mapping rule, String rootPath, String[] splittedPropertyPath) {
         var currentPath = rootPath;
-        TreePropertyNode lastNode = tree;
 
         for (int index = 0; index < splittedPropertyPath.length; index++) {
             currentPath = PropertyUtil.getPath(currentPath, splittedPropertyPath[index]);
@@ -55,17 +50,17 @@ public class Parser {
             try {
                 final var object = wrapper.getPropertyValue(new BeanProperty(currentPath));
 
-                if (! currentPath.isEmpty() && index == splittedPropertyPath.length - 1) {
+                if (!currentPath.isEmpty() && index == splittedPropertyPath.length - 1) {
                     final var treeProp = new TreePropertyLeaf(currentPath, rule, object);
-                    lastNode.putLeaf(treeProp);
+                    tree.putLeaf(treeProp);
                 } else if (object instanceof final Collection<?> collection) {
                     final var remainingSplittedPropertyPath = Arrays.copyOfRange(splittedPropertyPath, index + 1, splittedPropertyPath.length);
 
-                    parsePropertyNode(lastNode, wrapper, rule, currentPath, remainingSplittedPropertyPath, collection);
+                    parsePropertyNode(tree, wrapper, rule, currentPath, remainingSplittedPropertyPath, collection);
                     break;
                 } else if (object == null) {
-                    final var leaf = new TreePropertyLeaf(rule.getFrom().getBeanPropertyPath(true), rule, object);
-                    lastNode.putLeaf(leaf);
+                    final var leaf = new TreePropertyLeaf(rule.getFrom().getBeanPropertyPath(true), rule, null);
+                    tree.putLeaf(leaf);
                 }
             } catch (InvalidPropertyException e) {
                 // Exclude property where path does not match with bean tree

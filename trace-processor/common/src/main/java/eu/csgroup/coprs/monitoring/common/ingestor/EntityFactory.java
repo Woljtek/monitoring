@@ -1,33 +1,33 @@
 package eu.csgroup.coprs.monitoring.common.ingestor;
 
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import javax.persistence.Entity;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EntityFactory {
     private static final EntityFactory INSTANCE = new EntityFactory();
 
-    private final Map<Class, EntityMetadata> cache;
+    private final Map<Class<? extends DefaultEntity>, EntityMetadata> cache;
 
     private EntityFactory() {
         cache = parse();
-        cache.values().stream().forEach(this::postCreate);
+        cache.values().forEach(this::postCreate);
     }
 
     public static EntityFactory getInstance() {
         return INSTANCE;
     }
 
-    public EntityMetadata getMetadata(Class entityClass) {
+    public EntityMetadata getMetadata(Class<?> entityClass) {
         return cache.get(entityClass);
     }
 
-    private Map<Class, EntityMetadata> parse() {
+    private Map<Class<? extends DefaultEntity>, EntityMetadata> parse() {
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
 
@@ -35,9 +35,9 @@ public class EntityFactory {
 
        return scanner.findCandidateComponents(EntityIngestor.BASE_PACKAGE)
                 .stream()
-                .map(beanDef -> beanDef.getBeanClassName())
+                .map(BeanDefinition::getBeanClassName)
                 .map(this::createMetadata)
-                .collect(Collectors.toMap(m -> m.getEntityClass(), m -> m));
+                .collect(Collectors.toMap(EntityMetadata::getEntityClass, m -> m));
     }
 
     private EntityMetadata createMetadata (String entityClassName) {
@@ -72,9 +72,5 @@ public class EntityFactory {
                 .ifPresent(parent -> cache.get(parent).addChild(entityClass));
 
         metadata.setRelyOn(relyOn);
-    }
-
-    private Collection<Class> getRelyOnChild(EntityMetadata relyOnEntity) {
-        return relyOnEntity.getChild().isEmpty() ? List.of(relyOnEntity.getEntityClass()) : relyOnEntity.getChild();
     }
 }

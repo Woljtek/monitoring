@@ -1,32 +1,28 @@
 package eu.csgroup.coprs.monitoring.traceingestor.mapper;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityDescriptor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 
 @Slf4j
 @Data
-public class EntityCache<T extends DefaultEntity> {
-    private final DefaultHandler<T> handler;
+public class EntityCache {
+    private final DefaultHandler handler;
 
     private final Map<BeanProperty, Object> cachedProperties = new HashMap<>();
 
-    private EntityDescriptor<T> current;
+    private EntityDescriptor current;
 
-    private List<EntityDescriptor<T>> cached;
+    private List<EntityDescriptor> cached;
 
 
-    public EntityCache(DefaultHandler<T> handler) {
+    public EntityCache(DefaultHandler handler) {
         this.handler = handler;
-        this.cached = new Vector<>();
+        this.cached = new ArrayList<>();
         nextEntity();
     }
 
@@ -59,10 +55,9 @@ public class EntityCache<T extends DefaultEntity> {
             current = handler.clone(current.getEntity());
         } else {
             current = handler.getNextEntity();
-            cachedProperties.entrySet()
-                    .forEach(entry -> current.getBean().setPropertyValue(
-                            entry.getKey(),
-                            entry.getValue()));
+            cachedProperties.forEach((key, value) -> current.getBean().setPropertyValue(
+                    key,
+                    value));
 
         }
         cached.add(current);
