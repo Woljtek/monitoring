@@ -5,8 +5,8 @@
 
 ## Overview
 
-This repository contains components to handle trace to be able to monitor state 
-of product produced by ingestion chain and even all Sentinel processing chain.
+This repository contains components to handle traces to be able to monitor the state 
+of products produced by the ingestion chain and even all Sentinel processing chain.
 
 ### Available components
 
