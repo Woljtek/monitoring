@@ -11,6 +11,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 > - **Fixed** for any bug fixes.
 > - **Security** in case of vulnerabilities.
 
+## [1.2.0-rc1] - 2022-09-28
+### Added
+- Documentation and Notice.md
+### Changed
+- Code Quality improvements
+
 ## [1.1.0-rc1] - 2022-08-31
 ### Added
 - [#412 - [RS core Monitoring] Compute trace from RS add-on / ExecutionWorker](https://github.com/COPRS/rs-issues/issues/412)
