@@ -1,12 +1,12 @@
 # trace-processor
 
-Ingest in database filtered trace
+The trace processor ingests filtered traces in a database.
 
 ## trace-filter
 
 ### Configuration file
 
-Application in charge of filtering trace is based on one or more rules.
+The application in charge of filtering traces is based on one or more rules.
 Rules are defined in a YAML configuration file with the following syntax (See [Filter config file](../rs-cores/MONITORING/Executables/additional_resources/ConfigMap-filter.yaml) for a complete example):
 ```yaml
 filters:
@@ -23,25 +23,25 @@ filters:
       log.trace.task.output[filename_strings]: .*_DSIB\.xml
 ```
 
-The configuration file depict a list of filter to apply where each contains at least one or more rules to check. If we take the case of the above example we have two filters defined named 'filter-1' and 'filter-2'. The first filter contains to rule to check and the second three.
+The configuration file depicts a list of filters to apply where each contains at least one or more rules to check. If we take the case of the above example we have two filters defined named 'filter-1' and 'filter-2'. The first filter contains two rules to check and the second three.
 
-Filter are grouped under 'filters' property name which is mandatory and start with a dash followed by filter definition. A filter is defined by a name and a 'rules' section.
+Filters are grouped under the 'filters' property name which is mandatory and starts with a dash followed by the filters definition. A filter is defined by a name and a 'rules' section.
 
-Rules section can be composed of one or more rule. Each rule is a key/value association:
+Rules section can be composed of one or more rules. Each rule is a key/value association:
 - Keys are 'path' of trace structure where each level is separated by a dot. For example 'log.trace.header.type' key path is associated to 'type' key of the 'header' section of 'trace' structure (for a complete definition of a trace structure, see 'RS Trace format ICD)' .
 - Values can be of three type:
   - fixed characters (i.e. compression-L0)
   - regular expression (i.e. compression-.*)
   - multiple value (i.e. compression-.*|generation) separated by a '|' character
 
-Note that all key rules (trace path) are prefixed by 'log.'. This is due to how trace are received by the application. All trace are encapsulated in a 'log' structure.
+Note that all key rules (trace path) are prefixed by 'log.'. This is due to how traces are received by the application. All traces are encapsulated in a 'log' structure.
 
-Some keys defined in 'RS Trace format' ICD does not define the structure that belongs to. The structure is adjustable depending on the application that will produce the trace (Sentinel 1, 2, 3 processor, chunk/dsib ingestion, aux data ingestion, ...)
+Some keys defined in the 'RS Trace format' ICD do not define the structure they belong to. The structure is adjustable depending on the application that will produce the trace (Sentinel 1, 2, 3 processor, chunk/dsib ingestion, aux data ingestion, ...)
 In such structure, the way to reach a key is to use bracket '[]' instead of a dot '.':
 - log.trace.task.output[filename_strings]
 - log.trace.task.missing_output[product_metadata_custom_object]
 
-To define regular expression please refer to [Java regex](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html). For special characters as of '.', '*' and so on you have to escape them with '\\' characters. For example to escape dot and use it as simple character use the following syntax: '\.'. List of special characters is the following:
+To define regular expressions please refer to [Java regex](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html). For special characters such as '.', '*' and so on you have to escape them with '\\' characters. For example to escape dot and use it as simple character use the following syntax: '\.'. The list of special characters is the following:
 - \
 - .
 - ?
@@ -60,49 +60,49 @@ To define regular expression please refer to [Java regex](https://docs.oracle.co
 
 ### Input
 
-Application expect to receive trace in string format and encapsulated in a log structure.
+The application expects to receive traces in string format and encapsulated in a log structure.
 
 ### Behavior
 
-The behavior of the filter is to take in the order each filter definition and find if one filter can be associated to the trace. A filter is associated to the trace if all rules can be validated. A rule is valid if the key path exists in the trace structure and if the value correspond to the one available in the trace (if the value defined by the path is null it's considered that the rule does not match). 
-Once a filter match the trace the others are not checked. If no filter can be associated, the trace is 'sent to the trash'.
+The behavior of the filter is to take in the order each filter definition and find if one filter can be associated to the trace. A filter is associated to the trace if all rules can be validated. A rule is valid if the key path exists in the trace structure and if the value correspond to the one available in the trace (if the value defined by the path is null it is considered that the rule does not match). 
+Once a filter matches the trace the others are not checked. If no filter can be associated, the trace is 'sent to the trash'.
 
 
-Trace filter is also able to detect file changes and to reload configuration. Changes are applied on start of trace check and not during a trace check. File changes is checked every minute. A log is displayed on the console when configuration file is reloaded (Configuration file '<file-path>' loaded)
+Trace filter is also able to detect file changes and reload configuration. Changes are applied on start of a trace check and not during a trace check. File changes are checked every minute. A log is displayed on the console when configuration file is reloaded (Configuration file '<file-path>' loaded)
 
 
 Before filters are applied to a trace, the application will first check that the trace is valid. A trace is valid if :
 - all required field are set
-- format for date field correspond to the one defined
-- format for uid field correspond to the one defined
-- field limited in size does not exceed the quota.
+- the format for date field corresponds to the one defined
+- the format for uid field corresponds to the one defined
+- fields limited in size do not exceed the quotas.
 
 ### Output
 
-When a filter match to a trace, the application send message with trace formatted as an object and the name of the filter applied. If no filter match the trace, nothing is sent. 
+When a filter matches to a trace, the application sends a message with the trace formatted as an object and the name of the filter applied. If no filter matches the trace, nothing is sent. 
 
 ### Execution
 
-To start the application please define the following property 'filter.path'. It indicates where configuration file is located. If property is not set or path wrong, the application won't start.
+To start the application please define the following property 'filter.path'. It indicates where the configuration file is located. If this property is not set or the path is wrong, the application will not start.
 
-Path must be defined with the following prefix 'file:' (for example 'file:/config/filter.yaml')
+Paths must be defined with the following prefix 'file:' (for example 'file:/config/filter.yaml')
 
-Also define property 'spring.kafka.bootstrap-servers' to indicate kafka URL server 
+Please also define property 'spring.kafka.bootstrap-servers' to indicate the kafka URL server. 
 
 #### Troubleshooting
 
-If the application don't start/run properly you can set property 'logging.level.eu.csgroup.coprs' to 'DEBUG' or 'TRACE' to have details on application execution.
-If the issue is due to a dependency you can set property 'logging.level' to 'DEBUG' value to have dependency log.
+If the application does not start/run properly you can set the property 'logging.level.eu.csgroup.coprs' to 'DEBUG' or 'TRACE' to have details on application execution.
+If the issue is due to a dependency you can set the property 'logging.level' to 'DEBUG' value to have a dependency log.
 
 ## trace-ingestor
 
-The trace ingestor application is intended to 'map' a trace into one or more entity (table record) and storing them into a database. Below diagram describe available entities for mapping:
+The trace ingestor application is intended to 'map' a trace into one or more entites (table record) and storing them into a database. The diagram below describes available entities for mapping:
 ![](inputs/entities_diagram.png)
 
 ### Configuration file
 
-Application in charge of trace ingestion is based on one or more ingestion strategy. 
-Ingestion strategy are defined in a YAML configuration file with the following syntax (See [Filter config file](../rs-cores/MONITORING/Executables/additional_resources/ConfigMap-ingestor.yaml) for a complete example):
+The application in charge of trace ingestion is based on one or more ingestion strategies. 
+Ingestion strategies are defined in a YAML configuration file with the following syntax (See [Filter config file](../rs-cores/MONITORING/Executables/additional_resources/ConfigMap-ingestor.yaml) for a complete example):
 ```yaml
 ingestions:
   -
@@ -123,10 +123,10 @@ ingestions:
         to: chunk.mission
 ```
 
-'ingestion' section is mandatory and group all ingestion configuration. An ingestion configuration is defined by:
-- **name**: a name that must match one of defined in the filter configuration file  (cf. [Trace filter configuration](#trace-filter)).
-- **mappings**: a list of rule to map a trace field to an entity field.
-- **alias**: a list of alias that is intended to limit relation of an entity with the others.
+The 'ingestion' section is mandatory and groups all ingestion configurations. An ingestion configuration is defined by:
+- **name**: a name that must match one defined in the filter configuration file  (cf. [Trace filter configuration](#trace-filter)).
+- **mappings**: a list of rules to map a trace field to an entity field.
+- **alias**: a list of aliases that is intended to limit relations of an entity with the others.
 
 #### Mappings
 
@@ -136,14 +136,14 @@ A mapping can be configured with the following properties:
 |-----------------------|:---------:|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
 | from                  |     x     | Path in trace structure (See 'RS Trace form' ICD)                                                                                                                                                                                              | a path                                         |
 | remove_entity_if_null |           | Do not store entity if value in the trace is null (discard entity creation)                                                                                                                                                                    | true or false (by default false)               |
-| match                 |           | Define a regular expression that value must match (See [Java regex](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)). If value is not an array and not match to expression, discard entity creation | a regular expression (by default no value set) |
+| match                 |           | Define a regular expression that value must match (See [Java regex](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)). If value is not an array and does not match to expression, discard entity creation | a regular expression (by default no value set) |
 | convert               |           | Define a format based on capturing group of the regular expression (See [Java formatting](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html))                                                              | a format expression (by default no value set)  |
 | to                    |     x     | Path in entity structure                                                                                                                                                                                                                       | a path                                         |
 
 
 1. [x] **Single entity use case**
 
-Defining multiple mapping rule for an entity (for example processing) will lead to the creation of only one entity.
+Defining multiple mapping rules for an entity (for example processing) will lead to the creation of only one entity.
 
 Config:
 ```yaml
@@ -170,7 +170,7 @@ Result:
 
 1. [x] **Multi entity use case**
 
-It's possible to mix mapping for different entity:
+It is possible to mix mappings for different entity:
 ```yaml
 ingestions:
   -
@@ -190,7 +190,7 @@ ingestions:
 
 1. [x] **Array use case**
 
-In some circumstances if the value extracted in the trace according to 'from' properties is an array and type of field defined in entity by 'to' properties is not an array, this will lead to the creation of an entity for each value in the array.
+In some circumstances if the value extracted in the trace according to 'from' properties is an array and the type of field defined in entity by 'to' properties is not an array, this will lead to the creation of an entity for each value in the array.
 
 Config:
 ```yaml
@@ -218,7 +218,7 @@ Result:
 
 1. [x] **Array use case and filtering**
 
-Defining a 'match' and optionally 'convert' properties on a 'from' properties which describe an array value will filter them and create only an entity for those matching the regular expression.
+Defining a 'match' and optionally 'convert' properties on a 'from' properties which describes an array value will filter them and create only an entity for those matching the regular expression.
 
 Config;
 ```yaml
@@ -254,7 +254,7 @@ Result:
 
 1. [x] **Null value**
 
-In some circumstances, value extracted on a trace can be null or not but we don't want to create entity with such null value. To avoid entity creation with null value for specific field you can use the 'remove_entity_if_null' property. Below configuration give an example of such case:
+In some circumstances, the value extracted on a trace can be null but we don't want to create an entity with such null value. To avoid entity creation with null value for specific field you can use the 'remove_entity_if_null' property. Below configuration give an example of such case:
 ```yaml
 ingestions:
   -
@@ -271,11 +271,11 @@ ingestions:
 
 #### Alias
 
-'product' table store informations of product that are used as output and/or input of a process. To define in which case a product is used in a processing two additional table exists:
+The 'product' table stores informations of product that are used as output and/or input of a process. To define in which case a product is used in a processing two additional table exists:
 - 'input_list_internal' which is used to store product used as input of a process
 - 'output_list' which is used to store product used as output of a process
 
-In configuration file, the way to indicate that a product entity must be used to reference 'input_list_internal' entity or output_list is to use an alias. Below configuration give an example of how to configure such case:
+In the configuration file, the way to indicate that a product entity must be used to reference 'input_list_internal' entity or output_list is to use an alias. The configuration file below gives an example of how to configure such a case:
 ```yaml
 ingestions:
   -
@@ -298,20 +298,20 @@ ingestions:
         restrict: output_list
   ```
 
-The alias allow to name an entity differently and so add further behavior such as restricting relation with other entity (use of 'restrict' properties). In the above example, all entity that will be created with the 'input_product' alias will be used to create entity for 'input_list_internal' table. In the other side all entity that will be created with the 'output_product' alias will be used to create entity for 'output_list' table.
+The alias allows to name an entity differently and so add further behavior such as restricting relations with other entity (use of 'restrict' properties). In the above example, all entities that will be created with the 'input_product' alias will be used to create entities for the 'input_list_internal' table. In the other side all entities that will be created with the 'output_product' alias will be used to create entities for the 'output_list' table.
 
 ### Input
 
-The application expect to receive trace formatted as an object and the name of filter that was applied (needed to retrieve ingestion config to apply).
+The application expects to receive trace formatted as an object and the name of filter that was applied (needed to retrieve ingestion configuration to apply).
 
 ### Behavior
 
-When the application receive a filtered trace it chose which ingestion configuration to apply by retrieving the name of the filter that was applied.
+When the application receives a filtered trace it chooses which ingestion configuration to apply by retrieving the name of the filter that was applied.
 
 1. [x] **Entity related to configured one**
 
-Depending on which entity is mapped, the application check the entity that are in relation with the first ones. If all entities are available to create the related entity the last one will be created during the process.
-For example if we have below configuration:
+Depending on which entity is mapped, the application checks the entities that are in relation with the first ones. If all entities are available to create the related entity the last one will be created during the process.
+For example if we have the configuration below:
 ```yaml
 ingestions:
   -
@@ -342,7 +342,7 @@ At the other side if only mapping for processing or input product is configured,
 
 1. [x] **Child entities**
 
-In the same way, application is also able to detect relation with child and parent table (subclass in Java world). So by configuring mapping for chunk and processing entities:
+In the same way, application is also able to detect relations with child and parent tables (subclass in Java world). So by configuring mappings for chunk and processing entities:
 ```yaml
 ingestions:
   -
@@ -362,39 +362,39 @@ ingestions:
       - from: log.trace.header.workflow
         to: processing.workflow
 ```
-The application will also create entities for input_list_external tables because 'chunk' table is a child of 'external_input' table:
+The application will also create entities for 'input_list_external' tables because 'chunk' table is a child of 'external_input' table:
 ![](inputs/subclass-entities-related_creation.png)
 
-'external_input' table is the only one that is subclassed in Java world so chunk, dsib and aux_data are the only one that share behavior described above.
+The 'external_input' table is the only one that is subclassed in Java world so chunk, dsib and aux_data are the only ones that share behavior described above.
 
 1. [x] **Entity creation with another one**
 
-The last given example is a bit more complex than it seems. In fact, when configuring mapping for chunk entities, mapping for dsib entities is automatically added. The reason why this is done it's because such behavior is added programmatically. We know that chunk and dsib share the same root file name so it's easy to create dsib entity by using chunk entities.
+The last given example is a bit more complex than it seems. In fact, when configuring mapping for chunk entities, mapping for dsib entities is automatically added. The reason why this is done is because such behavior is added programmatically. We know that chunk and dsib share the same root file name so it's easy to create dsib entities by using chunk entities.
 
-**Be careful by letting application creating dsib entities with chunk entities this won't create input_list_external entities for dsib relation. If you wan't to create input_list_external relation for dsib entities, you have to explicitly configure mapping for dsib entities.**
+**Be careful that by letting the application creating dsib entities with chunk entities this won't create input_list_external entities for dsib relations. If you wan't to create input_list_external relation for dsib entities, you have to explicitly configure mapping for dsib entities.**
 
 1. [x] **Entity update**
 
-The application is able to update existing entity by checking in database if there is an already one that exists and replacing field which is a simple value (such as timestamp, varchar, bool, ...) but also to update field which is a complex value (such as jsonb).
+The application is able to update existing entities by checking in database if there is one that exists and replacing fields which are simple values (such as timestamp, varchar, bool, ...) but also to update fields which are complex values (such as jsonb).
 
-For complex value, it's nothing more than a map where you can put new key/value pair or replace value for an existing key. If you have configured a mapping to modify the root directly it will replace it and not attempt a merge.
+For complex values, it's nothing more than a map where you can put new key/value pair or replace a value for an existing key. If you have configured a mapping to modify the root directly it will replace it and not attempt a merge.
 
-**Note that if a key already exists and value is an array, application will systematically add new value into the existing array (whatever the new value is but do not add duplicate value).**
+**Note that if a key already exists and value is an array, the application will systematically add a new value into the existing array (whatever the new value is but do not add duplicate value).**
 
 
-Nevertheless application is not able to remove value for a field that is already filled.
+Nevertheless the application is not able to remove a value for a field that is already filled.
 
 1. [x] **Entity search**
 
-To find for an existing entity in database, application base its search on field that are marked as _unique_. Entity with unique field are the following:
+To find for an existing entity in database, the application bases its search on fields that are marked as _unique_. Entities with unique field are the following:
 - external_input.filename (applicable for chunk, dsib and aux_data)
 - product.filename
 
 ### Execution
 
-To start the application please define the following property 'ingestion.path'. It indicates where configuration file is located. If property is not set or path wrong, the application won't start.
+To start the application please define the following property 'ingestion.path'. It indicates where configuration file is located. If the property is not set or the path wrong, the application will not start.
 
-Path must be defined with the following prefix 'file:' (for example `file:/config/ingestion.yaml`)
+Paths must be defined with the following prefix 'file:' (for example `file:/config/ingestion.yaml`)
 
 You also have to define properties related to database access:
 - spring.datasource.username
@@ -403,4 +403,4 @@ You also have to define properties related to database access:
 
 spring datasource url must be of the form `jdbc:postgresql://<ip>:<port>/<database name>`
 
-Also define property 'spring.kafka.bootstrap-servers' to indicate kafka URL server 
+Please also define property 'spring.kafka.bootstrap-servers' to indicate the kafka URL server 
