@@ -11,6 +11,7 @@ import org.springframework.core.io.support.EncodedResource;
 import java.io.IOException;
 
 public class ReloadableYamlPropertySourceFactory extends DefaultPropertySourceFactory {
+
     @Override
     public PropertySource<?> createPropertySource(String s, EncodedResource encodedResource)
             throws IOException {

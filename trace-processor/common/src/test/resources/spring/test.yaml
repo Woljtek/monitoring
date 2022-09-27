@@ -1,0 +1,9 @@
+collection:
+  - col value 1
+  - col value 2
+  - col value 3
+map:
+  key1: map value 10
+  key2: map value 20
+  key3: map value 30
+intValue: 1989

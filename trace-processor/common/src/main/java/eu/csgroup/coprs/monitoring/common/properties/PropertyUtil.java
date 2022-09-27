@@ -23,7 +23,13 @@ public class PropertyUtil {
     public static final String ATTRIBUTE_END = "]";
 
 
-
+    /**
+     * Surround property containing [] with [].
+     * Example: giving log.trace.task.input[filename_strings][0] will result to [log.trace.task.input[filename_strings][0]]
+     *
+     * @param propertyName Property name to surround with []
+     * @return surrounded property name with [] otherwise unchanged property name.
+     */
     public static String surroundPropertyName (String propertyName) {
         if (propertyName.contains("[")) {
             return "[%s]".formatted(propertyName);
@@ -32,6 +38,28 @@ public class PropertyUtil {
         }
     }
 
+    /**
+     * Combine two path into one.
+     * Example:
+     * <ul>
+     *     <li>rootPath: log.trace.task</li>
+     *     <li>propertyName: input[filename_strings][0]</li>
+     * </ul>
+     * Will give the following result: log.trace.task.input[filename_strings][0]
+     * <p>
+     * If property name parameter start with a '[', property delimiter {@link PropertyUtil#PROPERTY_DELIMITER}
+     * won't be used.
+     * Example:
+     * <ul>
+     *     <li>rootPath: log.trace.task.input</li>
+     *     <li>propertyName: [filename_strings][0]</li>
+     * </ul>
+     * Will give the following result: log.trace.task.input[filename_strings][0]
+     *
+     * @param rootPath start of the path
+     * @param propertyName next part of the path
+     * @return concatenated path
+     */
     public static String getPath (String rootPath, String propertyName) {
         if (rootPath == null || rootPath.isEmpty()) {
             return propertyName;
@@ -42,10 +70,50 @@ public class PropertyUtil {
         }
     }
 
+    /**
+     * Split path by using {@link PropertyUtil#PROPERTY_DELIMITER} as delimiter and limit the number
+     * of part.
+     * For example, applying a limit of 3 split will give the following result:
+     * <ul>
+     *     <li>log</li>
+     *     <li>trace</li>
+     *     <li>ask.input[filename_strings][0]</li>
+     * </ul>
+     *
+     * @param path Path to split
+     * @param limit Max number of path part
+     * @return An array with splitted path
+     */
     public static String[] splitPath (String path, int limit) {
         return path.split(Pattern.quote(PROPERTY_DELIMITER), limit);
     }
 
+    /**
+     * Split path by using {@link PropertyUtil#PROPERTY_DELIMITER} as delimiter
+     * and then applying combination of '{@link  PropertyUtil#INDEX_START}{@link  PropertyUtil#INDEX_START}' as delimiter
+     * on the first result.
+     * Example: following path log.trace.task.input[filename_strings][0]
+     * will give:
+     * <ul>
+     *   <li>log</li>
+     *   <li>trace</li>
+     *   <li>task</li>
+     *   <li>input[filename_strings][0]</li>
+     * </ul>
+     * <p>
+     * And then:
+     * <ul>
+     *   <li>log</li>
+     *   <li>trace</li>
+     *   <li>task</li>
+     *   <li>input</li>
+     *   <li>[filename_strings]</li>
+     *   <li>[0]</li>
+     * </ul>
+     *
+     * @param path The path to split
+     * @return An array with splitted path
+     */
     public static String[] splitPath (String path) {
         return Arrays.stream(path.split(Pattern.quote(PROPERTY_DELIMITER)))
                 .map(PropertyUtil::splitIndex)
@@ -106,19 +174,13 @@ public class PropertyUtil {
         }
     }
 
-    /**
-     * Remove snake, camel and pascal case formatting (set property in lower case).
-     *
-     * @param formattedPropertyName Property name in snake,camel or pascal case
-     * @return property without snale, camel and pascal case identifier
-     */
-    public static String removeAllFormat (String formattedPropertyName) {
-        return formattedPropertyName.replace("_", "").toLowerCase();
+    public static String snake2CamelCasePath (String snakePropertyPath) {
+        return snake2CamelCasePath(snakePropertyPath, false);
     }
 
-    public static String snake2CamelCasePath (String snakePropertyPath) {
+    public static String snake2CamelCasePath (String snakePropertyPath, boolean pascalCase) {
         return Arrays.stream(splitPath(snakePropertyPath))
-                .map(prop -> PropertyUtil.snake2CamelCasePropertyName(prop, false))
+                .map(prop -> PropertyUtil.snake2CamelCasePropertyName(prop, pascalCase))
                 .reduce("", PropertyUtil::getPath);
     }
 
@@ -172,8 +234,8 @@ public class PropertyUtil {
         return camelCasePropertyName.toString();
     }
 
-    public static String snake2PascalCasePropertyPath (String snakePropertyPath) {
-        return snake2CamelCasePath(snakePropertyPath);
+    public static String snake2PascalCasePath (String snakePropertyPath) {
+        return snake2CamelCasePath(snakePropertyPath, true);
     }
 
     public static String snake2PascalCasePropertyName (String snakePropertyName) {
@@ -181,17 +243,23 @@ public class PropertyUtil {
     }
 
     public static String pascal2SnakeCasePropertyName (String pascalPropertyName) {
-        final var array = pascalPropertyName.split("[A-Z]");
-        StringBuilder snakePropertyNameBuilder = new StringBuilder(array[0].toLowerCase());
-        int index = 1;
+        final var matcher = Pattern.compile("([A-Z]{1}[^A-Z]*)").matcher(pascalPropertyName);
 
-        while (index < array.length) {
-            snakePropertyNameBuilder.append("_");
-            snakePropertyNameBuilder.append(array[index]);
+        final var snakeCasePropertyName = new StringBuilder();
+        while (matcher.find()) {
+            final var group = matcher.group();
 
-            index++;
+            if (! snakeCasePropertyName.isEmpty()) {
+                snakeCasePropertyName.append("_");
+            }
+            snakeCasePropertyName.append(group.substring(0, 1).toLowerCase())
+                    .append(group.substring(1));
         }
 
-        return snakePropertyNameBuilder.toString();
+        if (snakeCasePropertyName.isEmpty()) {
+            return pascalPropertyName;
+        } else {
+            return snakeCasePropertyName.toString();
+        }
     }
 }

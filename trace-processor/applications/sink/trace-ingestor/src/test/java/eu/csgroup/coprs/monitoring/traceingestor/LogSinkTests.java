@@ -79,7 +79,7 @@ public class LogSinkTests {
         sink.accept(toMessage(productRef));
 
         // Then
-        assertThat(entityIngestor.list(ExternalInput.class))
+        assertThat(entityIngestor.findAll(ExternalInput.class))
                 .hasSize(3)
                 .allMatch(e -> e.getFilename() != null)
                 .allMatch(e -> e.getMission() != null)
@@ -87,16 +87,16 @@ public class LogSinkTests {
                 .allMatch(e -> e.getCatalogStorageDate() != null)
                 .allMatch(e -> e.getPickupPointAvailableDate() != null)
                 .allMatch(e -> e.getPickupPointSeenDate() != null);
-        assertThat(entityIngestor.list(Product.class))
+        assertThat(entityIngestor.findAll(Product.class))
                 .hasSize(1)
                 .allMatch(p -> p.getFilename() != null)
                 .allMatch(p -> p.getTimelinessName() != null)
                 .allMatch(p -> p.getTimelinessValueSeconds() != 0)
                 .allMatch(Product::isEndToEndProduct)
                 .allMatch(p -> !p.getCustom().isEmpty());
-        assertThat(entityIngestor.list(InputListInternal.class))
+        assertThat(entityIngestor.findAll(InputListInternal.class))
                 .isEmpty();
-        assertThat(entityIngestor.list(OutputList.class))
+        assertThat(entityIngestor.findAll(OutputList.class))
                 .isEmpty();
     }
 
@@ -114,7 +114,7 @@ public class LogSinkTests {
         sink.accept(toMessage(auxDataRef));
 
         // Then
-        assertThat(entityIngestor.list(ExternalInput.class))
+        assertThat(entityIngestor.findAll(ExternalInput.class))
                 .hasSize(3)
                 .allMatch(e -> e.getFilename() != null)
                 .allMatch(e -> e.getMission() != null)
@@ -144,11 +144,11 @@ public class LogSinkTests {
         sink.accept(toMessage(chunksRef));
 
         // Then
-        assertThat(entityIngestor.list(Dsib.class))
+        assertThat(entityIngestor.findAll(Dsib.class))
                 .hasSize(1);
-        assertThat(entityIngestor.list(Chunk.class))
+        assertThat(entityIngestor.findAll(Chunk.class))
                 .hasSize(9);
-        assertThat(entityIngestor.list(ExternalInput.class))
+        assertThat(entityIngestor.findAll(ExternalInput.class))
                 .hasSize(10);
     }
 
@@ -182,7 +182,7 @@ public class LogSinkTests {
         sink.accept(toMessage(dsibRef));
 
         // Then
-        assertThat(entityIngestor.findEntityBy(Map.of("filename", filename)))
+        assertThat(entityIngestor.findEntityBy(Dsib.class, Map.of("filename", filename)))
                 .extracting("mission")
                 .isNotEqualTo(oldMissionRef);
     }
@@ -263,8 +263,9 @@ public class LogSinkTests {
         sink.accept(toMessage(dsibRef));
 
         // Then
-        System.out.println("############################");
-        System.out.println(entityIngestor.findEntityBy(Map.of("filename", filename)));
+        assertThat(entityIngestor.findEntityBy(Dsib.class, Map.of("filename", filename)))
+                .isNotEmpty()
+                .hasSize(1);
     }
 
 

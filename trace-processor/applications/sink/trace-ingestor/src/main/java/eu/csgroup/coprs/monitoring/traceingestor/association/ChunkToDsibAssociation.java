@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class ChunkToDsibAssociation extends DefaultAssociation<Chunk, Dsib> {
+public class ChunkToDsibAssociation extends DefaultAssociation {
     private static final String DSIB_EXTENSION = "DSIB.xml";
 
     private static final String FILENAME_MATCH = "^.+(?=DSDB)";
@@ -28,15 +28,15 @@ public class ChunkToDsibAssociation extends DefaultAssociation<Chunk, Dsib> {
     }
 
     @Override
-    public List<Chunk> associate(Chunk entityContainer, List<Dsib> references, EntityFinder entityFinder) {
-        final var dsibFilename = chunkToDsibFilename(entityContainer.getFilename());
+    public List<DefaultEntity> associate(DefaultEntity entityContainer, List<DefaultEntity> references, EntityFinder entityFinder) {
+        final var dsibFilename = chunkToDsibFilename(((Chunk)entityContainer).getFilename());
 
         return references.stream()
                 // Keep dsib where filename match to requested one.
-                .filter(dsib -> dsibFilename.equals(dsib.getFilename()))
+                .filter(dsib -> dsibFilename.equals(((Dsib)dsib).getFilename()))
                 .findFirst()
                 // If no one found in list of references, find it in db or create one.
-                .or(() -> Optional.of(createDsibFromChunk(entityContainer, entityFinder)))
+                .or(() -> Optional.of(createDsibFromChunk((Chunk)entityContainer, entityFinder)))
                 // Set dsib reference in chunk object
                 .map(dsib -> associate(entityContainer, dsib, false))
                 .map(List::of)

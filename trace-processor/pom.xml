@@ -80,14 +80,16 @@
         <jackson.version>2.13.1</jackson.version>
 
         <!-- == Libraries == -->
-        <lombok.version>1.18.20</lombok.version>
+        <lombok.version>1.18.24</lombok.version>
         <commons-io.version>2.10.0</commons-io.version>
 
         <!-- == Testing == -->
         <!--<test-containers.version>1.16.0</test-containers.version>
         <mockserver.version>5.10</mockserver.version>
         <docker-java.version>3.2.11</docker-java.version>-->
-        <h2.version>2.1.214</h2.version>
+        <zonky.version>2.0.1</zonky.version>
+        <postgresql.version>42.5.0</postgresql.version>
+
 
         <!-- ==== Module versions ==== -->
         <revision>1.2.0-rc1</revision>
@@ -157,12 +159,6 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-                <scope>provided</scope>
-            </dependency>
 
             <!-- Logging -->
             <dependency>
@@ -221,6 +217,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Tests -->

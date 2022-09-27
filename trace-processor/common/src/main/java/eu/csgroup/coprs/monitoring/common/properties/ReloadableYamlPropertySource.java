@@ -16,7 +16,6 @@ import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -29,7 +28,7 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
     private List<LeafProperties> leafProperties;
 
     /**
-     * Expression engine comptible with spring convention
+     * Expression engine compatible with spring convention
      */
     private final ExpressionEngine expressionEngine;
 
@@ -68,8 +67,9 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
         ((YAMLConfiguration) getConfiguration()).setExpressionEngine(expressionEngine);
 
         // Create reload check
+        final var env = ReloadablePropertySourceEnvironment.getInstance();
         PeriodicReloadingTrigger trigger = new PeriodicReloadingTrigger(builder.getReloadingController(),
-                null, 1, TimeUnit.MINUTES);
+                null, env.getRefreshPeriodValue(), env.getRefreshPeriodUnit());
         trigger.start();
 
 
@@ -114,6 +114,8 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
 
     private String getPropertyName(ImmutableNode rootNode, ImmutableNode childNode, Object rawConf) {
         final var duplicate = rootNode != null ? rootNode.getChildren(childNode.getNodeName()) : List.of();
+        // Surround property containing [] with [] to force spring bean to not remove initial []
+        // (just the one added will be removed)
         final var propName = PropertyUtil.surroundPropertyName(childNode.getNodeName());
         if (rawConf instanceof Collection<?>) {
             return  "%s[%s]".formatted(propName, duplicate.indexOf(childNode));
@@ -150,8 +152,9 @@ public class ReloadableYamlPropertySource extends EnumerablePropertySource<Strin
     }
 
     public List<LeafProperties> getLeaf() {
+        // Reset leaf properties variable if a reload was processed.
+        final var propertiesConfiguration = getConfiguration();
         if (leafProperties == null) {
-            final var propertiesConfiguration = getConfiguration();
             final var nodeHandler = ((CustomYamlConfiguration) propertiesConfiguration).getNodeModel().getNodeHandler();
             final var rawConf = ((CustomYamlConfiguration) propertiesConfiguration).getCache();
 

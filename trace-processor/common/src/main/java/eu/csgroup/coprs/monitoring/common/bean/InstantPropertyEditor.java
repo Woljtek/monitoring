@@ -1,6 +1,5 @@
 package eu.csgroup.coprs.monitoring.common.bean;
 
-import com.fasterxml.jackson.databind.node.TextNode;
 import eu.csgroup.coprs.monitoring.common.json.PropertyNames;
 
 import java.awt.*;
@@ -31,14 +30,6 @@ public class InstantPropertyEditor implements PropertyEditor {
             instant = null;
         } else if (value instanceof Instant castInstant) {
             instant = castInstant;
-        } else {
-            String rawDate;
-            if (value instanceof TextNode textNode) {
-                rawDate = textNode.asText();
-            } else {
-                rawDate = value.toString();
-            }
-            instant = Instant.parse(rawDate);
         }
     }
 

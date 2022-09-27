@@ -1,0 +1,9 @@
+collection:
+  - col value 10
+  - col value 20
+  - col value 30
+map:
+  key10: map value 10
+  key20: map value 20
+  key30: map value 30
+intValue: 2022

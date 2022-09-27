@@ -1,16 +1,32 @@
 package eu.csgroup.coprs.monitoring.common;
 
+import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.properties.ReloadableYamlPropertySource;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BeanPropertyTests {
+
+    @Test
+    public void testNominal() {
+        // Given
+        final var prop = new BeanProperty("log.trace.task.missing_output[filename_strings][2]");
+
+        // When
+
+        // Then
+        assertThat(prop).extracting(BeanProperty::getRawPropertyPath).isEqualTo("log.trace.task.missing_output[filename_strings][2]");
+        assertThat(prop).extracting(BeanProperty::getRawBeanPropertyPath).isEqualTo("trace.task.missing_output[filename_strings][2]");
+        assertThat(prop).extracting(BeanProperty::getBeanPropertyPath).isEqualTo("trace.task.missingOutput[filename_strings][2]");
+        assertThat(prop).extracting(beanProp -> beanProp.getBeanPropertyPath(true)).isEqualTo("Log.trace.task.missingOutput[filename_strings][2]");
+        assertThat(prop).extracting(BeanProperty::getBeanName).isEqualTo("Log");
+
+    }
+
     @Test
     public void testExtraction() {
         // Given
@@ -49,5 +65,15 @@ public class BeanPropertyTests {
 
         assertThat(retrievedProperties).containsExactlyInAnyOrderElementsOf(expectedProperties.keySet());
         assertThat(retrievedValues).containsExactlyInAnyOrderElementsOf(expectedProperties.values());
+    }
+
+    @Test
+    public void testOther () {
+        final var prop = new BeanProperty("log.trace.task.missing_output[filename_strings][2]");
+        final var prop2 = new BeanProperty("Log.trace.task.missing_output[filename_strings][2]");
+
+        assertThat(prop)
+                .isNotEqualTo(prop2)
+                .hasToString(prop.toString());
     }
 }

@@ -15,7 +15,7 @@ public class EntityHelper {
 
     }
 
-    public static Map<Class<DefaultEntity>, Deque<Field>> relyOn (Class<DefaultEntity> entityClass) {
+    public static Map<Class<DefaultEntity>, Deque<Field>> relyOn (Class<? extends DefaultEntity> entityClass) {
         return parseClassHierarchy(entityClass).stream()
                 .flatMap(uClass -> Arrays.stream(uClass.getDeclaredFields()))
                 .filter(field -> Arrays.stream(field.getAnnotations())
@@ -52,15 +52,15 @@ public class EntityHelper {
                 ).toList();
     }
 
-    public static Optional<Class<DefaultEntity>> getParentEntity (Class<DefaultEntity> childEntity) {
+    public static Optional<Class<? extends DefaultEntity>> getParentEntity (Class<? extends DefaultEntity> childEntity) {
         return parseClassHierarchy(childEntity).stream()
                 .filter(parent -> ! parent.equals(childEntity))
                 .findFirst();
     }
 
-    public static List<Class<DefaultEntity>> parseClassHierarchy(Class<DefaultEntity> parsableClass) {
-        final var classL = new ArrayList<Class<DefaultEntity>>();
-        Class<DefaultEntity> current = parsableClass;
+    public static List<Class<? extends DefaultEntity>> parseClassHierarchy(Class<? extends DefaultEntity> parsableClass) {
+        final var classL = new ArrayList<Class<? extends DefaultEntity>>();
+        Class<? extends DefaultEntity> current = parsableClass;
 
         do {
             classL.add(current);
@@ -71,7 +71,7 @@ public class EntityHelper {
         return classL;
     }
 
-    public static Stream<Class<DefaultEntity>> getDeepRelyOn (EntityMetadata metadata) {
+    public static Stream<Class<? extends DefaultEntity>> getDeepRelyOn (EntityMetadata metadata) {
         return metadata.getRelyOn()
                 .keySet()
                 .stream()
@@ -90,7 +90,7 @@ public class EntityHelper {
                 );
     }
 
-    public static Stream<Class<DefaultEntity>> getDeepReferencedBy (EntityMetadata metadata) {
+    public static Stream<Class<? extends DefaultEntity>> getDeepReferencedBy (EntityMetadata metadata) {
         return metadata.getReferencedBy()
                 .stream()
                 .map(entityClass -> EntityFactory.getInstance().getMetadata(entityClass))

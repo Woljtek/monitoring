@@ -19,11 +19,11 @@ public class ProcessorDescription {
      * Key: entity class
      * Value: collection of processor name handling entity creation
      */
-    private Map<Class<DefaultEntity>, Collection<String>> relyOnProc = new HashMap<>();
+    private Map<Class<? extends DefaultEntity>, Collection<String>> relyOnProc = new HashMap<>();
 
     private Ingestion ingestionConfig;
 
-    public void putRelyOnProcs (Class<DefaultEntity> entityClass, Collection<String> procsName) {
+    public void putRelyOnProcs (Class<? extends DefaultEntity> entityClass, Collection<String> procsName) {
         relyOnProc.put(entityClass, procsName);
     }
 }

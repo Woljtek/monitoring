@@ -1,0 +1,25 @@
+spring:
+  config:
+    activate:
+      on-profile: dev-embedded
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    ## This is important
+    # Hibernate ddl auto (create, create-drop, validate, update)
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+
+logging:
+  config: classpath:log4j2-test.yaml
+  level:
+    eu:
+      csgroup:
+        coprs: DEBUG
+    org:
+      springframework:
+        transaction: TRACE

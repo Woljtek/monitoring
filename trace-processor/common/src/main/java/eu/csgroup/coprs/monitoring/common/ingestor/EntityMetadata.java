@@ -12,26 +12,26 @@ import java.util.*;
 @Setter
 @ToString
 public class EntityMetadata {
-    private Class<DefaultEntity> entityClass;
+    private Class<? extends DefaultEntity> entityClass;
 
     private String entityName;
 
     private Map<EntityMetadata, Deque<Field>> relyOn = new HashMap<>();
 
-    private Collection<Class<DefaultEntity>> referencedBy = new HashSet<>();
+    private Collection<Class<? extends DefaultEntity>> referencedBy = new HashSet<>();
 
     private Collection<Field> dependencies = new HashSet<>();
 
     /**
      * Polymorphism
      */
-    private Collection<Class<DefaultEntity>> child = new HashSet<>();
+    private Collection<Class<? extends DefaultEntity>> child = new HashSet<>();
 
-    public void addChild (Class<DefaultEntity> entityClass) {
+    public void addChild (Class<? extends DefaultEntity> entityClass) {
         child.add(entityClass);
     }
 
-    public void addReferencedBy (Class<DefaultEntity> entityClass) {
+    public void addReferencedBy (Class<? extends DefaultEntity> entityClass) {
         referencedBy.add(entityClass);
     }
 }

@@ -5,9 +5,7 @@ import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class AssociationFactory {
     private static final AssociationFactory INSTANCE = new AssociationFactory();
@@ -23,7 +21,7 @@ public class AssociationFactory {
         return INSTANCE;
     }
 
-    public DefaultAssociation<DefaultEntity, DefaultEntity> selectAssociation (Class<DefaultEntity> containerClass, Class<DefaultEntity> referenceClass, Deque<Field> associationFields) {
+    public DefaultAssociation selectAssociation (Class<? extends DefaultEntity> containerClass, Class<? extends DefaultEntity> referenceClass, Deque<Field> associationFields) {
         final var entry = new Entry(containerClass, referenceClass);
 
         var entityAssociation = cache.get(entry);
@@ -45,7 +43,7 @@ public class AssociationFactory {
         }
 
         try {
-            return entityAssociation.newInstance(associationFields);
+            return entityAssociation.newInstance(associationFields == null ? new LinkedList<Field>() : associationFields);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new AssociationException(
                     "Unable to instantiate association class between %s and %s".formatted(
@@ -59,9 +57,9 @@ public class AssociationFactory {
     }
 
     @SuppressWarnings("unchecked")
-    Constructor<DefaultAssociation<DefaultEntity, DefaultEntity>> getConstructor(Class<?> defaultAssociationClass) throws NoSuchMethodException{
-        return ((Class<DefaultAssociation<DefaultEntity, DefaultEntity>>)defaultAssociationClass).getConstructor(Deque.class);
+    Constructor<DefaultAssociation> getConstructor(Class<?> defaultAssociationClass) throws NoSuchMethodException{
+        return ((Class<DefaultAssociation>)defaultAssociationClass).getConstructor(Deque.class);
     }
-    private record Entry(Class<DefaultEntity> containerClass, Class<DefaultEntity> referenceClass) {
+    private record Entry(Class<? extends DefaultEntity> containerClass, Class<? extends DefaultEntity> referenceClass) {
     }
 }

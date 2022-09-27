@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class DefaultAssociation<C extends DefaultEntity, R extends DefaultEntity> implements EntityAssociation<C,R> {
+public class DefaultAssociation implements EntityAssociation {
 
     private final Deque<Field> associationFields;
 
@@ -26,15 +26,14 @@ public class DefaultAssociation<C extends DefaultEntity, R extends DefaultEntity
      * @param entityFinder Instance that will process search in database.
      * @return All copy of entity container (including original)
      */
-    @Override
-    public List<C> associate(C entityContainer, List<R> references, EntityFinder entityFinder) {
-        final var associatedEntities = new LinkedList<C>();
+    public List<DefaultEntity> associate(DefaultEntity entityContainer, List<DefaultEntity> references, EntityFinder entityFinder) {
+        final var associatedEntities = new LinkedList<DefaultEntity>();
 
         // Use original entity container for the first association
         boolean copy = false;
 
         final var entIt = references.iterator();
-        R currentIt;
+        DefaultEntity currentIt;
 
         while (entIt.hasNext()) {
             currentIt = entIt.next();

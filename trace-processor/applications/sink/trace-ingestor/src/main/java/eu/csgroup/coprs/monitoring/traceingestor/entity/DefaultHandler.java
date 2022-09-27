@@ -16,7 +16,7 @@ import java.util.*;
 public class DefaultHandler {
 
     @Getter
-    private final Class<DefaultEntity> entityClass;
+    private final Class<? extends DefaultEntity> entityClass;
 
     private List<DefaultEntity> mergeableEntities;
 

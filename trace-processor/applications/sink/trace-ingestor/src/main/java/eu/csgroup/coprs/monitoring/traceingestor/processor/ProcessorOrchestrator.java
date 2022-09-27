@@ -55,19 +55,21 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                                     entry.getValue()
                                             .stream()
                                             .flatMap(relyOnProcName -> cachedEntities.get(relyOnProcName).stream())
-                                            .toList())
-                            ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                                            .collect(ArrayList<DefaultEntity>::new, ArrayList::add, ArrayList::addAll))
+                            )
+                            .collect(HashMap<Class<? extends DefaultEntity>, List<DefaultEntity>>::new, (h,o) -> h.put(o.getKey(), o.getValue()), HashMap::putAll);
 
                     final var relyOnEntities = entityMetadata.getRelyOn()
                             .entrySet()
                             .stream()
-                            .collect(Collectors.toMap(
-                                    entry -> entry.getKey().getEntityClass(),
-                                    entry -> AssociationFactory.getInstance().selectAssociation(
-                                            processorDesc.getEntityMetadata().getEntityClass(),
-                                            entry.getKey().getEntityClass(),
-                                            entry.getValue())
-                            ));
+                            .collect(HashMap<Class<? extends DefaultEntity>, DefaultAssociation>::new,
+                                    (h,o) -> h.put(
+                                            o.getKey().getEntityClass(),
+                                            AssociationFactory.getInstance().selectAssociation(
+                                                    processorDesc.getEntityMetadata().getEntityClass(),
+                                                    o.getKey().getEntityClass(),
+                                                    o.getValue())),
+                                    HashMap::putAll);
 
                     finalEntities = processedEntities.stream()
                             .flatMap(processedEntity -> associate(
@@ -94,13 +96,15 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
 
     private List<DefaultEntity> associate(
             DefaultEntity containerEntity,
-            Map<Class<DefaultEntity>, List<DefaultEntity>> cachedReferences,
-            Map<Class<DefaultEntity>, DefaultAssociation<DefaultEntity, DefaultEntity>> associationMap,
+            Map<Class<? extends DefaultEntity>, List<DefaultEntity>> cachedReferences,
+            Map<Class<? extends DefaultEntity>, DefaultAssociation> associationMap,
             EntityFinder entityFinder) {
-        var associatedEntities = List.of(containerEntity);
+        List<DefaultEntity> associatedEntities = new ArrayList<>();
+        associatedEntities.add(containerEntity);
 
-        for (Map.Entry<Class<DefaultEntity>, DefaultAssociation<DefaultEntity, DefaultEntity>> currentAssociationEntry : associationMap.entrySet()) {
-            var currentReferences = cachedReferences.get(currentAssociationEntry.getKey());
+
+        for (Map.Entry<Class<? extends DefaultEntity>, DefaultAssociation> currentAssociationEntry : associationMap.entrySet()) {
+            List<DefaultEntity> currentReferences = cachedReferences.get(currentAssociationEntry.getKey());
 
             associatedEntities = associatedEntities.stream()
                     .flatMap(entity -> currentAssociationEntry.getValue().associate(entity, currentReferences, entityFinder)

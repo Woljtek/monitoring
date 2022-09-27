@@ -56,11 +56,6 @@ public class EntityIngestor implements EntityFinder {
     private MissingProductsRepository mpRepository;
 
 
-    public <T extends DefaultEntity> List<T> list(Class<T> className) {
-        return selectRepository(className).findAll();
-    }
-
-
     public <T extends DefaultEntity, E> EntityRepository<T,E> selectRepository(Class<T> className) {
         if (className.equals(AuxData.class)) {
             return castToGenericRepository(adRepository);
@@ -88,7 +83,7 @@ public class EntityIngestor implements EntityFinder {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends DefaultEntity, E> EntityRepository<T,E> castToGenericRepository (
+    private <T extends DefaultEntity, E> EntityRepository<T,E> castToGenericRepository (
             EntityRepository<? extends DefaultEntity,? extends Serializable> specializedRepository) {
         return (EntityRepository<T,E>) specializedRepository;
     }
@@ -119,7 +114,7 @@ public class EntityIngestor implements EntityFinder {
     private void orderEntityType (LinkedList<Class<DefaultEntity>> orderedEntityType, EntityMetadata entityMetadata) {
         log.debug("Check order for entity %s".formatted(entityMetadata.getEntityName()));
         if (entityMetadata.getRelyOn().isEmpty()) {
-            orderedEntityType.addFirst(entityMetadata.getEntityClass());
+            orderedEntityType.addFirst((Class<DefaultEntity>) entityMetadata.getEntityClass());
         } else {
             final var indexRelyOn = EntityHelper.getDeepRelyOn(entityMetadata).map(orderedEntityType::indexOf)
                     .reduce(-1, (l,n) -> l > n ? l : n);
@@ -132,19 +127,18 @@ public class EntityIngestor implements EntityFinder {
             index++;
 
             log.debug("Order of entity %s: %s".formatted(entityMetadata.getEntityName(), index));
-            orderedEntityType.add(index, entityMetadata.getEntityClass());
+            orderedEntityType.add(index, (Class<DefaultEntity>) entityMetadata.getEntityClass());
         }
         log.debug("Order: %s".formatted(orderedEntityType));
     }
 
-    public DefaultEntity findEntityBy (Map<String, String> attributes) {
+    public <T extends DefaultEntity> List<T> findEntityBy (Class<T> className, Map<String, String> attributes) {
         final var clause = attributes.entrySet()
                 .stream()
-                .map(entry -> EntitySpecification.<ExternalInput>getEntityBy(entry.getKey(), entry.getValue()))
+                .map(entry -> EntitySpecification.<T>getEntityBy(entry.getKey(), entry.getValue()))
                 .reduce(where(null), Specification::and);
 
-        return eiRepository.findOne(clause)
-                .orElse(null);
+        return selectRepository(className).findAll(clause);
     }
 
     public <T extends DefaultEntity> List<T> findAll(Class<T> className) {

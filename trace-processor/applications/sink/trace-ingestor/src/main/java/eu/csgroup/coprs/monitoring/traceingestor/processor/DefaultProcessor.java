@@ -25,10 +25,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public record DefaultProcessor(ProcessorDescription processorDesc,
                                EntityFinder entityFinder) implements Function<BeanAccessor, List<DefaultEntity>> {
-    private Specification<DefaultEntity> getFindClauses(Map<Mapping, Object> dependenciesValue) {
+    private <T extends DefaultEntity> Specification<T> getFindClauses(Map<Mapping, Object> dependenciesValue) {
         // Feature: Handle arrays equality case
         return dependenciesValue.entrySet().stream()
-                .map(entry -> EntitySpecification.getEntityBy(
+                .map(entry -> EntitySpecification.<T>getEntityBy(
                         entry.getKey().getTo().getRawBeanPropertyPath(),
                         entry.getValue())
                 ).reduce(Specification.where(null), Specification::and);

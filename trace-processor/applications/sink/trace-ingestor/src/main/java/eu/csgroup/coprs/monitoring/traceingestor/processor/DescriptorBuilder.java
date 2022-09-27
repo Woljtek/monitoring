@@ -61,7 +61,7 @@ public class DescriptorBuilder {
      * @param containerProc Processor description of the container. A container is identified as an entity 'containing' other entity
      * @return Processor description that will handle creation of desired entity
      */
-    private ProcessorDescription createDescriptor(String procName, Class<DefaultEntity> entityClass, ProcessorDescription containerProc) {
+    private ProcessorDescription createDescriptor(String procName, Class<? extends DefaultEntity> entityClass, ProcessorDescription containerProc) {
         if (cache.get(procName) == null) {
             final var entityMetadata = EntityFactory.getInstance().getMetadata(entityClass);
 
@@ -71,24 +71,8 @@ public class DescriptorBuilder {
                     .keySet()
                     .stream()
                     // Handle polymorphism case
-                    .map(relyOn -> relyOn.getChild().isEmpty() ?
-                            Map.entry(
-                                    relyOn.getEntityClass(),
-                                    List.of(Map.entry(
-                                            relyOn.getEntityClass(),
-                                            getProcNameFrom(procName, relyOn.getEntityClass().getSimpleName())
-                                    ))
-                            ) :
-                            Map.entry(
-                                    relyOn.getEntityClass(),
-                                    relyOn.getChild()
-                                            .stream()
-                                            .map(childClass -> Map.entry(
-                                                    childClass,
-                                                    getProcNameFrom(procName, childClass.getSimpleName()))
-                                            ).toList()
-                            )
-                    ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .map(relyOn -> getRelyOnChildIfAny (relyOn, procName)
+                    ).collect(HashMap<Class<? extends DefaultEntity>, List<Map.Entry<Class<? extends DefaultEntity>, String>>>::new, (l,n) -> l.put(n.getKey(), n.getValue()), HashMap::putAll);
 
             Ingestion ingestionConfig = getIngestionConfig(procName, entityClass, containerProc, reliesOn);
 
@@ -156,8 +140,28 @@ public class DescriptorBuilder {
         return cache.get(procName);
     }
 
-    private Ingestion getIngestionConfig(String procName, Class<DefaultEntity> entityClass, ProcessorDescription containerProc,
-                                         Map<Class<DefaultEntity>, List<Map.Entry<Class<DefaultEntity>, String>>> reliesOn) {
+    private Map.Entry<Class<? extends DefaultEntity>, List<Map.Entry<Class<? extends DefaultEntity>, String>>> getRelyOnChildIfAny (EntityMetadata metadata, String procName) {
+        return metadata.getChild().isEmpty() ?
+                Map.entry(
+                        metadata.getEntityClass(),
+                        List.of(Map.entry(
+                                metadata.getEntityClass(),
+                                getProcNameFrom(procName, metadata.getEntityClass().getSimpleName())
+                        ))
+                ) :
+                Map.entry(
+                        metadata.getEntityClass(),
+                        metadata.getChild()
+                                .stream()
+                                .map(childClass -> Map.<Class<? extends DefaultEntity>, String>entry(
+                                        childClass,
+                                        getProcNameFrom(procName, childClass.getSimpleName()))
+                                ).collect(ArrayList::new, ArrayList::add, ArrayList::addAll)
+                );
+    }
+
+    private Ingestion getIngestionConfig(String procName, Class<? extends DefaultEntity> entityClass, ProcessorDescription containerProc,
+                                         Map<Class<? extends DefaultEntity>, List<Map.Entry<Class<? extends DefaultEntity>, String>>> reliesOn) {
         final var mappings = allMappings.get(procName);
         Ingestion ingestionConfig = null;
 

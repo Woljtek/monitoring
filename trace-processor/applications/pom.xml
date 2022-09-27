@@ -22,9 +22,9 @@
     <properties>
         <jib.base-image>eclipse-temurin:17-jre@sha256:efe505b36fc2619cbb2b5f303736329c4b374edb190c5a2d15ac2376ad3ac501</jib.base-image>
 
-        <jib.dest-registry></jib.dest-registry>
-        <jib.dest-username></jib.dest-username>
-        <jib.dest-password></jib.dest-password>
+        <jib.dest-registry/>
+        <jib.dest-username/>
+        <jib.dest-password/>
 
         <jib.java-executable>/usr/lib/jdk/jdk-17/bin/java</jib.java-executable>
         <jib.goal>build</jib.goal>
