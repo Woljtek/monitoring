@@ -5,6 +5,6 @@ import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 
 import java.util.List;
 
-public interface EntityAssociation/*<C extends DefaultEntity, R extends DefaultEntity>*/ {
+public interface EntityAssociation {
     List<DefaultEntity> associate(DefaultEntity entity, List<DefaultEntity> currentReferences, EntityFinder entityFinder);
 }

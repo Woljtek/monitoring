@@ -10,7 +10,7 @@ import java.util.*;
 public class AssociationFactory {
     private static final AssociationFactory INSTANCE = new AssociationFactory();
 
-    private final Map<Entry, Constructor<DefaultAssociation<DefaultEntity, DefaultEntity>>> cache = new HashMap<>();
+    private final Map<Entry, Constructor<DefaultAssociation>> cache = new HashMap<>();
 
     private AssociationFactory() {
 

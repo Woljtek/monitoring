@@ -47,7 +47,7 @@ public class DefaultAssociation implements EntityAssociation {
         return associatedEntities;
     }
 
-    protected C associate(C entityContainer, R reference, boolean copy) {
+    protected  DefaultEntity associate(DefaultEntity entityContainer, DefaultEntity reference, boolean copy) {
         try {
             // Create copy or use the original.
             final var containerRef = copy ? EntityHelper.copy(entityContainer) : entityContainer;

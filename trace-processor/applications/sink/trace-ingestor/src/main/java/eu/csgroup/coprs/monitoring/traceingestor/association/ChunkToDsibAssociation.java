@@ -1,6 +1,7 @@
 package eu.csgroup.coprs.monitoring.traceingestor.association;
 
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.Chunk;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.Dsib;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.jpa.EntitySpecification;
