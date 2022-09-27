@@ -4,9 +4,13 @@ This component provide usefull informations about each bucket of the storage obj
 
 ## Exporter
 
-| Number | Infos |
-| ------ | ----- |
-| One | MONITORING_FINOPS_objects_size_sum_bytes{bucket="..."} <br> MONITORING_FINOPS_objects_total{bucket="..."} <br> MONITORING_FINOPS_biggest_object_size_bytes{bucket="..."} <br> MONITORING_FINOPS_last_modified_object_date{bucket="..."} <br> MONITORING_FINOPS_last_modified_object_size_bytes{bucket="..."} |
+Metrics :
+
+- MONITORING_FINOPS_objects_size_sum_bytes{bucket="..."}
+- MONITORING_FINOPS_objects_total{bucket="..."}
+- MONITORING_FINOPS_biggest_object_size_bytes{bucket="..."}
+- MONITORING_FINOPS_last_modified_object_date{bucket="..."}
+- MONITORING_FINOPS_last_modified_object_size_bytes{bucket="..."}
 
 ## Parameters of the Chart
 

@@ -4,9 +4,9 @@ This component provide the number of each machine template used on the k8s clus
 
 ## Exporter
 
-| Number | Infos |
-| ------ | ----- |
-| One | MONITORING_FINOPS_machineUsage{cpu="...",memory="...",name="..."} |
+Metrics :
+
+- MONITORING_FINOPS_machineUsage{cpu="...",memory="...",name="..."}
 
 ## Parameters of the Chart
 
