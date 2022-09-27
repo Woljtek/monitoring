@@ -10,11 +10,11 @@ of products produced by the ingestion chain and even all Sentinel processing cha
 
 ### Available components
 
-This repository contains one RS-Core component to process trace by filtering desired one and ingesting them in database.
-The [trace-processor](rs-cores/MONITORING) component as the following workflow:
+This repository contains one RS-Core component to process traces by filtering desired ones and ingesting them in database.
+The [trace-processor](rs-cores/MONITORING) component has the following workflow:
 ![](trace-processor/inputs/trace-processor_workflow.png)
 
-The repository also contains two FINOPS component:
+The repository also contains two FINOPS components:
 - [object-storage-exporter](finops/object-storage-exporter/helm)
 - [resources-exporter](finops/resources-exporter/helm)
 
