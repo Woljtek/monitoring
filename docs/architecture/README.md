@@ -15,7 +15,7 @@
 
 ## Document Summary
 
-This document is the Architecture Document Design for Monitoring of Reference System. This document will be completed all along the software development lifecycle
+This document is the **A**rchitecture **D**esign **D**ocument (ADD) for Monitoring of **R**eference **S**ystem **S**oftware (RS Software). This document will be completed all along the software development lifecycle
 
 ## Document Change log
 
@@ -65,12 +65,13 @@ The Architecture Design Document is applicable to the Reference System Project.
 
 | Reference | Issue no | Title of document |
 | --------- | :------: | ----------------- |
+| CSGF-CSC-RS-PRD-ICD-MON | 2.0 | Interface Control Document for Monitoring of Reference System |
 
 #### Reference documents
 
 | Acronym | Reference   | Issue no | Title of document |
 | :-----: | :---------: | :------: | ----------------- |
-| ADD INF | CSGF-CSC-RS-PRD-ADD-INF | 2 | Architecture Design Document |
+| ADD INF | CSGF-CSC-RS-PRD-ADD-INF | 2 | Architecture Design Document for Infrastructure of Reference System  |
 
 ### Glossary
 
@@ -117,7 +118,7 @@ Moreover, contributors are actively improving the quality of the software by rep
 
 ### High-level of security
 
-Building upon the experience of the two last decades, security has become a pillar of ground segments. Airbus gathers a significant experience in integrated security in the different program phases and activities. Airbus organization encourages designer to introduce security at the design stage.
+Building upon the experience of the two last decades, security has become a pillar of ground segments. The consortium gathers a significant experience in integrated security in the different program phases and activities. The consortium organization encourages designer to introduce security at the design stage.
 
 Hence, the security management for the Reference System Service is based on a strategy of response to the major security risks, by integrating defence and preventive mechanism during the design phase (DevSecOps).
 
@@ -125,7 +126,7 @@ The same approach has been adopted with success on the Sentinel-1 Cloud PDGS pro
 
 ## Monitoring services
 
-It's based on the Monitoring Chain that is decribed in [ ADD INF ]
+Monitoring services are based on the Monitoring Chain that is decribed in [ ADD INF ]
 
 ![Monitoring Chain with Computed Data Overview](./../media/monitoring_pi_overview.png)
 
@@ -133,15 +134,15 @@ The computed data are PI/KPI data. These data are determined through different m
 
 ### Data Model
 
-It's described [here](../../trace-processor/README.md)
+The Data Model is described in trace-processor component ([trace-processor/README.md](../../trace-processor/README.md))
 
 ### RS-CORE Monitoring
 
-It's described here :
+The RS-CORE Monitoring is described here :
 - [Overview](../../README.md#overview)
 - [Micro services](../../trace-processor/README.md)
 - [Release Note](../../rs-cores/MONITORING/Release_Note.md)
 
 ### Monitoring HMI
 
-It's decribed in chapter **Monitoring services > Monitoring** of [ ADD INF ]
+The Monitoring HMI is decribed in chapter **Monitoring services > Monitoring** of [ ADD INF ]

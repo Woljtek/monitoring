@@ -25,4 +25,8 @@ This document is the User's Manual for Infrastructure subsystem of Reference Sys
 
 ## Content
 
+The User Manual is in a document named "release note" that explains the deployment and configuration.
+
+Note: The term "release note" for rs-addon deployment and configuration shall be renamed later to avoid confusion with Software release notes.
+
 Please refer to [rs-core release note](./../../rs-cores/MONITORING/Release_Note.md)

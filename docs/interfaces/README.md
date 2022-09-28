@@ -544,7 +544,8 @@ Same example with a NOK status.
 
 ## Validation requirements
 
-The validation approach is described in document [ SVVD COPRS ]
+The validation approach is described in document [ SVVD COPRS ] and Interfaces are tested and validated in the framework Integration Verification and Validation process [SVD and VCD documents].
+
 
 ## Traceability
 
