@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>trace-filter</artifactId>
+    <version>${applications.processor.trace-filter.revision}</version>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>eu.csgroup.coprs.monitoring.app</groupId>
+        <artifactId>processor</artifactId>
+        <version>${applications.processor.revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <properties>
+        <scdf.properties.classname>eu.csgroup.coprs.monitoring.tracefilter.TraceFilterProperties</scdf.properties.classname>
+    </properties>
+
+    <dependencies>
+
+        <!-- Common -->
+
+        <!-- Logs -->
+
+        <!-- Tests -->
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dataflow-apps-docs-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dataflow-apps-metadata-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
