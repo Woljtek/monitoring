@@ -14,9 +14,9 @@ data:
           - from: log.trace.header.mission
             to: dsib.mission
           - from: log.trace.task.input[pickup_point_detection_date]
-            to: dsib.pickup_point_seen_date
+            to: dsib.seen_date
           - from: log.trace.task.input[pickup_point_available_date]
-            to: dsib.pickup_point_available_date
+            to: dsib.available_date
       -
         name: IngestionTrigger_Chunk
         mappings:
@@ -25,9 +25,9 @@ data:
           - from: log.trace.header.mission
             to: chunk.mission
           - from: log.trace.task.input[pickup_point_detection_date]
-            to: chunk.pickup_point_seen_date
+            to: chunk.seen_date
           - from: log.trace.task.input[pickup_point_available_date]
-            to: chunk.pickup_point_available_date
+            to: chunk.available_date
       -
         name: IngestionTrigger_AuxData_S1
         mappings:
@@ -36,9 +36,9 @@ data:
           - from: log.trace.header.mission
             to: aux_data.mission
           - from: log.trace.task.input[pickup_point_detection_date]
-            to: aux_data.pickup_point_seen_date
+            to: aux_data.seen_date
           - from: log.trace.task.input[pickup_point_available_date]
-            to: aux_data.pickup_point_available_date
+            to: aux_data.available_date
       -
         name: IngestionTrigger_AuxData_S2
         mappings:
@@ -47,9 +47,9 @@ data:
           - from: log.trace.header.mission
             to: aux_data.mission
           - from: log.trace.task.input[pickup_point_detection_date]
-            to: aux_data.pickup_point_seen_date
+            to: aux_data.seen_date
           - from: log.trace.task.input[pickup_point_available_date]
-            to: aux_data.pickup_point_available_date
+            to: aux_data.available_date
       -
         name: IngestionTrigger_AuxData_S3
         mappings:
@@ -58,9 +58,9 @@ data:
           - from: log.trace.header.mission
             to: aux_data.mission
           - from: log.trace.task.input[pickup_point_detection_date]
-            to: aux_data.pickup_point_seen_date
+            to: aux_data.seen_date
           - from: log.trace.task.input[pickup_point_available_date]
-            to: aux_data.pickup_point_available_date
+            to: aux_data.available_date
       -
         name: IngestionWorker_Dsib
         mappings:
@@ -114,7 +114,12 @@ data:
           - from: log.trace.header.mission
             to: dsib.mission
           - from: log.trace.header.timestamp
-            to: dsib.catalog_storage_date
+            to: dsib.catalog_storage_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: dsib.catalog_storage_begin_date
           - from: log.trace.task.output[product_metadata_custom_object]
             to: dsib.custom
       -
@@ -125,7 +130,12 @@ data:
           - from: log.trace.header.mission
             to: chunk.mission
           - from: log.trace.header.timestamp
-            to: chunk.catalog_storage_date
+            to: chunk.catalog_storage_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: chunk.catalog_storage_begin_date
           - from: log.trace.task.output[product_metadata_custom_object]
             to: chunk.custom
       -
@@ -136,7 +146,12 @@ data:
           - from: log.trace.header.mission
             to: aux_data.mission
           - from: log.trace.header.timestamp
-            to: aux_data.catalog_storage_date
+            to: aux.catalog_storage_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: aux.catalog_storage_begin_date
           - from: log.trace.task.output[product_metadata_custom_object]
             to: aux_data.custom
       -
@@ -147,7 +162,12 @@ data:
           - from: log.trace.header.mission
             to: aux_data.mission
           - from: log.trace.header.timestamp
-            to: aux_data.catalog_storage_date
+            to: aux.catalog_storage_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: aux.catalog_storage_begin_date
           - from: log.trace.task.output[product_metadata_custom_object]
             to: aux_data.custom
       -
@@ -158,7 +178,12 @@ data:
           - from: log.trace.header.mission
             to: aux_data.mission
           - from: log.trace.header.timestamp
-            to: aux_data.catalog_storage_date
+            to: aux.catalog_storage_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: aux.catalog_storage_begin_date
           - from: log.trace.task.output[product_metadata_custom_object]
             to: aux_data.custom
       -
@@ -174,28 +199,40 @@ data:
             to: product.end_to_end_product
           - from: log.trace.task.output[product_metadata_custom_object]
             to: product.custom
+          - from: log.trace.header.timestamp
+            to: product.catalog_storage_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: product.catalog_storage_begin_date
       -
         name: JobProcessing_Product
         mappings:
           - from: log.trace.task.input[filename_strings]
-            match: DCS_.+?\.raw$
+            action: MATCH DCS_.+?\.raw$
             to: chunk.filename
           - from: log.trace.header.mission
             to: chunk.mission
           - from: log.trace.task.input[filename_strings]
-            match: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
+            action: MATCH ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
             to: aux_data.filename
           - from: log.trace.header.mission
             to: aux_data.mission
           - from: log.trace.task.output[filename_strings]
-            match: ^.+(?=.zip)|.+$
-            convert: "%1$s"
+            action: FORMAT ^GS2B.+(?=.zip)|GS2B.+$ %1$s
             to: output_product.filename
           - from: log.trace.task.output[t0_pdgs_date]
             to: output_product.t0_pdgs_date
+          - from: log.trace.header.timestamp
+            to: output_product.generation_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: output_product.generation_begin_date
           - from: log.trace.task.input[filename_strings]
-            match: ^GS2B.+(?=.zip)|GS2B.+$
-            convert: "%1$s"
+            action: FORMAT ^GS2B.+(?=.zip)|GS2B.+$ %1$s
             to: input_product.filename
           - from: log.trace.task.status
             to: processing.status
@@ -231,3 +268,42 @@ data:
           output_product:
             entity: product
             restrict: output_list
+      -
+        name: PripWorker_Product
+        mappings:
+          - from: log.trace.task.input[filename_string]
+            to: product.filename
+          - from: log.trace.header.timestamp
+            to: product.prip_storage_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: product.prip_storage_begin_date
+      -
+        name: OQC_Product
+        mappings:
+          - from: log.trace.task.input[filename_string]
+            to: product.filename
+          - from: log.trace.header.timestamp
+            to: product.quality_check_end_date
+          - from: 
+              - al1 -> log.trace.header.timestamp
+              - al2 -> log.trace.task_duration_in_seconds
+            action: SUBSTRACT al1 al2
+            to: product.quality_check_begin_date
+      -
+        name: PripTempDownloadUrl_Product
+        mappings:
+          - from: log.trace.task.input[filename_string]
+            to: product.filename
+          - from: log.trace.header.timestamp
+            set_value_only_if_null: true
+            to: product.first_download_date
+      -
+        name: EvictionManagementWorker_Product
+        mappings:
+          - from: log.trace.task.input[filename_string]
+            to: product.filename
+          - from: log.trace.task.ouput[eviction_date]
+            to: product.eviction_date
