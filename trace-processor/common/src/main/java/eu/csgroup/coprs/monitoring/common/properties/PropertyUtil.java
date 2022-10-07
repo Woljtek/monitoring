@@ -243,7 +243,7 @@ public class PropertyUtil {
     }
 
     public static String pascal2SnakeCasePropertyName (String pascalPropertyName) {
-        final var matcher = Pattern.compile("([A-Z]{1}[^A-Z]*)").matcher(pascalPropertyName);
+        final var matcher = Pattern.compile("([A-Z][^A-Z]*)").matcher(pascalPropertyName);
 
         final var snakeCasePropertyName = new StringBuilder();
         while (matcher.find()) {

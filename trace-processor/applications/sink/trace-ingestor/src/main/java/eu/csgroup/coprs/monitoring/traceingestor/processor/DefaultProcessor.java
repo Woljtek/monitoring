@@ -11,8 +11,6 @@ import eu.csgroup.coprs.monitoring.traceingestor.mapper.TraceMapper;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyLeaf;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyNode;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -49,16 +47,16 @@ public record DefaultProcessor(ProcessorDescription processorDesc,
     }
 
     private Collection<TreePropertyLeaf> extractLeafs(TreePropertyNode tree) {
-        return new ArrayList<>(tree.getLeafs().values());
+        return new ArrayList<>(tree.getLeafs());
     }
 
     private Object reducePropertyValues(List<TreePropertyLeaf> leafs) {
         if (leafs.size() == 1) {
             final var leaf = leafs.get(0);
-            return TraceMapper.mapPropertyValue(leaf.getRule(), leaf.getRawValue());
+            return TraceMapper.mapPropertyValue(leaf.getRule(), leaf.getRawValues());
         } else {
             return leafs.stream()
-                    .map(leaf -> TraceMapper.mapPropertyValue(leaf.getRule(), leaf.getRawValue()))
+                    .map(leaf -> TraceMapper.mapPropertyValue(leaf.getRule(), leaf.getRawValues()))
                     .filter(Objects::nonNull)
                     .toList();
         }

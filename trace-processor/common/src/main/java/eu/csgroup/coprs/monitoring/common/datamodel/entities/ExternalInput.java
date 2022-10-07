@@ -38,13 +38,15 @@ public class ExternalInput implements DefaultEntity, Serializable {
 
     private String mission;
 
-    private Instant pickupPointSeenDate;
+    private Instant seenDate;
 
-    private Instant pickupPointAvailableDate;
+    private Instant availableDate;
 
     private Instant ingestionDate;
 
-    private Instant catalogStorageDate;
+    private Instant catalogStorageBeginDate;
+
+    private Instant catalogStorageEndDate;
 
     @Type( type = "jsonb" )
     @Column(columnDefinition = "jsonb")

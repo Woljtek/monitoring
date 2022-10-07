@@ -5,8 +5,10 @@ import eu.csgroup.coprs.monitoring.common.datamodel.Level;
 import eu.csgroup.coprs.monitoring.common.datamodel.Status;
 import eu.csgroup.coprs.monitoring.common.datamodel.Workflow;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.*;
+import org.hibernate.annotations.Type;
 import org.junit.Test;
 
+import javax.persistence.Column;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,6 +71,7 @@ public class EntityTest {
                 Instant.parse("2022-10-14T10:23:59.00Z"),
                 Instant.parse("2022-10-15T10:23:59.00Z"),
                 Instant.parse("2022-10-16T10:23:59.00Z"),
+                Instant.parse("2022-10-17T10:23:59.00Z"),
                 new AutoMergeableMap()
         );
 
@@ -228,6 +231,15 @@ public class EntityTest {
                 false,
                 Instant.parse("2022-10-13T10:23:59.00Z"),
                 Instant.parse("2022-10-14T10:23:59.00Z"),
+                Instant.parse("2022-10-15T10:23:59.00Z"),
+                Instant.parse("2022-10-16T10:23:59.00Z"),
+                Instant.parse("2022-10-17T10:23:59.00Z"),
+                Instant.parse("2022-10-18T10:23:59.00Z"),
+                Instant.parse("2022-10-19T10:23:59.00Z"),
+                Instant.parse("2022-10-20T10:23:59.00Z"),
+                Instant.parse("2022-10-21T10:23:59.00Z"),
+                Instant.parse("2022-10-22T10:23:59.00Z"),
+                Instant.parse("2022-10-23T10:23:59.00Z"),
                 false
         );
 
@@ -251,10 +263,11 @@ public class EntityTest {
         externalInput.setFilename("external input");
         externalInput.setCustom(new AutoMergeableMap());
         externalInput.setMission("S2");
-        externalInput.setPickupPointSeenDate(Instant.parse("2022-10-13T10:23:59.00Z"));
-        externalInput.setPickupPointAvailableDate(Instant.parse("2022-10-14T10:23:59.00Z"));
+        externalInput.setSeenDate(Instant.parse("2022-10-13T10:23:59.00Z"));
+        externalInput.setAvailableDate(Instant.parse("2022-10-14T10:23:59.00Z"));
         externalInput.setIngestionDate(Instant.parse("2022-10-15T10:23:59.00Z"));
-        externalInput.setCatalogStorageDate(Instant.parse("2022-10-16T10:23:59.00Z"));
+        externalInput.setCatalogStorageBeginDate(Instant.parse("2022-10-16T10:23:59.00Z"));
+        externalInput.setCatalogStorageEndDate(Instant.parse("2022-10-17T10:23:59.00Z"));
 
         return externalInput;
     }
@@ -286,7 +299,16 @@ public class EntityTest {
         product.setEndToEndProduct(false);
         product.setDuplicate(false);
         product.setT0PdgsDate(Instant.parse("2022-10-13T10:23:59.00Z"));
-        product.setPripStorageDate(Instant.parse("2022-10-14T10:23:59.00Z"));
+        product.setGenerationBeginDate(Instant.parse("2022-10-14T10:23:59.00Z"));
+        product.setGenerationEndDate(Instant.parse("2022-10-15T10:23:59.00Z"));
+        product.setCatalogStorageBeginDate(Instant.parse("2022-10-16T10:23:59.00Z"));
+        product.setCatalogStorageEndDate(Instant.parse("2022-10-17T10:23:59.00Z"));
+        product.setPripStorageBeginDate(Instant.parse("2022-10-18T10:23:59.00Z"));
+        product.setPripStorageEndDate(Instant.parse("2022-10-19T10:23:59.00Z"));
+        product.setQualityCheckDate(Instant.parse("2022-10-20T10:23:59.00Z"));
+        product.setQualityCheckEndDate(Instant.parse("2022-10-21T10:23:59.00Z"));
+        product.setFirstDownloadDate(Instant.parse("2022-10-22T10:23:59.00Z"));
+        product.setEvictionDate(Instant.parse("2022-10-23T10:23:59.00Z"));
         product.setLate(false);
 
         return product;

@@ -9,13 +9,13 @@ ingestions:
       - from: log.trace.task.output[satellite]
         to: dsib.satellite
       - from: log.trace.task.output[pickup_point_seen_date]
-        to: dsib.pickupPointSeenDate
+        to: dsib.seen_date
       - from: log.trace.task.output[pickup_point_available_date]
-        to: dsib.pickupPointAvailableDate
+        to: dsib.available_date
       - from: log.trace.task.output[ingestion_date]
         to: dsib.ingestionDate
       - from: log.trace.task.output[catalog_storage_date]
-        to: dsib.catalogStorageDate
+        to: dsib.catalog_storage_end_date
   -
     name: chunk
     mappings:
@@ -24,13 +24,13 @@ ingestions:
       - from: log.trace.task.output[filename]
         to: chunk.filename
       - from: log.trace.task.output[pickup_point_seen_date]
-        to: chunk.pickup_point_seen_date
+        to: chunk.seen_date
       - from: log.trace.task.output[pickup_point_available_date]
-        to: chunk.pickup_point_available_date
+        to: chunk.available_date
       - from: log.trace.task.output[ingestion_date]
         to: chunk.ingestion_date
       - from: log.trace.task.output[catalog_storage_date]
-        to: chunk.catalog_storage_date
+        to: chunk.catalog_storage_end_date
   -
     name: aux_data
     mappings:
@@ -39,13 +39,13 @@ ingestions:
       - from: log.trace.task.output[filename]
         to: aux_data.filename
       - from: log.trace.task.output[pickup_point_seen_date]
-        to: aux_data.pickup_point_seen_date
+        to: aux_data.seen_date
       - from: log.trace.task.output[pickup_point_available_date]
-        to: aux_data.pickup_point_available_date
+        to: aux_data.available_date
       - from: log.trace.task.output[ingestion_date]
         to: aux_data.ingestion_date
       - from: log.trace.task.output[catalog_storage_date]
-        to: aux_data.catalog_storage_date
+        to: aux_data.catalog_storage_end_date
       - from: log.trace.task.output
         to: aux_data.custom[destination]
       - from: log.trace.custom[test_field_string]
@@ -71,22 +71,30 @@ ingestions:
     name: processing_all
     mappings:
       - from: log.trace.task.input[filename_strings]
-        match: DCS_.+?\.raw$
+        action: MATCH DCS_.+?\.raw$
         to: chunk.filename
       - from: log.trace.header.mission
         to: chunk.mission
       - from: log.trace.task.input[filename_strings]
-        match: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
+        action: MATCH ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
         to: aux_data.filename
       - from: log.trace.header.mission
         to: aux_data.mission
       - from: log.trace.task.output[filename_strings]
-        match: ^.+(?=.zip)|.+$
-        convert: "%1$s"
+        action: FORMAT ^.+(?=.zip)|.+$ %1$s
         to: output_product.filename
+      - from: log.trace.header.timestamp
+        to: output_product.generation_end_date
+      - from:
+          - al1 -> log.trace.header.timestamp
+          - al2 -> log.trace.task.duration_in_seconds
+        action: SUBSTRACT al1 al2
+        to: output_product.generation_begin_date
+      - from: log.trace.header.timestamp
+        set_value_only_if_null: true
+        to: output_product.first_download_date
       - from: log.trace.task.input[filename_strings]
-        match: ^GS2B.+(?=.zip)|GS2B.+$
-        convert: "%1$s"
+        action: FORMAT ^GS2B.+(?=.zip)|GS2B.+$ %1$s
         to: input_product.filename
       - from: log.trace.task.status
         to: processing.status
@@ -114,12 +122,12 @@ ingestions:
     name: processing_input
     mappings:
       - from: log.trace.task.input[filename_strings]
-        match: DCS_.+?\.raw$
+        action: MATCH DCS_.+?\.raw$
         to: chunk.filename
       - from: log.trace.header.mission
         to: chunk.mission
       - from: log.trace.task.input[filename_strings]
-        match: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
+        action: MATCH ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
         to: aux_data.filename
       - from: log.trace.header.mission
         to: aux_data.mission
@@ -135,8 +143,7 @@ ingestions:
     name: processing_output
     mappings:
       - from: log.trace.task.output[filename_strings]
-        match: ^.+(?=.zip)|.+$
-        convert: "%1$s"
+        convert: FORMAT ^.+(?=.zip)|.+$ %1$s
         to: output_product.filename
       - from: log.trace.task.status
         to: processing.status

@@ -50,7 +50,25 @@ public class Product implements DefaultEntity, Serializable {
     @Column(name = "t0_pdgs_date")
     private Instant t0PdgsDate;
 
-    private Instant pripStorageDate;
+    private Instant generationBeginDate;
+
+    private Instant generationEndDate;
+
+    private Instant catalogStorageBeginDate;
+
+    private Instant catalogStorageEndDate;
+
+    private Instant pripStorageBeginDate;
+
+    private Instant pripStorageEndDate;
+
+    private Instant qualityCheckDate;
+
+    private Instant qualityCheckEndDate;
+
+    private Instant firstDownloadDate;
+
+    private Instant evictionDate;
 
     private boolean late;
 

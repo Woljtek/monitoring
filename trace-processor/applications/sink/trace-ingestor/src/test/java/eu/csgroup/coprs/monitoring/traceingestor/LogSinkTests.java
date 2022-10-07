@@ -84,9 +84,9 @@ public class LogSinkTests {
                 .allMatch(e -> e.getFilename() != null)
                 .allMatch(e -> e.getMission() != null)
                 .allMatch(e -> e.getIngestionDate() != null)
-                .allMatch(e -> e.getCatalogStorageDate() != null)
-                .allMatch(e -> e.getPickupPointAvailableDate() != null)
-                .allMatch(e -> e.getPickupPointSeenDate() != null);
+                .allMatch(e -> e.getCatalogStorageEndDate() != null)
+                .allMatch(e -> e.getAvailableDate() != null)
+                .allMatch(e -> e.getSeenDate() != null);
         assertThat(entityIngestor.findAll(Product.class))
                 .hasSize(1)
                 .allMatch(p -> p.getFilename() != null)
@@ -119,9 +119,9 @@ public class LogSinkTests {
                 .allMatch(e -> e.getFilename() != null)
                 .allMatch(e -> e.getMission() != null)
                 .allMatch(e -> e.getIngestionDate() != null)
-                .allMatch(e -> e.getCatalogStorageDate() != null)
-                .allMatch(e -> e.getPickupPointAvailableDate() != null)
-                .allMatch(e -> e.getPickupPointSeenDate() != null);
+                .allMatch(e -> e.getCatalogStorageEndDate() != null)
+                .allMatch(e -> e.getAvailableDate() != null)
+                .allMatch(e -> e.getSeenDate() != null);
     }
 
     @Test

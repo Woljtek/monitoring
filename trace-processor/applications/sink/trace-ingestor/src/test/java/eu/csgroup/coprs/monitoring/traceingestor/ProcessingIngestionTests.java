@@ -19,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -169,6 +170,7 @@ public class ProcessingIngestionTests {
         header.setMission("S2");
         header.setLevel(Level.INFO);
         header.setWorkflow(Workflow.NOMINAL);
+        header.setTimestamp(Instant.parse("2022-10-05T14:13:30.00Z"));
 
         final var task = new EndTask();
         //task.setSatellite("S2B");
@@ -197,6 +199,8 @@ public class ProcessingIngestionTests {
                 "GS2B_20170322T000000_013601_N02.06.zip")
         );
         task.setInput(input);
+
+        task.setDurationInSeconds(60.0);
 
         final var trace = new Trace();
         trace.setHeader(header);
