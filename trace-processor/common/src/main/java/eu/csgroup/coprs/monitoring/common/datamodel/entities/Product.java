@@ -62,7 +62,7 @@ public class Product implements DefaultEntity, Serializable {
 
     private Instant pripStorageEndDate;
 
-    private Instant qualityCheckDate;
+    private Instant qualityCheckBeginDate;
 
     private Instant qualityCheckEndDate;
 

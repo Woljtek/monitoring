@@ -305,7 +305,7 @@ public class EntityTest {
         product.setCatalogStorageEndDate(Instant.parse("2022-10-17T10:23:59.00Z"));
         product.setPripStorageBeginDate(Instant.parse("2022-10-18T10:23:59.00Z"));
         product.setPripStorageEndDate(Instant.parse("2022-10-19T10:23:59.00Z"));
-        product.setQualityCheckDate(Instant.parse("2022-10-20T10:23:59.00Z"));
+        product.setQualityCheckBeginDate(Instant.parse("2022-10-20T10:23:59.00Z"));
         product.setQualityCheckEndDate(Instant.parse("2022-10-21T10:23:59.00Z"));
         product.setFirstDownloadDate(Instant.parse("2022-10-22T10:23:59.00Z"));
         product.setEvictionDate(Instant.parse("2022-10-23T10:23:59.00Z"));

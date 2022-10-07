@@ -29,9 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(initializers = TestInitializer.class)
 @DataJpaTest
 // Comment the two below annotation to test with non embedded database
-@AutoConfigureEmbeddedDatabase
-@ActiveProfiles("dev-embedded")
-//@ActiveProfiles("dev-integration")
+//@AutoConfigureEmbeddedDatabase
+//@ActiveProfiles("dev-embedded")
+@ActiveProfiles("dev-integration")
 public class ProcessingIngestionTests {
 
     private static final TraceIngestorConfiguration conf = new TraceIngestorConfiguration();

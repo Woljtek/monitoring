@@ -13,7 +13,7 @@ ALTER TABLE product
     ADD COLUMN catalog_storage_begin_date TIMESTAMP,
     ADD COLUMN catalog_storage_end_date TIMESTAMP,
     ADD COLUMN prip_storage_begin_date TIMESTAMP,
-    ADD COLUMN quality_check_date TIMESTAMP,
+    ADD COLUMN quality_check_begin_date TIMESTAMP,
     ADD COLUMN quality_check_end_date TIMESTAMP,
     ADD COLUMN first_download_date TIMESTAMP,
     ADD COLUMN eviction_date TIMESTAMP;
