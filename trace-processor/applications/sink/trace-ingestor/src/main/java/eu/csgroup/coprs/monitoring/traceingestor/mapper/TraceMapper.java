@@ -95,7 +95,7 @@ public record TraceMapper(BeanAccessor wrapper, String configurationName) {
                 }
             }
 
-        } else {
+        } else if (leaf.getRule().isRemoveEntityIfNull()) {
             throw new InterruptedOperationException("Value for property %s can't be null".formatted(leaf.getRule().getTo().getRawPropertyPath()));
         }
     }
