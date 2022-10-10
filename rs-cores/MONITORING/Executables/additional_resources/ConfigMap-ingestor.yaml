@@ -77,7 +77,7 @@ data:
             to: dsib.catalog_storage_end_date
           - from: 
               - al1 -> log.trace.header.timestamp
-              - al2 -> log.trace.task_duration_in_seconds
+              - al2 -> log.trace.task.duration_in_seconds
             action: SUBSTRACT al1 al2
             to: dsib.catalog_storage_begin_date
           - from: log.trace.task.output[product_metadata_custom_object]
@@ -93,7 +93,7 @@ data:
             to: chunk.catalog_storage_end_date
           - from: 
               - al1 -> log.trace.header.timestamp
-              - al2 -> log.trace.task_duration_in_seconds
+              - al2 -> log.trace.task.duration_in_seconds
             action: SUBSTRACT al1 al2
             to: chunk.catalog_storage_begin_date
           - from: log.trace.task.output[product_metadata_custom_object]
@@ -109,7 +109,7 @@ data:
             to: aux.catalog_storage_end_date
           - from: 
               - al1 -> log.trace.header.timestamp
-              - al2 -> log.trace.task_duration_in_seconds
+              - al2 -> log.trace.task.duration_in_seconds
             action: SUBSTRACT al1 al2
             to: aux.catalog_storage_begin_date
           - from: log.trace.task.output[product_metadata_custom_object]
@@ -131,7 +131,7 @@ data:
             to: product.catalog_storage_end_date
           - from: 
               - al1 -> log.trace.header.timestamp
-              - al2 -> log.trace.task_duration_in_seconds
+              - al2 -> log.trace.task.duration_in_seconds
             action: SUBSTRACT al1 al2
             to: product.catalog_storage_begin_date
       -
@@ -161,7 +161,7 @@ data:
             to: output_product.generation_end_date
           - from: 
               - al1 -> log.trace.header.timestamp
-              - al2 -> log.trace.task_duration_in_seconds
+              - al2 -> log.trace.task.duration_in_seconds
             action: SUBSTRACT al1 al2
             to: output_product.generation_begin_date
           - from: log.trace.task.input[filename_strings]
@@ -210,7 +210,7 @@ data:
             to: product.prip_storage_end_date
           - from: 
               - al1 -> log.trace.header.timestamp
-              - al2 -> log.trace.task_duration_in_seconds
+              - al2 -> log.trace.task.duration_in_seconds
             action: SUBSTRACT al1 al2
             to: product.prip_storage_begin_date
       -
@@ -222,7 +222,7 @@ data:
             to: product.quality_check_end_date
           - from: 
               - al1 -> log.trace.header.timestamp
-              - al2 -> log.trace.task_duration_in_seconds
+              - al2 -> log.trace.task.duration_in_seconds
             action: SUBSTRACT al1 al2
             to: product.quality_check_begin_date
       -
