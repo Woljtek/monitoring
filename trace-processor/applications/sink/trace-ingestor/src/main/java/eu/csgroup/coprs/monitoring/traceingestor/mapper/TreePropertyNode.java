@@ -3,34 +3,59 @@ package eu.csgroup.coprs.monitoring.traceingestor.mapper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
-@EqualsAndHashCode(callSuper = true)
-public class TreePropertyNode extends TreeProperty {
+@EqualsAndHashCode()
+public class TreePropertyNode implements TreeProperty {
 
-    private final Map<String, TreePropertyLeaf> leafs = new HashMap<>();
+    private final List<String> paths = new ArrayList<>();
+    private final List<TreePropertyLeaf> leafs = new ArrayList<>();
 
-    private final Map<String, TreePropertyNode> nodes = new HashMap<>();
+    private final List<TreePropertyNode> nodes = new ArrayList<>();
 
-    public TreePropertyNode(String path) {
-        super(path);
+    public TreePropertyNode() {
+        super();
     }
 
-    public void putLeaf(TreePropertyLeaf leaf) {
-        put(leafs, leaf);
+    public void addLeaf(TreePropertyLeaf leaf) {
+        add(leafs, leaf);
     }
 
-    public void putNode(TreePropertyNode node) {
-        put(nodes, node);
+    public void addNode(TreePropertyNode node) {
+        add(nodes, node);
     }
 
-    public TreePropertyNode getNode(String path) {
-        return nodes.get(path);
+    public void addAllNode (List<TreePropertyNode> nodes) {
+        this.nodes.addAll(nodes);
     }
 
-    private <T extends TreeProperty> void put(Map<String, T> map, T treeProperty) {
-        map.put(treeProperty.getPath(), treeProperty);
+    public void addPath(String path) {
+        paths.add(path);
+    }
+
+    public void addAllPath(List<String> paths) {
+        this.paths.addAll(paths);
+    }
+
+    private <T extends TreeProperty> void add(List<T> list, T treeProperty) {
+        list.add(treeProperty);
+    }
+
+    public TreePropertyNode copy() {
+        final var newNode = new TreePropertyNode();
+
+        newNode.addAllPath(this.getPaths());
+
+        for (var node: this.getNodes()) {
+            newNode.addNode(node.copy());
+        }
+
+        for (var leaf: this.getLeafs()) {
+            newNode.addLeaf(leaf.copy());
+        }
+
+        return newNode;
     }
 }

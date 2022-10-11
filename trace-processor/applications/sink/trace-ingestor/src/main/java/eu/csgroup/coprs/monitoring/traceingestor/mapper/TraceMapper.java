@@ -2,8 +2,8 @@ package eu.csgroup.coprs.monitoring.traceingestor.mapper;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
+import eu.csgroup.coprs.monitoring.traceingestor.config.AliasWrapper;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
-import eu.csgroup.coprs.monitoring.traceingestor.entity.ConversionUtil;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityDescriptor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,8 +38,17 @@ public record TraceMapper(BeanAccessor wrapper, String configurationName) {
 
     private void map(TreePropertyNode tree, EntityCache entityCache) throws InterruptedOperationException {
         final var propertyCache = new HashMap<BeanProperty, Object>();
-        for (TreePropertyLeaf leaf : tree.getLeafs().values()) {
-            final var value = mapPropertyValue(leaf.getRule(), leaf.getRawValue());
+
+        for (var leaf : tree.getLeafs()) {
+            mapLeafs(leaf, entityCache, propertyCache);
+        }
+
+        mapNodes(tree.getNodes(), entityCache, propertyCache);
+    }
+
+    private void mapLeafs (TreePropertyLeaf leaf, EntityCache entityCache, Map<BeanProperty, Object> propertyCache) {
+        if (! leaf.getRule().isSetValueOnlyIfNull() || entityCache.getCurrent().getBean().getPropertyValue(leaf.getRule().getTo()) == null) {
+            final var value = mapPropertyValue(leaf.getRule(), leaf.getRawValues());
 
             // Do not set null property value to avoid non handled null value conversion
             if (value != null) {
@@ -57,8 +66,10 @@ public record TraceMapper(BeanAccessor wrapper, String configurationName) {
                 log.warn("No value found for '%s' for configuration '%s'%n%s".formatted(leaf.getRule().getFrom(), configurationName, wrapper.getDelegate().getWrappedInstance()));
             }
         }
+    }
 
-        final var nodeIt = tree.getNodes().values().iterator();
+    private void mapNodes (List<TreePropertyNode> nodes, EntityCache entityCache, Map<BeanProperty, Object> propertyCache) {
+        final var nodeIt = nodes.iterator();
         while (nodeIt.hasNext()) {
             final var node = nodeIt.next();
             map(node, new EntityCache(entityCache, propertyCache));
@@ -90,36 +101,78 @@ public record TraceMapper(BeanAccessor wrapper, String configurationName) {
     }
 
 
-    public static Object mapPropertyValue(Mapping rule, Object rawValue) throws InterruptedOperationException {
-        if (rawValue != null) {
-            try {
-                var value = ConversionUtil.convert(rule.getMatch(), rule.getConvert(), rawValue);
+    public static Object mapPropertyValue(Mapping rule, Map<BeanProperty, Object> rawValues) throws InterruptedOperationException {
+        checkInputs(rule, rawValues);
 
-                if (value == null) {
-                    throw new InterruptedOperationException("Discard mapping of entity %s because value %s does not match or can't be converted %s".formatted(
-                            rule.getTo().getBeanName(),
-                            rawValue,
-                            rule
-                    ));
-                }
+        // Key => alias
+        // Value => converted value
+        final var availableValues = new ArrayList<AliasWrapper<Object>>();
+        rule.getFrom().forEach(from -> availableValues.add(
+                new AliasWrapper<>(
+                        from.getAlias(),
+                        rawValues.get(from.getWrappedObject())
+                )
+        ));
 
-                return value;
-            } catch (ConversionNotSupportedException | ClassCastException e) {
-                if (rawValue instanceof final Collection<?> collection) {
-                    return collection.stream()
-                            .map(val -> ConversionUtil.convert(rule.getMatch(), rule.getConvert(), (String) val))
-                            .filter(Objects::nonNull)
-                            .toList();
+        final var toExecuteValues = rule.getAction()
+                .stream()
+                .map(AliasWrapper::getAlias)
+                .toList();
+
+        // Assume that conversion action are not in the correct order
+        final var unorderedAction = new LinkedList<>(rule.getAction());
+        while (! unorderedAction.isEmpty()) {
+            final var argValues = new ArrayList<>();
+            var currentAction = unorderedAction.removeFirst();
+            final var dynamicArgs = currentAction.getWrappedObject().getDynamicArgs();
+
+            int availableIndex = availableValues.size() - 1;
+            for (var arg : dynamicArgs) {
+                final var matchingAlias = availableValues.stream()
+                        .filter(val -> val.getAlias().equals(arg))
+                        .findFirst();
+                if (matchingAlias.isPresent()) {
+                    argValues.add(matchingAlias.get().getWrappedObject());
+                } else if (toExecuteValues.contains(arg)){
+                    // Not yet available
+                    break;
                 } else {
-                    throw e;
+                    // Use latest available values
+                    argValues.add(availableValues.get(availableIndex--).getWrappedObject());
                 }
             }
 
+            if (dynamicArgs.size() != argValues.size()) {
+                unorderedAction.add(currentAction);
+            } else {
+                final var res = currentAction.getWrappedObject().execute(argValues);
 
-        } else if (rule.isRemoveEntityIfNull()) {
-            throw new InterruptedOperationException("Value for property %s can't be null".formatted(rule.getTo().getRawPropertyPath()));
+                if (res == null) {
+                    throw new InterruptedOperationException("Discard mapping of entity %s because value(s) %s does not match or can't be converted %s".formatted(
+                            rule.getTo().getBeanName(),
+                            argValues,
+                            currentAction.getWrappedObject().getRawAction()
+                    ));
+                }
+
+                availableValues.add(
+                        new AliasWrapper<>(
+                                currentAction.getAlias(),
+                                res
+                        )
+                );
+            }
         }
 
-        return null;
+        return availableValues.get(availableValues.size() - 1).getWrappedObject();
+
+    }
+
+    private static void checkInputs (Mapping rule, Map<BeanProperty, Object> rawValues) {
+        for (var rawValue : rawValues.values()) {
+            if (rawValue == null && rule.isRemoveEntityIfNull()) {
+                throw new InterruptedOperationException("Value for property %s can't be null".formatted(rule.getTo().getRawPropertyPath()));
+            }
+        }
     }
 }

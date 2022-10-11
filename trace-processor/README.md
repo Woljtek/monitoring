@@ -2,6 +2,24 @@
 
 The trace processor ingests filtered traces in a database.
 
+<!-- TOC -->
+* [Trace processor](#trace-processor)
+  * [Trace filter](#trace-filter)
+    * [Configuration file](#configuration-file)
+    * [Input](#input)
+    * [Behavior](#behavior)
+    * [Output](#output)
+    * [Execution](#execution)
+    * [Troubleshooting](#troubleshooting)
+  * [Trace ingestor](#trace-ingestor)
+    * [Configuration file](#configuration-file-1)
+      * [Mapping](#mappings)
+      * [Alias](#alias)
+    * [Input](input-1)
+    * [Behavior](#behavior-1)
+    * [Execution](#execution-1)
+<!-- TOC -->
+
 ## trace-filter
 
 ### Configuration file
@@ -109,8 +127,7 @@ ingestions:
     name: ingestion-1
     mappings:
       - from: log.trace.task.input[filename_string]
-        match: ^GS2B.+(?=.zip)|GS2B.+$
-        convert: "%1$s"
+        action: FORMAT ^GS2B.+(?=.zip)|GS2B.+$ %1$s
         to: dsib.filename
       - from: log.trace.header.mission
         to: dsib.mission
@@ -132,14 +149,21 @@ The 'ingestion' section is mandatory and groups all ingestion configurations. An
 
 A mapping can be configured with the following properties:
 
-| Name                  | Mandatory | Description                                                                                                                                                                                                                                    | Value                                          |
-|-----------------------|:---------:|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
-| from                  |     x     | Path in trace structure (See 'RS Trace form' ICD)                                                                                                                                                                                              | a path                                         |
-| remove_entity_if_null |           | Do not store entity if value in the trace is null (discard entity creation)                                                                                                                                                                    | true or false (by default false)               |
-| match                 |           | Define a regular expression that value must match (See [Java regex](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)). If value is not an array and does not match to expression, discard entity creation | a regular expression (by default no value set) |
-| convert               |           | Define a format based on capturing group of the regular expression (See [Java formatting](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html))                                                              | a format expression (by default no value set)  |
-| to                    |     x     | Path in entity structure                                                                                                                                                                                                                       | a path                                         |
+| Name                   | Mandatory | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Value                                                        |
+|------------------------|:---------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| from                   |     x     | Path of the value to reach in trace structure (See 'RS Trace form' ICD):<br/>-from: log.trace.header.timestamp<br><br> You can associate path to an alias for later and easy reuse in action property:<br/>- from: al1 -> log.trace.header.timestamp<br><br>It's also possible to define a list of path to use in action property:<br>- from:<br>&nbsp;&nbsp;&nbsp;&nbsp;- al1 -> log.trace.header.timestamp<br>&nbsp;&nbsp;&nbsp;&nbsp;- al2 -> log.trace.task.duration_in_seconds | a path                                                       |
+| remove_entity_if_null  |           | Do not store entity if value in the trace is null (discard entity creation)                                                                                                                                                                                                                                                                                                                                                                                                                     | true or false (by default false)                             |
+| action                 |           | Indicate an action to execute on retrieved value before setting them in entity                                                                                                                                                                                                                                                                                                                                                                                                                  | (See below table for the syntax to use and available action) | 
+| set_value_only_if_null |           | Set value in entity field symbolized by 'to' property is not already set                                                                                                                                                                                                                                                                                                                                                                                                                        | true or false (by default false)                             |
+| to                     |     x     | Path where to put value in entity structure                                                                                                                                                                                                                                                                                                                                                                                                                                                     | a path                                                       |
 
+Available actions:
+
+| Name     | Syntax                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Example                                                                                                                                                                                |
+|----------|-------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| MATCH    | MATCH \<pattern> \<from>            | Check value before setting it in entity field. If value does not match the pattern entity is not created. In case of value is an array, keep only those matching the pattern. If target type of the field in entity is an array set matching result as is (even if  array is empty). In the other case, create an entity for each value in the array (if array is empty do not create any entity).<br><br>Available arguments are:    <br>   - \<pattern>: Define a regular expression that the value must match (See [Java regex](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)). If value is not an array and does not match to expression, discard entity creation <br/> - \<from>: Path of the value in trace structure to use in action or the alias associated to.                                                                   | MATCH DCS_.+?\.raw$  <br/><br>If you retrieve one from value you are not forced to set 'from' value to use. It will automatically retrieve the last value available                    |
+| FORMAT   | FORMAT \<pattern> \<format> \<from> | Format a value matching to the pattern (must contains capturing group). The FORMAT action has the same behavior than the MATCH action. <br><br>Available arguments are:<br>- \<pattern>: Define a regular expression that the value must match (See [Java regex](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)). If value is not an array and does not match to expression, discard entity creation.<br>- \<format>: Define a format based on capturing group of the regular expression (See [Java formatting](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html))                                                                                                                                                                                                                                     | FORMAT ^.+(?=.zip)&#124;.+$ %1$s" <br><br> If you retrieve one from value you are not forced to set 'from' value to use. It will automatically retrieve the last value available       |
+| SUBTRACT | SUBTRACT <from-1> <from-2>...       | Subtract 'from-2' value to 'from-1' value. You can set as many value as you want for 'from-2' argument.<br><br> Available arguments are:<br>- \<from-1>: Reference value to which to subtract (can be a date, double, long or integer type).<br>- \<from-2>: value to subtract to 'from-1' value. You can set as many value as you want.<br><br>this action is able to handle date, double, long and integer type. In case of 'from-1' value is a date:<br>- double is considered as a value in second and can handle precision to nanosecond,<br> - integer is considered as a value in second,<br> - long is considered as a value in second,<br> - date is considered as a value in millisecond<br><br>If 'from-1' value is other than date type, and 'from-2' value is a date, retrieve value in millisecond. <br><br> Type of 'from-1' value is conserved and is the one returned. | - from:<br>&nbsp;&nbsp;&nbsp;&nbsp;- al1 -> log.trace.header.timestamp<br>&nbsp;&nbsp;&nbsp;&nbsp;- al2 -> log.trace.task.duration_in_seconds<br>&nbsp;&nbsp;action: SUBSTRACT al1 al2 |
 
 1. [x] **Single entity use case**
 
@@ -177,12 +201,12 @@ ingestions:
     name: chunk and aux_data
     mappings:
       - from: log.trace.task.input[filename_strings]
-        match: DCS_.+?\.raw$
+        action: MATCH DCS_.+?\.raw$
         to: chunk.filename
       - from: log.trace.header.mission
         to: chunk.mission
       - from: log.trace.task.input[filename_strings]
-        match: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
+        action: MATCH ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\w{1,}\.(XML|EOF|SAFE)(/.*)?|(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)|([a-zA-Z0-9][a-zA-Z0-9])(\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\w{4}AX)_(\d{8}T\d{6})_(\d{8}T\d{6})_(\d{8}T\d{6})_(_{17})_(\w{3})_(\w{8})\.(SEN3)\/?(.+)?$
         to: aux_data.filename
       - from: log.trace.header.mission
         to: aux_data.mission
@@ -199,11 +223,12 @@ ingestions:
     name: chunk
     mappings:
       - from: log.trace.task.input[filename_strings]
-        match: DCS_.+?\.raw$
+        action: MATCH DCS_.+?\.raw$
         to: chunk.filename
       - from: log.trace.header.mission
         to: chunk.mission
 ```
+In the following example we also filter array to keep only chunk
 
 Result:
 
@@ -227,8 +252,7 @@ ingestions:
     name: product
     mappings:
       - from: log.trace.task.input[filename_strings]
-        match: ^GS2B.+(?=.zip)|GS2B.+$
-        convert: "%1$s"
+        action: FORMAT ^GS2B.+(?=.zip)|GS2B.+$ %1$s
         to: product.filename
 ```
 
@@ -269,6 +293,22 @@ ingestions:
         to: missing_products.estimated_count
 ```
 
+1. [x] **Overwrite value**
+
+By default, if an update is done on an existing entity (already stored in database) applying mapping rule will overwrite existing value in entity. If this behavior is unwanted, you can set 'set_value_only_if_null' property to true to avoid value overwritting in entity:
+```yaml
+ingestions:
+  -
+    name: product
+    mappings:
+      - from: log.trace.task.input[filename_strings]
+        action: FORMAT ^GS2B.+(?=.zip)|GS2B.+$ %1$s
+        to: product.filename
+      - from: log.trace.header.timestamp
+        set_value_only_if_null: true
+        to: product.first_download_date
+```
+
 #### Alias
 
 The 'product' table stores informations of product that are used as output and/or input of a process. To define in which case a product is used in a processing two additional table exists:
@@ -282,12 +322,11 @@ ingestions:
     name: input and output product
     mappings:
       - from: log.trace.task.output[filename_strings]
-        match: ^.+(?=.zip)|.+$
+        action: MATCH ^.+(?=.zip)|.+$
         convert: "%1$s"
         to: output_product.filename
       - from: log.trace.task.input[filename_strings]
-        match: ^GS2B.+(?=.zip)|GS2B.+$
-        convert: "%1$s"
+        action: FORMAT ^GS2B.+(?=.zip)|GS2B.+$ %1$s
         to: input_product.filename
     alias:
       input_product:
@@ -318,8 +357,7 @@ ingestions:
     name: processing and input product
     mappings:
       - from: log.trace.task.input[filename_strings]
-        match: ^GS2B.+(?=.zip)|GS2B.+$
-        convert: "%1$s"
+        action: FORMAT ^GS2B.+(?=.zip)|GS2B.+$ %1$s
         to: input_product.filename
       - from: log.trace.task.status
         to: processing.status
@@ -349,7 +387,7 @@ ingestions:
     name: processing and chunk
     mappings:
       - from: log.trace.task.input[filename_strings]
-        match: DCS_.+?\.raw$
+        action: MATCH DCS_.+?\.raw$
         to: chunk.filename
       - from: log.trace.header.mission
         to: chunk.mission

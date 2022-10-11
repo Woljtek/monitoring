@@ -5,7 +5,7 @@ import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.Dsib;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.jpa.EntitySpecification;
-import eu.csgroup.coprs.monitoring.traceingestor.entity.ConversionUtil;
+import eu.csgroup.coprs.monitoring.traceingestor.converter.FormatAction;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Field;
@@ -94,12 +94,12 @@ public class ChunkToDsibAssociation extends DefaultAssociation {
      * @return dsib file name base on chunk file name.
      */
     private static String chunkToDsibFilename(String chunkFilename) {
-        final var value = ConversionUtil.convert(FILENAME_PATTERN, FILENAME_REPLACE, chunkFilename);
+        final var value = new FormatAction("FORMAT " + FILENAME_PATTERN + " " + FILENAME_REPLACE).execute(List.of(chunkFilename));
 
         if (value == null) {
             throw new IllegalStateException("No pattern found into chunk filename given.");
         }
 
-        return value;
+        return (String) value;
     }
 }

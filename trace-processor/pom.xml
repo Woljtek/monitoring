@@ -92,7 +92,7 @@
 
 
         <!-- ==== Module versions ==== -->
-        <revision>1.2.0-rc1</revision>
+        <revision>1.3.0</revision>
 
         <common.revision>${revision}</common.revision>
         <applications.revision>${revision}</applications.revision>
