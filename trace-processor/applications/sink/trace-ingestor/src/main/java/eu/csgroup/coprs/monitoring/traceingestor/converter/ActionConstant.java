@@ -17,5 +17,5 @@ public class ActionConstant {
 
     public static final String MATCH_ACTION_PATTERN = "MATCH <pattern> <value>";
 
-    public static final String SUBTRACT_ACTION_PATTERN = "SUBTRACT <value1> <value2>...";
+    public static final String SUBSTRACT_ACTION_PATTERN = "SUBSTRACT <value1> <value2>...";
 }

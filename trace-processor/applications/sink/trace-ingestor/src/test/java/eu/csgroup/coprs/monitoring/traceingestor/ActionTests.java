@@ -3,7 +3,7 @@ package eu.csgroup.coprs.monitoring.traceingestor;
 import eu.csgroup.coprs.monitoring.traceingestor.converter.Action;
 import eu.csgroup.coprs.monitoring.traceingestor.converter.FormatAction;
 import eu.csgroup.coprs.monitoring.traceingestor.converter.MatchAction;
-import eu.csgroup.coprs.monitoring.traceingestor.converter.SubtractAction;
+import eu.csgroup.coprs.monitoring.traceingestor.converter.SubstractAction;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -82,7 +82,7 @@ public class ActionTests {
         final var goalDate = refDate.minusNanos(287007018000L);
 
         // When
-        final var action = new SubtractAction(rawAction);
+        final var action = new SubstractAction(rawAction);
         final var resDate = action.execute(List.of(
                 refDate,
                 date,
@@ -111,7 +111,7 @@ public class ActionTests {
         final var goalLong = 1989L - 33254;
 
         // When
-        final var action = new SubtractAction(rawAction);
+        final var action = new SubstractAction(rawAction);
         final var resLong = action.execute(List.of(
                 refLong,
                 date,
@@ -142,7 +142,7 @@ public class ActionTests {
         final var goalDouble = 1989.4561751 - 33254.007018;
 
         // When
-        final var action = new SubtractAction(rawAction);
+        final var action = new SubstractAction(rawAction);
         final var resDouble = action.execute(List.of(
                 refDouble,
                 date,
@@ -173,7 +173,7 @@ public class ActionTests {
         final var goalInt = 1989 - 33254;
 
         // When
-        final var action = new SubtractAction(rawAction);
+        final var action = new SubstractAction(rawAction);
         final var resInt = action.execute(List.of(
                 refInt,
                 date,

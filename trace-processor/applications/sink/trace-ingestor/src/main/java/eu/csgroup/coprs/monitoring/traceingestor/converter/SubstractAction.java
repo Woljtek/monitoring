@@ -3,9 +3,9 @@ package eu.csgroup.coprs.monitoring.traceingestor.converter;
 import java.time.Instant;
 import java.util.*;
 
-public class SubtractAction extends Action {
+public class SubstractAction extends Action {
 
-    public SubtractAction(String rawAction) {
+    public SubstractAction(String rawAction) {
         super(rawAction);
     }
 
@@ -16,7 +16,7 @@ public class SubtractAction extends Action {
 
     @Override
     protected String getRequiredAction() {
-        return ActionConstant.SUBTRACT_ACTION_PATTERN;
+        return ActionConstant.SUBSTRACT_ACTION_PATTERN;
     }
 
     @Override

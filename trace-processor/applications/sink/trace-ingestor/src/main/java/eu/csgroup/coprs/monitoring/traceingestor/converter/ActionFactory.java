@@ -16,7 +16,7 @@ public class ActionFactory {
         } else if (rawAction.startsWith(FORMAT_ACTION)) {
             return new FormatAction(rawAction);
         } else if (rawAction.startsWith(SUBSTRACT_ACTION)) {
-            return new SubtractAction(rawAction);
+            return new SubstractAction(rawAction);
         } else {
             throw new InvalidActionException ("Action %s not found".formatted(rawAction));
         }
