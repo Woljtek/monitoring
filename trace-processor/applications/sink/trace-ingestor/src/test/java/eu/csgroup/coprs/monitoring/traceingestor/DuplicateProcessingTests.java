@@ -46,10 +46,10 @@ public class DuplicateProcessingTests {
     private EntityIngestor entityIngestor;
 
 
-    /*@After
+    @After
     public void setUpAfterTest () {
         entityIngestor.deleteAll();
-    }*/
+    }
 
     @Test
     public void testChunkAsInputQuery () {
@@ -73,9 +73,9 @@ public class DuplicateProcessingTests {
 
         // Then
         assertThat(entityIngestor.findAll(Processing.class))
-                .hasSize(11)
+                .hasSize(13)
                 .filteredOn(proc -> proc.getRsChainName() != null)
-                .hasSize(10)
+                .hasSize(12)
                 .allMatch(Processing::isDuplicate);
     }
 
@@ -131,8 +131,35 @@ public class DuplicateProcessingTests {
         // Then
         assertThat(entityIngestor.findAll(Processing.class))
                 .filteredOn(Processing::isDuplicate)
-                .hasSize(7)
+                .hasSize(9)
                 .allMatch(proc -> ! nonDuplicateProc.contains(proc.getRsChainName()));
+    }
+
+    @Test
+    public void testInputListInternalAsInputQueryWithBranch () {
+        // Given
+        entityIngestor.process(this::getDataSet);
+        final var sink = conf.traceIngestor(factory, entityIngestor);
+
+        final var input = List.of(
+                "l7-0"
+        );
+
+        final var output = List.of(
+                "l8-0-bis"
+        );
+        final var duplicateProc = List.of("l8", "l8-bis", "l9", "l9-bis");
+
+        final var processingRef = getProcessingRef("duplicate_processing_from_input_list_internal", input, output);
+
+        // When
+        sink.accept(toMessage(processingRef));
+
+        // Then
+        assertThat(entityIngestor.findAll(Processing.class))
+                .filteredOn(Processing::isDuplicate)
+                .hasSize(4)
+                .allMatch(proc -> duplicateProc.contains(proc.getRsChainName()));
     }
 
     @Test
@@ -159,7 +186,7 @@ public class DuplicateProcessingTests {
         // Then
         assertThat(entityIngestor.findAll(Processing.class))
                 .filteredOn(Processing::isDuplicate)
-                .hasSize(7)
+                .hasSize(9)
                 .allMatch(proc -> ! nonDuplicateProc.contains(proc.getRsChainName()));
     }
 
@@ -186,7 +213,7 @@ public class DuplicateProcessingTests {
 
         // Then
         assertThat(entityIngestor.findAll(Processing.class))
-                .hasSize(11)
+                .hasSize(13)
                 .allMatch(proc -> ! proc.isDuplicate());
     }
 
@@ -211,6 +238,7 @@ public class DuplicateProcessingTests {
         allEntities.add(new InputListExternal(new InputListExternalId(chunk, currentProcessing)));
 
         final var nextInput = new ArrayList<Product>();
+        final var intermediateInput = new ArrayList<Product>();
 
         for (int index = 0; index < 10; index++) {
             if (! nextInput.isEmpty()) {
@@ -221,6 +249,36 @@ public class DuplicateProcessingTests {
 
                 for (var inputProduct : nextInput) {
                     allEntities.add(new InputListInternal(new InputListInternalId(currentProcessing, inputProduct)));
+                }
+            }
+
+            // Create second branch
+            if (index > 7) {
+                var isolatedProcessing = new Processing();
+                isolatedProcessing.setRsChainName("l%s-bis".formatted(index));
+                isolatedProcessing.setProcessingDate(Instant.parse("2022-10-28T10:23:00.00Z"));
+                allEntities.add(isolatedProcessing);
+
+                if (intermediateInput.isEmpty()) {
+                    for (var inputProduct : nextInput) {
+                        allEntities.add(new InputListInternal(new InputListInternalId(isolatedProcessing, inputProduct)));
+                    }
+                } else {
+                    for (var inputProduct : intermediateInput) {
+                        allEntities.add(new InputListInternal(new InputListInternalId(isolatedProcessing, inputProduct)));
+                    }
+                }
+
+                var random = new Random();
+                var outputNumber = random.nextInt(1,10);
+                for (var outputIndex = 0; outputIndex < outputNumber; outputIndex++) {
+                    final var outputProduct = new Product();
+                    outputProduct.setFilename("l%s-%s-bis".formatted(index, outputIndex));
+                    allEntities.add(outputProduct);
+                    intermediateInput.add(outputProduct);
+
+                    allEntities.add(new OutputList(new OutputListId(isolatedProcessing, outputProduct)));
+
                 }
             }
 
@@ -237,8 +295,6 @@ public class DuplicateProcessingTests {
                 allEntities.add(new OutputList(new OutputListId(currentProcessing, outputProduct)));
 
             }
-
-
         }
 
         return allEntities;
