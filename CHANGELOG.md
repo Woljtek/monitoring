@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [1.3.0-rc1] - 2022-10-26
 ### Added
+- [#482 - [RS core Monitoring] Handle duplicate production RULE n°1 (CHUNK & DSIB)](https://github.com/COPRS/rs-issues/issues/482)
 - [#564 - [MONITORING] Set date fields in the database](https://github.com/COPRS/rs-issues/issues/564)
 
 ## [1.2.0-rc1] - 2022-09-28

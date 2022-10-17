@@ -61,20 +61,21 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
         }
     }
 
-    protected final void ingest(TraceLog traceLog, Ingestion mapping) {
-        // Create entity instance from trace instance based on mapping rules.
+    protected final void ingest(TraceLog traceLog, Ingestion ingestionConfig) {
+        // Create entity instance from trace instance based on ingestionConfig rules.
         try {
             final var beanAccessor = BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(traceLog));
 
-            final var processDescs = new DescriptorBuilder(mapping).build();
+            final var processDescs = new DescriptorBuilder(ingestionConfig).build();
 
             final var orchestrator = new ProcessorOrchestrator();
             orchestrator.setBeanAccessor(beanAccessor);
             orchestrator.setProcessorDescriptions(processDescs);
+            orchestrator.setIngestionConfig(ingestionConfig);
 
             entityIngestor.process(orchestrator);
         } catch (Exception e) {
-            final var errorMessage = "Error occurred ingesting trace with configuration '%s'%n%s: ".formatted(mapping.getName(), traceLog);
+            final var errorMessage = "Error occurred ingesting trace with configuration '%s'%n%s: ".formatted(ingestionConfig.getName(), traceLog);
             log.error(errorMessage, e);
             throw new IngestionException(errorMessage, e);
         }

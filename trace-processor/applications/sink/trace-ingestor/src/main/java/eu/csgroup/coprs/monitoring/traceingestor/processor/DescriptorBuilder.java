@@ -23,7 +23,6 @@ public class DescriptorBuilder {
 
     private final Map<String, ProcessorDescription> cache;
 
-    private final String ingestionConfigName;
 
     public DescriptorBuilder (Ingestion globalIngestionConfig) {
         allMappings = globalIngestionConfig.getMappings()
@@ -32,7 +31,6 @@ public class DescriptorBuilder {
 
         allAlias = globalIngestionConfig.getAlias();
 
-        this.ingestionConfigName = globalIngestionConfig.getName();
         this.cache = new HashMap<>();
     }
 
@@ -74,18 +72,18 @@ public class DescriptorBuilder {
                     .map(relyOn -> getRelyOnChildIfAny (relyOn, procName)
                     ).collect(HashMap<Class<? extends DefaultEntity>, List<Map.Entry<Class<? extends DefaultEntity>, String>>>::new, (l,n) -> l.put(n.getKey(), n.getValue()), HashMap::putAll);
 
-            Ingestion ingestionConfig = getIngestionConfig(procName, entityClass, containerProc, reliesOn);
+            final var mappings = getMappings(procName, entityClass, containerProc, reliesOn);
 
 
             // Way to determine if all conditions are met to create entity
             // (Dirty way to use ingestion config as indicator)
-            if (ingestionConfig == null) {
+            if (mappings == null) {
                 return null;
             }
 
             final var processDesc = new ProcessorDescription();
             processDesc.setName(procName);
-            processDesc.setIngestionConfig(ingestionConfig);
+            processDesc.setMappings(mappings);
             processDesc.setEntityMetadata(entityMetadata);
 
             reliesOn.entrySet()
@@ -160,19 +158,11 @@ public class DescriptorBuilder {
                 );
     }
 
-    private Ingestion getIngestionConfig(String procName, Class<? extends DefaultEntity> entityClass, ProcessorDescription containerProc,
+    private List<Mapping> getMappings(String procName, Class<? extends DefaultEntity> entityClass, ProcessorDescription containerProc,
                                          Map<Class<? extends DefaultEntity>, List<Map.Entry<Class<? extends DefaultEntity>, String>>> reliesOn) {
-        final var mappings = allMappings.get(procName);
-        Ingestion ingestionConfig = null;
+        var mappings = allMappings.get(procName);
 
-        if (mappings != null) {
-            ingestionConfig = new Ingestion(
-                    ingestionConfigName,
-                    mappings,
-                    new ArrayList<>(),
-                    Map.of()
-            );
-        } else if (containerProc != null){
+        if (mappings == null && containerProc != null){
             final var association = AssociationFactory.getInstance().selectAssociation(
                     containerProc.getEntityMetadata().getEntityClass(),
                     entityClass,
@@ -190,11 +180,11 @@ public class DescriptorBuilder {
                     .reduce(true, (l,n) -> l && n);
 
             if (association.getClass().getSuperclass().equals(DefaultAssociation.class) || Boolean.TRUE.equals(reliesOnComplete)) {
-                ingestionConfig = new Ingestion(ingestionConfigName, List.of(), List.of(), Map.of());
+                mappings = List.of();
             }
         }
 
-        return ingestionConfig;
+        return mappings;
     }
 
     private Optional<Alias> getAlias(String procName) {

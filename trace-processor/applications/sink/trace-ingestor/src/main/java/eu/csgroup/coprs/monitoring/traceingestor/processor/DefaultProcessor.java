@@ -21,8 +21,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public record DefaultProcessor(ProcessorDescription processorDesc,
-                               EntityFinder entityFinder) implements Function<BeanAccessor, List<DefaultEntity>> {
+public record DefaultProcessor(
+        String name,
+        ProcessorDescription processorDesc,
+        EntityFinder entityFinder) implements Function<BeanAccessor, List<DefaultEntity>> {
     private <T extends DefaultEntity> Specification<T> getFindClauses(Map<Mapping, Object> dependenciesValue) {
         // Feature: Handle arrays equality case
         return dependenciesValue.entrySet().stream()
@@ -36,8 +38,7 @@ public record DefaultProcessor(ProcessorDescription processorDesc,
         return processorDesc.getEntityMetadata()
                 .getDependencies()
                 .stream()
-                .map(field -> processorDesc.getIngestionConfig()
-                        .getMappings()
+                .map(field -> processorDesc.getMappings()
                         .stream()
                         .filter(mapping -> mapping.getTo().getBeanPropertyPath().equals(field.getName()))
                         .findFirst()
@@ -75,8 +76,8 @@ public record DefaultProcessor(ProcessorDescription processorDesc,
     @Override
     public List<DefaultEntity> apply(BeanAccessor beanAccessor) {
         final var handler = new DefaultHandler(processorDesc.getEntityMetadata().getEntityClass());
-        final var mapper = new TraceMapper(beanAccessor, processorDesc.getIngestionConfig().getName());
-        final var treePropertyValue = new Parser(processorDesc.getIngestionConfig().getMappings()).parse(beanAccessor);
+        final var mapper = new TraceMapper(beanAccessor, this.name);
+        final var treePropertyValue = new Parser(processorDesc.getMappings()).parse(beanAccessor);
 
         final var availableEntities = new ArrayList<DefaultEntity>();
 
@@ -134,8 +135,7 @@ public record DefaultProcessor(ProcessorDescription processorDesc,
             }
         }
 
-        final var mappingWithoutDependencies = processorDesc.getIngestionConfig()
-                .getMappings()
+        final var mappingWithoutDependencies = processorDesc.getMappings()
                 .stream()
                 .filter(m -> beanPropDep.stream()
                         .filter(mwod -> mwod.getTo().equals(m.getTo()))

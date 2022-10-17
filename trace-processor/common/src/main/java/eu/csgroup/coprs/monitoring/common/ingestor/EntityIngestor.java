@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
@@ -54,6 +56,9 @@ public class EntityIngestor implements EntityFinder {
 
     @Autowired
     private MissingProductsRepository mpRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
 
     public <T extends DefaultEntity, E> EntityRepository<T,E> selectRepository(Class<T> className) {
@@ -153,6 +158,45 @@ public class EntityIngestor implements EntityFinder {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<DefaultEntity> process(Function<EntityIngestor, List<DefaultEntity>> processor) {
         return saveAll(processor.apply(this));
+    }
+
+    public void setDuplicate (String inputQuery, List<Object> values) {
+        String recursiveQuery = """
+WITH RECURSIVE child_proc AS (
+    select
+        distinct on (ol.processing_id) ol.processing_id as output_processing,
+        cast(null as bigint) as input_product,
+        ol.product_id as output_product
+    FROM
+        processing
+    JOIN
+        output_list ol on ol.processing_id  = processing.id
+    WHERE
+        %s and processing.duplicate = false
+    UNION
+        select
+            distinct on (ili.processing_id) ili.processing_id as output_processing,
+            child_proc.output_product as input_product,
+            ol.product_id as output_product
+        FROM
+            child_proc
+        join
+            input_list_internal ili on ili.product_id = child_proc.output_product
+        join
+            output_list ol on ol.processing_id = ili.processing_id
+        join
+            processing p on p.id = ili.processing_id
+        where
+            p.duplicate = false
+) update processing set duplicate = true from child_proc where processing.id = child_proc.output_processing
+""";
+        Query query = entityManager.createNativeQuery(recursiveQuery.formatted(inputQuery));
+        for (var index = 0; index < values.size(); index++) {
+            var value = values.get(index);
+            query.setParameter(index + 1, value);
+        }
+
+        query.executeUpdate();
     }
 
     /**

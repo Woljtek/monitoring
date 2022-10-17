@@ -1,16 +1,22 @@
 package eu.csgroup.coprs.monitoring.traceingestor.processor;
 
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
+import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
+import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
 import eu.csgroup.coprs.monitoring.traceingestor.association.AssociationFactory;
 import eu.csgroup.coprs.monitoring.traceingestor.association.DefaultAssociation;
+import eu.csgroup.coprs.monitoring.traceingestor.config.Ingestion;
+import eu.csgroup.coprs.monitoring.traceingestor.mapper.InterruptedOperationException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.PropertyAccessorFactory;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -19,6 +25,8 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
     private Collection<ProcessorDescription> processorDescriptions;
 
     private BeanAccessor beanAccessor;
+
+    private Ingestion ingestionConfig;
 
     @Override
     public List<DefaultEntity> apply(EntityIngestor entityIngestor) {
@@ -87,6 +95,8 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
             }
         }
 
+        setDuplicateProcess(entityIngestor, cachedEntities);
+
         return cachedEntities.values()
                 .stream()
                 .flatMap(List::stream)
@@ -116,6 +126,74 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
     }
 
     private DefaultProcessor createProcessor(ProcessorDescription processorDesc, EntityFinder entityFinder) {
-        return new DefaultProcessor(processorDesc, entityFinder);
+        return new DefaultProcessor(this.ingestionConfig.getName(), processorDesc, entityFinder);
+    }
+
+    private void setDuplicateProcess (EntityIngestor entityIngestor, Map<String, List<DefaultEntity>> processedEntities) {
+        var initialQuery = this.ingestionConfig.getDuplicateQuery();
+        var inputQuery = initialQuery;
+
+        final var values = new ArrayList<>();
+        var index = 1;
+        if (inputQuery != null) {
+            // Security to avoid undesired behavior (move to entityIngestor class)
+            if (! inputQuery.contains("processing.id in")) {
+                throw new InterruptedOperationException("Invalid query. You must set 'processing.id in' in your query");
+            }
+
+            final var matcher = Pattern.compile("(<([a-zA-Z0-9_,.]*)>)+").matcher(inputQuery);
+            while(matcher.find()) {
+                final var rawPath = matcher.group(2);
+
+                values.add(getValueForDuplicateProcess(initialQuery, matcher.group(0), rawPath, processedEntities));
+
+                inputQuery = inputQuery.replace(matcher.group(0), "?" + index++);
+            }
+
+            // Abnormal situation when nothing is retrieved (at least we must have ids of input our output of the processing)
+            if (values.isEmpty()) {
+                throw new InterruptedOperationException("Duplicate query does not contain any entity to use (%s)".formatted(inputQuery));
+            } else {
+                entityIngestor.setDuplicate(inputQuery, values);
+            }
+        }
+    }
+
+    private Object getValueForDuplicateProcess (String query, String capturingGroup, String rawPath, Map<String, List<DefaultEntity>> processedEntities) {
+        final var pathes = Arrays.stream(rawPath.split(","))
+                .map(PropertyUtil::snake2PascalCasePath)
+                .toList();
+        List<Object> tempRes;
+        if (pathes.size() == 1) {
+            tempRes = getValueForDuplicateProcess(pathes.get(0), processedEntities);
+        } else {
+            tempRes = new ArrayList<>();
+            for (var path: pathes) {
+                tempRes.addAll(getValueForDuplicateProcess(path, processedEntities));
+            }
+        }
+
+        // Not well placed (move to entityIngestor class)
+        var queryBeforePlaceholder = query.substring(0, query.indexOf(capturingGroup)).trim();
+        var operator = queryBeforePlaceholder.substring(queryBeforePlaceholder.lastIndexOf(' ')).trim().toUpperCase();
+        if (tempRes.size() == 1 && ! List.of("ANY", "SOME", "ALL", "IN").contains(operator)) {
+            return tempRes.get(0);
+        } else {
+            return tempRes;
+        }
+    }
+
+    private List<Object> getValueForDuplicateProcess (final String rawPath, Map<String, List<DefaultEntity>> processedEntities) {
+        var separatorIndex = rawPath.indexOf(".");
+
+        final var entityType = separatorIndex != -1 ? rawPath.substring(0, separatorIndex) : rawPath;
+            return processedEntities.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().equals(entityType))
+                    .map(Map.Entry::getValue)
+                    .flatMap(List::stream)
+                    .map(entity -> BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(entity)))
+                    .map(bean -> bean.getPropertyValue(new BeanProperty(rawPath)))
+                    .toList();
     }
 }
