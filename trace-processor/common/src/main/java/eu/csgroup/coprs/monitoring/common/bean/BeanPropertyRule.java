@@ -1,6 +1,5 @@
-package eu.csgroup.coprs.monitoring.tracefilter.rule;
+package eu.csgroup.coprs.monitoring.common.bean;
 
-import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,7 +9,7 @@ import java.util.stream.StreamSupport;
 
 @Data
 @Slf4j
-public class Rule implements Predicate<Object> {
+public class BeanPropertyRule implements Predicate<Object> {
     private final BeanProperty property;
     private final String rawValue;
 

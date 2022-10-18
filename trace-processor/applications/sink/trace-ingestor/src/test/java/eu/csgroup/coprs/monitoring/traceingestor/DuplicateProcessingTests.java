@@ -4,9 +4,7 @@ import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
 import eu.csgroup.coprs.monitoring.common.datamodel.*;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.*;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
-import eu.csgroup.coprs.monitoring.common.jpa.ProcessingRepository;
 import eu.csgroup.coprs.monitoring.common.message.FilteredTrace;
-import eu.csgroup.coprs.monitoring.traceingestor.config.IngestionGroup;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.After;
 import org.junit.Test;
@@ -16,7 +14,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -66,17 +63,22 @@ public class DuplicateProcessingTests {
                 "l0-0"
         );
 
-        final var processingRef = getProcessingRef("duplicate_processing_from_chunk", input, output);
+        final var processingRef = getProcessingRef("duplicate_processing", input, output);
+        processingRef.getLog().getTrace().getHeader().setRsChainName("input_list_external");
 
         // When
         sink.accept(toMessage(processingRef));
 
         // Then
-        assertThat(entityIngestor.findAll(Processing.class))
+        final var processing = entityIngestor.findAll(Processing.class);
+        assertThat(processing)
                 .hasSize(13)
-                .filteredOn(proc -> proc.getRsChainName() != null)
+                .filteredOn(proc -> ! proc.getRsChainName().equals("input_list_external"))
                 .hasSize(12)
                 .allMatch(Processing::isDuplicate);
+        assertThat(processing)
+                .filteredOn(proc -> proc.getRsChainName().equals("input_list_external"))
+                .allMatch(proc -> ! proc.isDuplicate());
     }
 
     @Test
@@ -89,7 +91,7 @@ public class DuplicateProcessingTests {
         final var exception = assertThatThrownBy(() -> {
             entityIngestor.process((e) -> {
 
-                        e.setDuplicate(
+                        e.setDuplicateProcessing(
                                 "processing.id in (select ile.processing_id from input_list_external ile where ile.external_input_id in ?1)",
                                 List.of(
                                         List.of(chunk.getId())
@@ -97,7 +99,7 @@ public class DuplicateProcessingTests {
                         );
 
                         // Create artificial exception to check rollback
-                        e.setDuplicate("", List.of());
+                        e.setDuplicateProcessing("", List.of());
                         return List.of(chunk);
                     });
                 });
@@ -123,7 +125,8 @@ public class DuplicateProcessingTests {
         );
         final var nonDuplicateProc = List.of("l0", "l1", "l2");
 
-        final var processingRef = getProcessingRef("duplicate_processing_from_input_list_internal", input, output);
+        final var processingRef = getProcessingRef("duplicate_processing", input, output);
+        processingRef.getLog().getTrace().getHeader().setRsChainName("input_list_internal");
 
         // When
         sink.accept(toMessage(processingRef));
@@ -150,7 +153,8 @@ public class DuplicateProcessingTests {
         );
         final var duplicateProc = List.of("l8", "l8-bis", "l9", "l9-bis");
 
-        final var processingRef = getProcessingRef("duplicate_processing_from_input_list_internal", input, output);
+        final var processingRef = getProcessingRef("duplicate_processing", input, output);
+        processingRef.getLog().getTrace().getHeader().setRsChainName("input_list_internal");
 
         // When
         sink.accept(toMessage(processingRef));
@@ -177,7 +181,7 @@ public class DuplicateProcessingTests {
         );
         final var nonDuplicateProc = List.of("l0", "l1", "l2");
 
-        final var processingRef = getProcessingRef("duplicate_processing_from_output_list", input, output);
+        final var processingRef = getProcessingRef("duplicate_processing", input, output);
         processingRef.getLog().getTrace().getHeader().setRsChainName("l3");
 
         // When
@@ -205,7 +209,7 @@ public class DuplicateProcessingTests {
         );
         final var nonDuplicateProc = List.of("l0", "l1", "l2");
 
-        final var processingRef = getProcessingRef("duplicate_processing_from_output_list", input, output);
+        final var processingRef = getProcessingRef("duplicate_processing", input, output);
         processingRef.getLog().getTrace().getHeader().setRsChainName("l2");
 
         // When

@@ -18,7 +18,7 @@ public class Ingestion {
     private List<BeanProperty> dependencies = new ArrayList<>();
     private Map<String, Alias> alias = new HashMap<>();
 
-    private String duplicateQuery;
+    private List<DuplicateProcessing> duplicateProcessings;
 
     public void setAlias(Map<String, Alias> associations) {
         this.alias = associations.entrySet()

@@ -7,7 +7,7 @@ import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
 import eu.csgroup.coprs.monitoring.tracefilter.json.JsonValidator;
 import eu.csgroup.coprs.monitoring.tracefilter.rule.FilterGroup;
-import eu.csgroup.coprs.monitoring.tracefilter.rule.Rule;
+import eu.csgroup.coprs.monitoring.common.bean.BeanPropertyRule;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,7 +92,7 @@ public class TraceFilterTests {
     @Test
     public void testValidRuleOnList() {
         // Given
-        final var rule = new Rule(new BeanProperty("test.property"), ".*_DSIB\\.xml");
+        final var rule = new BeanPropertyRule(new BeanProperty("test.property"), ".*_DSIB\\.xml");
 
         // When
         final var res = rule.test(List.of(
@@ -108,7 +108,7 @@ public class TraceFilterTests {
     @Test
     public void testInvalidRuleOnList() {
         // Given
-        final var rule = new Rule(new BeanProperty("test.property"), ".*_DSIB\\.xml");
+        final var rule = new BeanPropertyRule(new BeanProperty("test.property"), ".*_DSIB\\.xml");
 
         // When
         final var res = rule.test(List.of(
