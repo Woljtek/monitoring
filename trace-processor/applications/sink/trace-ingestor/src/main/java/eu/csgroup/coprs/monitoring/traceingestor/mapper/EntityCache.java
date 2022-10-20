@@ -39,7 +39,7 @@ public class EntityCache {
     }
 
     public void setPropertyValue (BeanProperty property, Object value, boolean cache) {
-        current.getBean().setPropertyValue(property, value);
+        current.getEntityProcessing().setPropertyValue(property, value);
         log.debug("Set value %s for property %s".formatted(value, property));
         if (cache) {
             cachedProperties.put(property, value);
@@ -55,7 +55,7 @@ public class EntityCache {
             current = handler.clone(current.getEntity());
         } else {
             current = handler.getNextEntity();
-            cachedProperties.forEach((key, value) -> current.getBean().setPropertyValue(
+            cachedProperties.forEach((key, value) -> current.getEntityProcessing().setPropertyValue(
                     key,
                     value));
 

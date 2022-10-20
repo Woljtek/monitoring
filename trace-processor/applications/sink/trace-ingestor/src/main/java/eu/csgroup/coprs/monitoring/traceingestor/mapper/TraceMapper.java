@@ -6,6 +6,7 @@ import eu.csgroup.coprs.monitoring.traceingestor.config.AliasWrapper;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityDescriptor;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 
@@ -13,13 +14,13 @@ import java.util.*;
 
 @Slf4j
 public record TraceMapper(BeanAccessor wrapper, String configurationName) {
-    public List<BeanAccessor> map(List<Mapping> mappings, DefaultHandler handler) {
+    public List<EntityProcessing> map(List<Mapping> mappings, DefaultHandler handler) {
         final var tree = new Parser(mappings).parse(wrapper);
 
         return map(tree, handler);
     }
 
-    public List<BeanAccessor> map(TreePropertyNode tree, DefaultHandler handler) {
+    public List<EntityProcessing> map(TreePropertyNode tree, DefaultHandler handler) {
         try {
             var entityCache = new EntityCache(handler);
             map(tree, entityCache);
@@ -28,7 +29,7 @@ public record TraceMapper(BeanAccessor wrapper, String configurationName) {
 
             return entityCache.getCached()
                     .stream()
-                    .map(EntityDescriptor::getBean)
+                    .map(EntityDescriptor::getEntityProcessing)
                     .toList();
         } catch (InterruptedOperationException e) {
             log.warn("", e);
@@ -47,7 +48,7 @@ public record TraceMapper(BeanAccessor wrapper, String configurationName) {
     }
 
     private void mapLeafs (TreePropertyLeaf leaf, EntityCache entityCache, Map<BeanProperty, Object> propertyCache) {
-        if (! leaf.getRule().isSetValueOnlyIfNull() || entityCache.getCurrent().getBean().getPropertyValue(leaf.getRule().getTo()) == null) {
+        if (! leaf.getRule().isSetValueOnlyIfNull() || entityCache.getCurrent().getEntityProcessing().getPropertyValue(leaf.getRule().getTo()) == null) {
             final var value = mapPropertyValue(leaf.getRule(), leaf.getRawValues());
 
             // Do not set null property value to avoid non handled null value conversion

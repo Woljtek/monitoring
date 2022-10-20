@@ -7,6 +7,7 @@ import eu.csgroup.coprs.monitoring.common.datamodel.Header;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.Chunk;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TraceMapper;
 import org.junit.Test;
 import org.springframework.beans.PropertyAccessorFactory;
@@ -53,7 +54,7 @@ public class TraceMapperTests {
 
         header.setMission("S1");
         final var copy = ((Chunk)(newEntity.get(0).getDelegate().getWrappedInstance())).copy();
-        handler.mergeWith(List.of(copy));
+        handler.mergeWith(List.of(EntityProcessing.fromEntity(copy)));
         final var notUpdatedEntity = mapper.map(List.of(mapping), handler);
 
         // Then

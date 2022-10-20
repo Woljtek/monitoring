@@ -1,10 +1,10 @@
 package eu.csgroup.coprs.monitoring.traceingestor.association;
 
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
 
 import java.util.List;
 
 public interface EntityAssociation {
-    List<DefaultEntity> associate(DefaultEntity entity, List<DefaultEntity> currentReferences, EntityFinder entityFinder);
+    List<EntityProcessing> associate(EntityProcessing entity, List<EntityProcessing> currentReferences, EntityFinder entityFinder);
 }

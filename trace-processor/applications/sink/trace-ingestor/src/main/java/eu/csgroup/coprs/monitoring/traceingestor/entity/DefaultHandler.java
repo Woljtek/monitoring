@@ -1,14 +1,10 @@
 package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
-import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
-import eu.csgroup.coprs.monitoring.common.bean.InstantPropertyEditor;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.PropertyAccessorFactory;
 
-import java.time.Instant;
 import java.util.*;
 
 
@@ -18,10 +14,10 @@ public class DefaultHandler {
     @Getter
     private final Class<? extends DefaultEntity> entityClass;
 
-    private List<DefaultEntity> mergeableEntities;
+    private List<EntityProcessing> mergeableEntities;
 
 
-    public void mergeWith(List<DefaultEntity> entities) {
+    public void mergeWith(List<EntityProcessing> entities) {
         mergeableEntities = new Vector<>(entities);
     }
 
@@ -29,7 +25,7 @@ public class DefaultHandler {
     public EntityDescriptor getNextEntity() {
         final var entityDesc = new EntityDescriptor();
 
-        DefaultEntity entity;
+        EntityProcessing entity;
         if (mergeableEntities != null && ! mergeableEntities.isEmpty()) {
             entity = mergeableEntities.remove(0);
             entityDesc.setPreFilled(true);
@@ -39,7 +35,7 @@ public class DefaultHandler {
             entity = getDefaultEntity();
         }
 
-        entityDesc.setBean(getWrapper(entity));
+        entityDesc.setEntityProcessing(entity);
 
         return entityDesc;
     }
@@ -47,13 +43,15 @@ public class DefaultHandler {
     public EntityDescriptor clone (DefaultEntity entity) {
         final var entityDesc = new EntityDescriptor();
         final var clone = EntityHelper.copy(entity, true);
-        entityDesc.setBean(getWrapper(clone));
+        entityDesc.setEntityProcessing(EntityProcessing.fromEntity(clone));
 
         return entityDesc;
     }
 
-    private DefaultEntity getDefaultEntity() {
-        return createDefaultInstanceFor(entityClass);
+    private EntityProcessing getDefaultEntity() {
+        return EntityProcessing.fromEntity(
+                createDefaultInstanceFor(entityClass)
+        );
     }
 
     private <E> E createDefaultInstanceFor(Class<E> className) {
@@ -62,13 +60,5 @@ public class DefaultHandler {
         } catch (Exception e) {
             throw new EntityHandlerException("Unable to create default instance for class %s".formatted(className.getName()), e);
         }
-    }
-
-    public BeanAccessor getWrapper (DefaultEntity entity) {
-        var wrapper = PropertyAccessorFactory.forBeanPropertyAccess(entity);
-        wrapper.setAutoGrowNestedPaths(true);
-        wrapper.registerCustomEditor(Instant.class, new InstantPropertyEditor());
-
-        return new BeanAccessor(wrapper);
     }
 }

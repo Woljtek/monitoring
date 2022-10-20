@@ -9,6 +9,8 @@ import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
 import eu.csgroup.coprs.monitoring.traceingestor.association.AssociationFactory;
 import eu.csgroup.coprs.monitoring.traceingestor.association.DefaultAssociation;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Ingestion;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityState;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.InterruptedOperationException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +32,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
 
     @Override
     public List<DefaultEntity> apply(EntityIngestor entityIngestor) {
-        final var cachedEntities = new HashMap<String, List<DefaultEntity>>();
+        final var cachedEntities = new HashMap<String, List<EntityProcessing>>();
         final var toProcess = new LinkedList<>(processorDescriptions);
 
         while(! toProcess.isEmpty()) {
@@ -50,7 +52,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                 // Map trace to one or more entity
                 var processedEntities = createProcessor(processorDesc, entityIngestor).apply(beanAccessor);
 
-                List<DefaultEntity> finalEntities = processedEntities;
+                List<EntityProcessing> finalEntities = processedEntities;
 
                 // Process association
                 if (! relyOnProc.isEmpty()) {
@@ -63,9 +65,9 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                                     entry.getValue()
                                             .stream()
                                             .flatMap(relyOnProcName -> cachedEntities.get(relyOnProcName).stream())
-                                            .collect(ArrayList<DefaultEntity>::new, ArrayList::add, ArrayList::addAll))
+                                            .collect(ArrayList<EntityProcessing>::new, ArrayList::add, ArrayList::addAll))
                             )
-                            .collect(HashMap<Class<? extends DefaultEntity>, List<DefaultEntity>>::new, (h,o) -> h.put(o.getKey(), o.getValue()), HashMap::putAll);
+                            .collect(HashMap<Class<? extends DefaultEntity>, List<EntityProcessing>>::new, (h,o) -> h.put(o.getKey(), o.getValue()), HashMap::putAll);
 
                     final var relyOnEntities = entityMetadata.getRelyOn()
                             .entrySet()
@@ -100,21 +102,23 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         return cachedEntities.values()
                 .stream()
                 .flatMap(List::stream)
+                .filter(entityProcessing -> entityProcessing.getState() != EntityState.UNCHANGED )
+                .map(EntityProcessing::getEntity)
                 .toList();
     }
 
 
-    private List<DefaultEntity> associate(
-            DefaultEntity containerEntity,
-            Map<Class<? extends DefaultEntity>, List<DefaultEntity>> cachedReferences,
+    private List<EntityProcessing> associate(
+            EntityProcessing containerEntity,
+            Map<Class<? extends DefaultEntity>, List<EntityProcessing>> cachedReferences,
             Map<Class<? extends DefaultEntity>, DefaultAssociation> associationMap,
             EntityFinder entityFinder) {
-        List<DefaultEntity> associatedEntities = new ArrayList<>();
+        List<EntityProcessing> associatedEntities = new ArrayList<>();
         associatedEntities.add(containerEntity);
 
 
         for (Map.Entry<Class<? extends DefaultEntity>, DefaultAssociation> currentAssociationEntry : associationMap.entrySet()) {
-            List<DefaultEntity> currentReferences = cachedReferences.get(currentAssociationEntry.getKey());
+            List<EntityProcessing> currentReferences = cachedReferences.get(currentAssociationEntry.getKey());
 
             associatedEntities = associatedEntities.stream()
                     .flatMap(entity -> currentAssociationEntry.getValue().associate(entity, currentReferences, entityFinder)
@@ -129,7 +133,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         return new DefaultProcessor(this.ingestionConfig.getName(), processorDesc, entityFinder);
     }
 
-    private void setDuplicateProcess (EntityIngestor entityIngestor, Map<String, List<DefaultEntity>> processedEntities) {
+    private void setDuplicateProcess (EntityIngestor entityIngestor, Map<String, List<EntityProcessing>> processedEntities) {
         var initialQuery = this.ingestionConfig.getDuplicateQuery();
         var inputQuery = initialQuery;
 
@@ -159,7 +163,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         }
     }
 
-    private Object getValueForDuplicateProcess (String query, String capturingGroup, String rawPath, Map<String, List<DefaultEntity>> processedEntities) {
+    private Object getValueForDuplicateProcess (String query, String capturingGroup, String rawPath, Map<String, List<EntityProcessing>> processedEntities) {
         final var pathes = Arrays.stream(rawPath.split(","))
                 .map(PropertyUtil::snake2PascalCasePath)
                 .toList();
@@ -183,7 +187,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         }
     }
 
-    private List<Object> getValueForDuplicateProcess (final String rawPath, Map<String, List<DefaultEntity>> processedEntities) {
+    private List<Object> getValueForDuplicateProcess (final String rawPath, Map<String, List<EntityProcessing>> processedEntities) {
         var separatorIndex = rawPath.indexOf(".");
 
         final var entityType = separatorIndex != -1 ? rawPath.substring(0, separatorIndex) : rawPath;
@@ -192,7 +196,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                     .filter(entry -> entry.getKey().equals(entityType))
                     .map(Map.Entry::getValue)
                     .flatMap(List::stream)
-                    .map(entity -> BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(entity)))
+                    .map(entityProcessing -> BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(entityProcessing.getEntity())))
                     .map(bean -> bean.getPropertyValue(new BeanProperty(rawPath)))
                     .toList();
     }

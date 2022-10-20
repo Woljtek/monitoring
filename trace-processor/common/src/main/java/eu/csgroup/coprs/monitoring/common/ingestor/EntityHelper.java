@@ -114,10 +114,23 @@ public class EntityHelper {
         }
     }
 
+    /**
+     * Create an exact copy of the given entity
+     *
+     * @param entity Entity to duplicate
+     * @return A copy of the given entity
+     */
     public static <E extends DefaultEntity> E copy (E entity) {
         return copy(entity, false);
     }
 
+    /**
+     * Create a copy of the given entity by resetting id
+     *
+     * @param entity Entity to duplicate
+     * @param resetId Reset id
+     * @return A copy of the given entity
+     */
     @SuppressWarnings("unchecked")
     public static <E extends DefaultEntity> E copy (E entity, boolean resetId) {
         final var copy = entity.copy();

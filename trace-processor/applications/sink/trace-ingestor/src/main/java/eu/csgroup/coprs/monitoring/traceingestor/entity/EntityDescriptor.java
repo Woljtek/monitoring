@@ -1,6 +1,5 @@
 package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
-import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import lombok.*;
 
@@ -9,7 +8,7 @@ import lombok.*;
 public class EntityDescriptor {
     @Getter
     @Setter
-    private BeanAccessor bean;
+    private EntityProcessing entityProcessing;
 
 
     /**
@@ -26,7 +25,7 @@ public class EntityDescriptor {
     private boolean hasNext = false;
 
     public DefaultEntity getEntity () {
-        return (DefaultEntity) bean.getDelegate().getWrappedInstance();
+        return entityProcessing.getEntity();
     }
 
     public boolean hasNext() {

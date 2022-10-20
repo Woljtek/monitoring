@@ -1,14 +1,14 @@
 package eu.csgroup.coprs.monitoring.traceingestor.association;
 
-import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
+import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityHelper;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityState;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,14 +26,14 @@ public class DefaultAssociation implements EntityAssociation {
      * @param entityFinder Instance that will process search in database.
      * @return All copy of entity container (including original)
      */
-    public List<DefaultEntity> associate(DefaultEntity entityContainer, List<DefaultEntity> references, EntityFinder entityFinder) {
-        final var associatedEntities = new LinkedList<DefaultEntity>();
+    public List<EntityProcessing> associate(EntityProcessing entityContainer, List<EntityProcessing> references, EntityFinder entityFinder) {
+        final var associatedEntities = new LinkedList<EntityProcessing>();
 
         // Use original entity container for the first association
         boolean copy = false;
 
         final var entIt = references.iterator();
-        DefaultEntity currentIt;
+        EntityProcessing currentIt;
 
         while (entIt.hasNext()) {
             currentIt = entIt.next();
@@ -47,25 +47,22 @@ public class DefaultAssociation implements EntityAssociation {
         return associatedEntities;
     }
 
-    protected  DefaultEntity associate(DefaultEntity entityContainer, DefaultEntity reference, boolean copy) {
+    protected  EntityProcessing associate(EntityProcessing entityContainer, EntityProcessing reference, boolean copy) {
         try {
             // Create copy or use the original.
-            final var containerRef = copy ? EntityHelper.copy(entityContainer) : entityContainer;
+            final var entityCopy = copy ? EntityHelper.copy(entityContainer.getEntity()) : entityContainer.getEntity();
+            final var containerRef = EntityProcessing.fromEntity(entityCopy, EntityState.UNCHANGED);
             // If association field size is greater than 1 it means that we are associating a reference
             final var iter = associationFields.iterator();
 
-            // Use intermediate field as getter method
-            var currentField = iter.next();
-            Object currentEntity = containerRef;
+            var path = "entity";
             while (iter.hasNext()) {
-                currentEntity = getMethod(currentEntity.getClass(), "get", currentField).invoke(currentEntity);
-                currentField = iter.next();
+                path = PropertyUtil.getPath(path, iter.next().getName());
             }
 
-            // Use last field as setter method.
-            getMethod(currentEntity.getClass(), "set", currentField).invoke(currentEntity, reference);
+            containerRef.setPropertyValue(new BeanProperty(path), reference.getEntity());
             return containerRef;
-        } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        } catch (Exception e) {
             throw new AssociationException(
                     "Cannot associate entity reference %s to entity container %s".formatted(
                             reference.getClass().getSimpleName(),
@@ -73,17 +70,5 @@ public class DefaultAssociation implements EntityAssociation {
                     ), e
             );
         }
-    }
-
-    private Method getMethod(Class<?> cls, String op, Field field) throws NoSuchMethodException {
-            final var methodName = "%s%s".formatted(op, PropertyUtil.snake2PascalCasePropertyName(field.getName()));
-        Method containerMethod;
-        if ("set".equals(op)) {
-                containerMethod = cls.getMethod(methodName, field.getType());
-            } else {
-                containerMethod = cls.getMethod(methodName);
-            }
-
-        return containerMethod;
     }
 }

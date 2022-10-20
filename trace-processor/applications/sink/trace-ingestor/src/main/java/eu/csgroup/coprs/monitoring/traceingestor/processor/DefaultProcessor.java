@@ -6,12 +6,15 @@ import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.jpa.EntitySpecification;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityState;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.Parser;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TraceMapper;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyLeaf;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.*;
@@ -24,7 +27,7 @@ import java.util.stream.Collectors;
 public record DefaultProcessor(
         String name,
         ProcessorDescription processorDesc,
-        EntityFinder entityFinder) implements Function<BeanAccessor, List<DefaultEntity>> {
+        EntityFinder entityFinder) implements Function<BeanAccessor, List<EntityProcessing>> {
     private <T extends DefaultEntity> Specification<T> getFindClauses(Map<Mapping, Object> dependenciesValue) {
         // Feature: Handle arrays equality case
         return dependenciesValue.entrySet().stream()
@@ -63,23 +66,21 @@ public record DefaultProcessor(
         }
     }
 
-    private Optional<DefaultEntity> getAvailableEntity(DefaultEntity requiredEntity, List<Mapping> beanPropDep, Map<List<Object>, DefaultEntity> availableEntityValues, DefaultHandler handler) {
-        final var requiredEntityBean = handler.getWrapper(requiredEntity);
-
+    private Optional<EntityProcessing> getAvailableEntity(EntityProcessing requiredEntity, List<Mapping> beanPropDep, Map<List<Object>, EntityProcessing> availableEntityValues, DefaultHandler handler) {
         final var requiredEntityValues = beanPropDep.stream()
-                .map(rule -> requiredEntityBean.getPropertyValue(rule.getTo()))
+                .map(rule -> requiredEntity.getPropertyValue(rule.getTo()))
                 .toList();
 
         return Optional.ofNullable(availableEntityValues.get(requiredEntityValues));
     }
 
     @Override
-    public List<DefaultEntity> apply(BeanAccessor beanAccessor) {
+    public List<EntityProcessing> apply(BeanAccessor beanAccessor) {
         final var handler = new DefaultHandler(processorDesc.getEntityMetadata().getEntityClass());
         final var mapper = new TraceMapper(beanAccessor, this.name);
         final var treePropertyValue = new Parser(processorDesc.getMappings()).parse(beanAccessor);
 
-        final var availableEntities = new ArrayList<DefaultEntity>();
+        final var availableEntities = new ArrayList<EntityProcessing>();
 
 
         // Retrieve mapping that refer to an entity field marked as unique.
@@ -97,15 +98,15 @@ public record DefaultProcessor(
                     );
 
             if (dependencyValue.size() > 0) {
-                availableEntities.addAll(entityFinder.findAll(
-                        getFindClauses(dependencyValue),
-                        handler.getEntityClass())
+                availableEntities.addAll(
+                        entityFinder.findAll(getFindClauses(dependencyValue), handler.getEntityClass()).stream()
+                                .map(entity -> EntityProcessing.fromEntity(entity, EntityState.UNCHANGED))
+                                .toList()
+
                 );
             }
 
-            final var requiredEntities = mapper.map(treePropertyValue, handler)
-                    .stream().map(bean -> (DefaultEntity) bean.getDelegate().getWrappedInstance())
-                    .toList();
+            final var requiredEntities = mapper.map(treePropertyValue, handler);
 
             log.debug("Number of available entities %s".formatted(availableEntities));
             log.debug("Number of required entities %s".formatted(requiredEntities));
@@ -117,12 +118,9 @@ public record DefaultProcessor(
             } else {
                 final var availableEntityValues = availableEntities.stream()
                         .collect(Collectors.toMap(
-                                entity -> {
-                                    final var entityBean = handler.getWrapper(entity);
-                                    return beanPropDep.stream()
-                                            .map(rule -> entityBean.getPropertyValue(rule.getTo()))
-                                            .toList();
-                                },
+                                entity -> beanPropDep.stream()
+                                            .map(rule -> entity.getPropertyValue(rule.getTo()))
+                                            .toList(),
                                 entity -> entity)
                         );
 
@@ -155,10 +153,7 @@ public record DefaultProcessor(
                     // Check if grouped entity are equal (try to reduce)
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            entry -> entry.getValue()
-                                    .stream()
-                                    .map(bean -> (DefaultEntity) bean.getDelegate().getWrappedInstance())
-                                    .collect(Collectors.toSet()))
+                            Map.Entry::getValue)
                     );
 
             map.forEach((key, value) -> {
@@ -168,7 +163,7 @@ public record DefaultProcessor(
             });
             return map.values().stream().flatMap(Collection::stream).toList();
         } else {
-            return res.stream().map(bean -> (DefaultEntity) bean.getDelegate().getWrappedInstance()).toList();
+            return res;
         }
     }
 
