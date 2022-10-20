@@ -125,3 +125,4 @@ data:
           log.trace.task.event: END
           log.trace.task.error_code: 0
           log.trace.task.status: OK
+          log.trace.task.rs_chain_name: S1-L0ASP|S1-L0ASP|S1-L1|S1-L2|s2-lou|s2-loc|S3-ACQ|S3-L0P
