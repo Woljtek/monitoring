@@ -231,3 +231,10 @@ data:
           output_product:
             entity: product
             restrict: output_list
+        duplicate_processings:
+          - query: processing.id in (select ile.processing_id from input_list_external ile where ile.external_input_id in <chunk.id,dsib.id>) and processing.rs_chain_name = <processing.rs_chain_name> and processing.rs_chain_version = <processing.rs_chain_version>
+            rules:
+              log.trace.header.rs_chain_name: l0u
+          - query: processing.id in (select ili.processing_id from input_list_internal ili where ili.product_id in <input_product.id>) and processing.rs_chain_name = <processing.rs_chain_name> and processing.rs_chain_version = <processing.rs_chain_version>
+            rules:
+              log.trace.header.rs_chain_name: l1|l2
