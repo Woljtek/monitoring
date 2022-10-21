@@ -158,79 +158,7 @@ ingestions:
       output_product:
         entity: product
         restrict: output_list
-  - name: duplicate_processing_from_chunk
-    mappings:
-      - from: log.trace.task.input[filename_strings]
-        action: MATCH DCS_.+?\.raw$
-        to: chunk.filename
-      - from: log.trace.header.mission
-        to: chunk.mission
-      - from: log.trace.task.output[filename_strings]
-        action: FORMAT ^.+(?=.zip)|.+$ %1$s
-        to: output_product.filename
-      - from: log.trace.task.input[filename_strings]
-        action: FORMAT ^.+(?=.zip)|.+$ %1$s
-        to: input_product.filename
-      - from: log.trace.task.status
-        to: processing.status
-      - from: log.trace.header.mission
-        to: processing.mission
-      - from: log.trace.header.level
-        to: processing.level
-      - from: log.trace.header.workflow
-        to: processing.workflow
-      - from: log.trace.task.missing_output[product_metadata_custom_object]
-        remove_entity_if_null: true
-        to: missing_products.product_metadata_custom
-      - from: log.trace.task.missing_output[end_to_end_product_boolean]
-        to: missing_products.end_to_end_product
-      - from: log.trace.task.missing_output[estimated_count_integer]
-        to: missing_products.estimated_count
-    alias:
-      input_product:
-        entity: product
-        restrict: input_list_internal
-      output_product:
-        entity: product
-        restrict: output_list
-    duplicate_query: processing.id in (select ile.processing_id from input_list_external ile where ile.external_input_id in <chunk.id,dsib.id>)
-  - name: duplicate_processing_from_input_list_internal
-    mappings:
-      - from: log.trace.task.input[filename_strings]
-        action: MATCH DCS_.+?\.raw$
-        to: chunk.filename
-      - from: log.trace.header.mission
-        to: chunk.mission
-      - from: log.trace.task.output[filename_strings]
-        action: FORMAT ^.+(?=.zip)|.+$ %1$s
-        to: output_product.filename
-      - from: log.trace.task.input[filename_strings]
-        action: FORMAT ^.+(?=.zip)|.+$ %1$s
-        to: input_product.filename
-      - from: log.trace.task.status
-        to: processing.status
-      - from: log.trace.header.mission
-        to: processing.mission
-      - from: log.trace.header.level
-        to: processing.level
-      - from: log.trace.header.workflow
-        to: processing.workflow
-      - from: log.trace.task.missing_output[product_metadata_custom_object]
-        remove_entity_if_null: true
-        to: missing_products.product_metadata_custom
-      - from: log.trace.task.missing_output[end_to_end_product_boolean]
-        to: missing_products.end_to_end_product
-      - from: log.trace.task.missing_output[estimated_count_integer]
-        to: missing_products.estimated_count
-    alias:
-      input_product:
-        entity: product
-        restrict: input_list_internal
-      output_product:
-        entity: product
-        restrict: output_list
-    duplicate_query: processing.id in (select ili.processing_id from input_list_internal ili where ili.product_id in <input_product.id>)
-  - name: duplicate_processing_from_output_list
+  - name: duplicate_processing
     mappings:
       - from: log.trace.task.input[filename_strings]
         action: MATCH DCS_.+?\.raw$
@@ -267,4 +195,13 @@ ingestions:
       output_product:
         entity: product
         restrict: output_list
-    duplicate_query: processing.id in (select ol.processing_id from output_list ol where ol.product_id in <output_product.id>) and processing.rs_chain_name = <processing.rs_chain_name>
+    duplicate_processings:
+      - query: processing.id in (select ile.processing_id from input_list_external ile where ile.external_input_id in <chunk.id,dsib.id>)
+        rules:
+          log.trace.header.rs_chain_name: input_list_external
+      - query: processing.id in (select ili.processing_id from input_list_internal ili where ili.product_id in <input_product.id>)
+        rules:
+          log.trace.header.rs_chain_name: input_list_internal
+      - query: processing.id in (select ol.processing_id from output_list ol where ol.product_id in <output_product.id>) and processing.rs_chain_name = <processing.rs_chain_name>
+        rules:
+          log.trace.header.rs_chain_name: output_list|l3|l2
