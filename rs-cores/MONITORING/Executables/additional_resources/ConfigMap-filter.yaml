@@ -11,31 +11,21 @@ data:
         rules:
           log.trace.task.name: IngestionTrigger
           log.trace.task.event: END
+          log.trace.task.status: OK
           log.trace.task.input[filename_string]: DCS_.+?_DSIB\.xml$
       -
         name: IngestionTrigger_Chunk
         rules:
           log.trace.task.name: IngestionTrigger
           log.trace.task.event: END
+          log.trace.task.status: OK
           log.trace.task.input[filename_string]: DCS_.+?\.raw$
       -
-        name: IngestionTrigger_AuxData_S1
+        name: IngestionTrigger_AuxData
         rules:
           log.trace.task.name: IngestionTrigger
           log.trace.task.event: END
-          log.trace.task.input[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
-      -
-        name: IngestionTrigger_AuxData_S2
-        rules:
-          log.trace.task.name: IngestionTrigger
-          log.trace.task.event: END
-          log.trace.task.input[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
-      -
-        name: IngestionTrigger_AuxData_S3
-        rules:
-          log.trace.task.name: IngestionTrigger
-          log.trace.task.event: END
-          log.trace.task.input[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
+          log.trace.task.status: OK
       -
         name: IngestionWorker_Dsib
         rules:
@@ -51,32 +41,16 @@ data:
           log.trace.task.status: OK
           log.trace.task.output[filename_string]: DCS_.+?\.raw$
       -
-        name: IngestionWorker_AuxData_S1
+        name: IngestionWorker_AuxData
         rules:
           log.trace.task.name: IngestionWorker
           log.trace.task.status: OK
           log.trace.task.event: END
-          log.trace.task.output[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
-      -
-        name: IngestionWorker_AuxData_S2
-        rules:
-          log.trace.task.name: IngestionWorker
-          log.trace.task.status: OK
-          log.trace.task.event: END
-          log.trace.task.output[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
-      -
-        name: IngestionWorker_AuxData_S3
-        rules:
-          log.trace.task.name: IngestionWorker
-          log.trace.task.status: OK
-          log.trace.task.event: END
-          log.trace.task.output[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
       -
         name: MetadataExtraction_Dsib
         rules:
           log.trace.task.name: MetadataExtraction
           log.trace.task.event: END
-          log.trace.task.error_code: 0
           log.trace.task.status: OK
           log.trace.task.input[filename_string]: DCS_.+?_DSIB\.xml$          
       -
@@ -84,44 +58,49 @@ data:
         rules:
           log.trace.task.name: MetadataExtraction
           log.trace.task.event: END
-          log.trace.task.error_code: 0
           log.trace.task.status: OK
           log.trace.task.input[filename_string]: DCS_.+?\.raw$          
       -
-        name: MetadataExtraction_AuxData_S1
+        name: MetadataExtraction_AuxData
         rules:
           log.trace.task.name: MetadataExtraction
           log.trace.task.event: END
-          log.trace.task.error_code: 0
           log.trace.task.status: OK
-          log.trace.task.input[filename_string]: ^([0-9A-Za-z][0-9A-Za-z])([0-9A-Za-z_])(_(OPER|TEST))?_(AMH_ERRMAT|AMV_ERRMAT|AM__ERRMAT|AUX_CAL|AUX_ICE|AUX_INS|AUX_ITC|AUX_OBMEMC|AUX_PP1|AUX_PP2|AUX_POEORB|AUX_PREORB|AUX_RESORB|AUX_SCF|AUX_SCS|AUX_TEC|AUX_TRO|AUX_WAV|AUX_WND|MPL_ORBPRE|MPL_ORBRES|MPL_ORBSCT|MSK_EW_SLC|MSK__LAND_|MSK_OCEAN_|MSK_OVRPAS)_\\w{1,}\\.(XML|EOF|SAFE)(/.*)?$
-      -
-        name: MetadataExtraction_AuxData_S2
-        rules:
-          log.trace.task.name: MetadataExtraction
-          log.trace.task.event: END
-          log.trace.task.error_code: 0
-          log.trace.task.status: OK
-          log.trace.task.input[filename_string]: ^(S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)$
-      -
-        name: MetadataExtraction_AuxData_S3
-        rules:
-          log.trace.task.name: MetadataExtraction
-          log.trace.task.event: END
-          log.trace.task.error_code: 0
-          log.trace.task.status: OK
-          log.trace.task.input[filename_string]: ^([a-zA-Z0-9][a-zA-Z0-9])(\\w{1})_((OL|SL|SR|DO|MW|GN|SY|TM|AX)_(0|1|2|_)_\\w{4}AX)_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(\\d{8}T\\d{6})_(_{17})_(\\w{3})_(\\w{8})\\.(SEN3)\\/?(.+)?$
+          log.trace.task.input[filename_string]: ^(S1.*(AUX_|AMH_|AMV_|MPL_ORB).*)|(S1.*(_OPER_REP_MP_MP__PDMC_|_OPER_REP__SUP___|_OPER_MPL_SP.{4}_PDMC_|_OPER_REP_STNACQ_.{4}_|_OPER_REP_STNUNV_.{4}_|_OPER_AM[VH_]_FAILUR_MPC__|_OPER_REP__MACP__).*\.(zip|ZIP))|((S2)(A|B|_)_(OPER|TEST)_((AUX|GIP)_[0-9A-Z_]{7})(.*)\.TGZ)|(S3[AB_]_([0-9a-zA-Z_]{9})AX_([0-9]{8}T[0-9]{6})_([0-9]{8}T[0-9]{6})_([0-9]{8}T[0-9]{6})_(_{17})_([0-9a-zA-Z_]{3})_(((O|F|R|D|_)_(NR|NT|ST|SN|NS|NN|AL|__)_([a-zA-Z0-9_]{3}))|_{8})\.SEN3\.(zip|ZIP))$
       -
         name: MetadataExtraction_Product
         rules:
           log.trace.task.name: MetadataExtraction
           log.trace.task.event: END
-          log.trace.task.error_code: 0
           log.trace.task.status: OK
       -
         name: JobProcessing_Product
         rules:
           log.trace.task.name: JobProcessing
+          log.trace.task.event: END
+          log.trace.task.status: OK
+      -
+        name: PripWorker_Product
+        rules:
+          log.trace.task.name: PripWorker
+          log.trace.task.event: END
+          log.trace.task.status: OK
+      -
+        name: OQC_Product
+        rules:
+          log.trace.task.name: OQC
+          log.trace.task.event: END
+          log.trace.task.status: OK
+      -
+        name: PripTempDownloadUrl_Product
+        rules:
+          log.trace.task.name: PripTempDownloadUrl
+          log.trace.task.event: END
+          log.trace.task.status: OK
+      -
+        name: EvictionManagementWorker_Product
+        rules:
+          log.trace.task.name: EvictionManagementWorker
           log.trace.task.event: END
           log.trace.task.error_code: 0
           log.trace.task.status: OK
