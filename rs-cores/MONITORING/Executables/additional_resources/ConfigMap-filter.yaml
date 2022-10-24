@@ -81,6 +81,13 @@ data:
           log.trace.task.status: OK
           log.trace.task.rs_chain_name: S1-L0AIOP|S1-L0ASP|S1-L1|S1-L2|s2-l0u|s2-l0c|S3-ACQ|S3-L0P
       -
+        name: JobProcessing_Product-NOK
+        rules:
+          log.trace.task.name: JobProcessing
+          log.trace.task.event: END
+          log.trace.task.status: NOK
+          log.trace.task.missing_output[0]: .+
+      -
         name: PripWorker_Product
         rules:
           log.trace.task.name: PripWorker
