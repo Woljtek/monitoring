@@ -25,6 +25,37 @@ import static org.springframework.data.jpa.domain.Specification.where;
 @EnableJpaRepositories(basePackages = "eu.csgroup.coprs.monitoring.common.jpa")
 @EntityScan(basePackages = EntityIngestor.BASE_PACKAGE)
 public class EntityIngestor implements EntityFinder {
+    public static final List<String> SQL_ARRAY_OPERATOR = List.of("ANY", "SOME", "ALL", "IN");
+
+    public static final String RECURSIVE_DUPLICATE_QUERY = """
+            WITH RECURSIVE child_proc AS (
+                select
+                    distinct on (ol.processing_id) ol.processing_id as output_processing,
+                    cast(null as bigint) as input_product,
+                    ol.product_id as output_product
+                FROM
+                    processing
+                JOIN
+                    output_list ol on ol.processing_id  = processing.id
+                WHERE
+                    %s and processing.duplicate = false
+                UNION
+                    select
+                        distinct on (ili.processing_id) ili.processing_id as output_processing,
+                        child_proc.output_product as input_product,
+                        ol.product_id as output_product
+                    FROM
+                        child_proc
+                    join
+                        input_list_internal ili on ili.product_id = child_proc.output_product
+                    join
+                        output_list ol on ol.processing_id = ili.processing_id
+                    join
+                        processing p on p.id = ili.processing_id
+                    where
+                        p.duplicate = false
+            ) update processing set duplicate = true from child_proc where processing.id = child_proc.output_processing
+            """;
     public static final String BASE_PACKAGE = "eu.csgroup.coprs.monitoring.common.datamodel.entities";
 
     @Autowired
@@ -160,39 +191,26 @@ public class EntityIngestor implements EntityFinder {
         return saveAll(processor.apply(this));
     }
 
-    public void setDuplicate (String inputQuery, List<Object> values) {
-        String recursiveQuery = """
-WITH RECURSIVE child_proc AS (
-    select
-        distinct on (ol.processing_id) ol.processing_id as output_processing,
-        cast(null as bigint) as input_product,
-        ol.product_id as output_product
-    FROM
-        processing
-    JOIN
-        output_list ol on ol.processing_id  = processing.id
-    WHERE
-        %s and processing.duplicate = false
-    UNION
-        select
-            distinct on (ili.processing_id) ili.processing_id as output_processing,
-            child_proc.output_product as input_product,
-            ol.product_id as output_product
-        FROM
-            child_proc
-        join
-            input_list_internal ili on ili.product_id = child_proc.output_product
-        join
-            output_list ol on ol.processing_id = ili.processing_id
-        join
-            processing p on p.id = ili.processing_id
-        where
-            p.duplicate = false
-) update processing set duplicate = true from child_proc where processing.id = child_proc.output_processing
-""";
-        Query query = entityManager.createNativeQuery(recursiveQuery.formatted(inputQuery));
+    public void setDuplicateProcessing(String inputQuery, List<List<Object>> values) {
+        // Security to avoid undesired behavior
+        if (! inputQuery.contains("processing.id in")) {
+            throw new EntityException("Invalid query. You must set 'processing.id in' in your query (%s)".formatted(inputQuery));
+        }
+
+        Query query = entityManager.createNativeQuery(RECURSIVE_DUPLICATE_QUERY.formatted(inputQuery));
         for (var index = 0; index < values.size(); index++) {
-            var value = values.get(index);
+            var list = values.get(index);
+            Object value;
+
+            var placeholder = "?%s".formatted(index + 1);
+            var queryBeforePlaceholder = inputQuery.substring(0, inputQuery.indexOf(placeholder)).trim();
+            var operator = queryBeforePlaceholder.substring(queryBeforePlaceholder.lastIndexOf(' ')).trim().toUpperCase();
+            if (list.size() == 1 && ! SQL_ARRAY_OPERATOR.contains(operator)) {
+                value = list.get(0);
+            } else {
+                value = list;
+            }
+
             query.setParameter(index + 1, value);
         }
 
