@@ -202,6 +202,8 @@ public class ProcessingIngestionTests {
 
         task.setDurationInSeconds(60.0);
 
+        task.setMissingOutput(List.of());
+
         final var trace = new Trace();
         trace.setHeader(header);
         trace.setTask(task);

@@ -84,12 +84,12 @@ public record Parser(List<Mapping> rules) {
                 // End of the path reached; create leaf
                 if (!currentPath.isEmpty() && index == splittedPropertyPath.length - 1) {
                     createOrUpdateLeaf(tree, rule, beanProperty, object);
-                } else if (object instanceof final Collection<?> collection) {
+                } else if (object instanceof final Collection<?> collection && ! collection.isEmpty()) {
                     final var remainingSplittedPropertyPath = Arrays.copyOfRange(splittedPropertyPath, index + 1, splittedPropertyPath.length);
 
                     parsePropertyNode(tree, wrapper, rule, beanProperty, currentPath, remainingSplittedPropertyPath, collection);
                     break;
-                } else if (object == null) {
+                } else if (object == null || object instanceof Collection<?>) {
                     createOrUpdateLeaf(tree, rule, beanProperty, object);
                 }
             } catch (InvalidPropertyException e) {
