@@ -1,0 +1,28 @@
+{
+  "name": "cs-queue-error-management",
+  "version": "1.0.0",
+  "description": "A panel to manage Error Queue",
+  "scripts": {
+    "build": "grafana-toolkit plugin:build",
+    "test": "grafana-toolkit plugin:test",
+    "dev": "grafana-toolkit plugin:dev",
+    "watch": "grafana-toolkit plugin:dev --watch",
+    "sign": "grafana-toolkit plugin:sign",
+    "start": "yarn watch"
+  },
+  "author": "CS Group",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@grafana/data": "9.0.2",
+    "@grafana/runtime": "9.0.2",
+    "@grafana/toolkit": "9.0.2",
+    "@grafana/ui": "9.0.2",
+    "emotion": "10.0.27"
+  },
+  "dependencies": {
+    "react-table-6": "6.11.0"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}
