@@ -1,0 +1,880 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 14.1
+-- Dumped by pg_dump version 14.1
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: level; Type: TYPE; Schema: public; Owner: monitoring
+--
+
+CREATE TYPE public.level AS ENUM (
+    'INFO',
+    'WARNING',
+    'ERROR',
+    'DEBUG',
+    'FATAL'
+);
+
+
+ALTER TYPE public.level OWNER TO monitoring;
+
+--
+-- Name: responsibility; Type: TYPE; Schema: public; Owner: monitoring
+--
+
+CREATE TYPE public.responsibility AS ENUM (
+    'PDGS',
+    'E2E'
+);
+
+
+ALTER TYPE public.responsibility OWNER TO monitoring;
+
+--
+-- Name: status; Type: TYPE; Schema: public; Owner: monitoring
+--
+
+CREATE TYPE public.status AS ENUM (
+    'OK',
+    'NOK',
+    'TIMEOUT'
+);
+
+
+ALTER TYPE public.status OWNER TO monitoring;
+
+--
+-- Name: workflow; Type: TYPE; Schema: public; Owner: monitoring
+--
+
+CREATE TYPE public.workflow AS ENUM (
+    'NOMINAL',
+    'EXTERNAL_DEMAND',
+    'EXTERNAL_CUSTOM_DEMAND',
+    'OPERATOR_DEMAND'
+);
+
+
+ALTER TYPE public.workflow OWNER TO monitoring;
+
+--
+-- Name: invalidation_update(); Type: FUNCTION; Schema: public; Owner: monitoring
+--
+
+CREATE FUNCTION public.invalidation_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.update_date = now();
+RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.invalidation_update() OWNER TO monitoring;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: aux_data; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.aux_data (
+    parent_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.aux_data OWNER TO monitoring;
+
+--
+-- Name: chunk; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.chunk (
+    parent_id bigint NOT NULL,
+    dsib_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.chunk OWNER TO monitoring;
+
+--
+-- Name: dsib; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.dsib (
+    parent_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.dsib OWNER TO monitoring;
+
+--
+-- Name: external_input; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.external_input (
+    id bigint NOT NULL,
+    filename character varying NOT NULL,
+    mission character varying,
+    seen_date timestamp without time zone,
+    available_date timestamp without time zone,
+    ingestion_date timestamp without time zone,
+    catalog_storage_end_date timestamp without time zone,
+    custom jsonb,
+    catalog_storage_begin_date timestamp without time zone
+);
+
+
+ALTER TABLE public.external_input OWNER TO monitoring;
+
+--
+-- Name: external_input_id_seq; Type: SEQUENCE; Schema: public; Owner: monitoring
+--
+
+CREATE SEQUENCE public.external_input_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.external_input_id_seq OWNER TO monitoring;
+
+--
+-- Name: external_input_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: monitoring
+--
+
+ALTER SEQUENCE public.external_input_id_seq OWNED BY public.external_input.id;
+
+
+--
+-- Name: flyway_schema_history; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.flyway_schema_history (
+    installed_rank integer NOT NULL,
+    version character varying(50),
+    description character varying(200) NOT NULL,
+    type character varying(20) NOT NULL,
+    script character varying(1000) NOT NULL,
+    checksum integer,
+    installed_by character varying(100) NOT NULL,
+    installed_on timestamp without time zone DEFAULT now() NOT NULL,
+    execution_time integer NOT NULL,
+    success boolean NOT NULL
+);
+
+
+ALTER TABLE public.flyway_schema_history OWNER TO monitoring;
+
+--
+-- Name: input_list_external; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.input_list_external (
+    processing_id bigint NOT NULL,
+    external_input_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.input_list_external OWNER TO monitoring;
+
+--
+-- Name: input_list_internal; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.input_list_internal (
+    processing_id bigint NOT NULL,
+    product_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.input_list_internal OWNER TO monitoring;
+
+--
+-- Name: invalidation; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.invalidation (
+    id bigint NOT NULL,
+    responsibility public.responsibility,
+    update_date timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    root_cause character varying,
+    anomaly_identifier bigint,
+    comment character varying,
+    label character varying
+);
+
+
+ALTER TABLE public.invalidation OWNER TO monitoring;
+
+--
+-- Name: invalidation_completeness; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.invalidation_completeness (
+    parent_id bigint NOT NULL,
+    missing_products_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.invalidation_completeness OWNER TO monitoring;
+
+--
+-- Name: invalidation_id_seq; Type: SEQUENCE; Schema: public; Owner: monitoring
+--
+
+CREATE SEQUENCE public.invalidation_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.invalidation_id_seq OWNER TO monitoring;
+
+--
+-- Name: invalidation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: monitoring
+--
+
+ALTER SEQUENCE public.invalidation_id_seq OWNED BY public.invalidation.id;
+
+
+--
+-- Name: invalidation_timeliness; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.invalidation_timeliness (
+    parent_id bigint NOT NULL,
+    product_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.invalidation_timeliness OWNER TO monitoring;
+
+--
+-- Name: missing_products; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.missing_products (
+    processing_failed_id bigint NOT NULL,
+    product_metadata_custom jsonb,
+    estimated_count integer,
+    duplicate boolean,
+    end_to_end_product boolean,
+    id bigint NOT NULL
+);
+
+
+ALTER TABLE public.missing_products OWNER TO monitoring;
+
+--
+-- Name: missing_products_id_seq; Type: SEQUENCE; Schema: public; Owner: monitoring
+--
+
+CREATE SEQUENCE public.missing_products_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.missing_products_id_seq OWNER TO monitoring;
+
+--
+-- Name: missing_products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: monitoring
+--
+
+ALTER SEQUENCE public.missing_products_id_seq OWNED BY public.missing_products.id;
+
+
+--
+-- Name: output_list; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.output_list (
+    processing_id bigint NOT NULL,
+    product_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.output_list OWNER TO monitoring;
+
+--
+-- Name: processing; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.processing (
+    id bigint NOT NULL,
+    mission character varying,
+    rs_chain_name character varying,
+    rs_chain_version character varying,
+    workflow public.workflow,
+    level public.level,
+    status public.status,
+    processing_date timestamp without time zone,
+    end_sensing_date timestamp without time zone,
+    t0_pdgs_date timestamp without time zone,
+    duplicate boolean
+);
+
+
+ALTER TABLE public.processing OWNER TO monitoring;
+
+--
+-- Name: processing_id_seq; Type: SEQUENCE; Schema: public; Owner: monitoring
+--
+
+CREATE SEQUENCE public.processing_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.processing_id_seq OWNER TO monitoring;
+
+--
+-- Name: processing_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: monitoring
+--
+
+ALTER SEQUENCE public.processing_id_seq OWNED BY public.processing.id;
+
+
+--
+-- Name: product; Type: TABLE; Schema: public; Owner: monitoring
+--
+
+CREATE TABLE public.product (
+    id bigint NOT NULL,
+    filename character varying NOT NULL,
+    custom jsonb,
+    timeliness_name character varying,
+    timeliness_value_seconds integer,
+    end_to_end_product boolean,
+    duplicate boolean,
+    t0_pdgs_date timestamp without time zone,
+    prip_storage_end_date timestamp without time zone,
+    late boolean,
+    generation_begin_date timestamp without time zone,
+    generation_end_date timestamp without time zone,
+    catalog_storage_begin_date timestamp without time zone,
+    catalog_storage_end_date timestamp without time zone,
+    prip_storage_begin_date timestamp without time zone,
+    quality_check_begin_date timestamp without time zone,
+    quality_check_end_date timestamp without time zone,
+    first_download_date timestamp without time zone,
+    eviction_date timestamp without time zone
+);
+
+
+ALTER TABLE public.product OWNER TO monitoring;
+
+--
+-- Name: product_id_seq; Type: SEQUENCE; Schema: public; Owner: monitoring
+--
+
+CREATE SEQUENCE public.product_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.product_id_seq OWNER TO monitoring;
+
+--
+-- Name: product_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: monitoring
+--
+
+ALTER SEQUENCE public.product_id_seq OWNED BY public.product.id;
+
+
+--
+-- Name: external_input id; Type: DEFAULT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.external_input ALTER COLUMN id SET DEFAULT nextval('public.external_input_id_seq'::regclass);
+
+
+--
+-- Name: invalidation id; Type: DEFAULT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.invalidation ALTER COLUMN id SET DEFAULT nextval('public.invalidation_id_seq'::regclass);
+
+
+--
+-- Name: missing_products id; Type: DEFAULT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.missing_products ALTER COLUMN id SET DEFAULT nextval('public.missing_products_id_seq'::regclass);
+
+
+--
+-- Name: processing id; Type: DEFAULT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.processing ALTER COLUMN id SET DEFAULT nextval('public.processing_id_seq'::regclass);
+
+
+--
+-- Name: product id; Type: DEFAULT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.product ALTER COLUMN id SET DEFAULT nextval('public.product_id_seq'::regclass);
+
+
+--
+-- Data for Name: aux_data; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.aux_data (parent_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: chunk; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.chunk (parent_id, dsib_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: dsib; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.dsib (parent_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: external_input; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.external_input (id, filename, mission, seen_date, available_date, ingestion_date, catalog_storage_end_date, custom, catalog_storage_begin_date) FROM stdin;
+\.
+
+
+--
+-- Data for Name: flyway_schema_history; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.flyway_schema_history (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) FROM stdin;
+1	1	init	SQL	V1__init.sql	1711225317	monitoring	2022-08-26 14:19:27.432017	222	t
+2	2	processing	SQL	V2__processing.sql	-326167945	monitoring	2022-08-26 14:19:27.722784	113	t
+3	3	missing output-id	SQL	V3__missing_output-id.sql	-1331260772	monitoring	2022-10-20 13:28:53.745625	293	t
+4	4	additional fields	SQL	V4__additional_fields.sql	19187460	monitoring	2022-10-20 13:28:54.149272	91	t
+5	5	invalidation	SQL	V5__invalidation.sql	-1529656201	monitoring	2022-10-26 18:01:19.246877	428	t
+\.
+
+
+--
+-- Data for Name: input_list_external; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.input_list_external (processing_id, external_input_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: input_list_internal; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.input_list_internal (processing_id, product_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: invalidation; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.invalidation (id, responsibility, update_date, root_cause, anomaly_identifier, comment, label) FROM stdin;
+1	PDGS	2022-11-02 15:57:39.238136	Downlink missed	753	The station was covered with snow	test label
+2	E2E	2022-11-02 15:59:16.700855	EDRS planned maintenance	34	Internet link was down on EDRS side	label dnd
+\.
+
+
+--
+-- Data for Name: invalidation_completeness; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.invalidation_completeness (parent_id, missing_products_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: invalidation_timeliness; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.invalidation_timeliness (parent_id, product_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: missing_products; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.missing_products (processing_failed_id, product_metadata_custom, estimated_count, duplicate, end_to_end_product, id) FROM stdin;
+4	\N	5	t	t	13
+5	\N	3	f	t	14
+\.
+
+
+--
+-- Data for Name: output_list; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.output_list (processing_id, product_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: processing; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.processing (id, mission, rs_chain_name, rs_chain_version, workflow, level, status, processing_date, end_sensing_date, t0_pdgs_date, duplicate) FROM stdin;
+1	S2	s2-l0c	1.0.0-rc3	\N	INFO	OK	2022-10-26 13:35:00.72	2022-10-22 10:24:37.399	2022-10-18 10:24:37.399	t
+2	S2	s2-l0c	1.0.0-rc3	\N	INFO	OK	2022-10-26 13:35:00.72	2022-10-23 10:24:37.399	2022-10-18 10:24:37.399	t
+3	S2	s2-l0c	1.0.0-rc3	\N	INFO	OK	2022-10-26 13:35:00.72	2022-10-20 10:24:37.399	2022-10-18 10:24:37.399	f
+4	S2	s2-l0c	1.0.0-rc3	\N	INFO	NOK	2022-10-26 13:35:00.72	2022-10-23 10:24:37.399	2022-10-18 10:24:37.399	t
+5	S2	s2-l0c	1.0.0-rc3	\N	INFO	NOK	2022-10-26 13:35:00.72	2022-10-23 10:24:37.399	2022-10-18 10:24:37.399	f
+\.
+
+
+--
+-- Data for Name: product; Type: TABLE DATA; Schema: public; Owner: monitoring
+--
+
+COPY public.product (id, filename, custom, timeliness_name, timeliness_value_seconds, end_to_end_product, duplicate, t0_pdgs_date, prip_storage_end_date, late, generation_begin_date, generation_end_date, catalog_storage_begin_date, catalog_storage_end_date, prip_storage_begin_date, quality_check_begin_date, quality_check_end_date, first_download_date, eviction_date) FROM stdin;
+3605	S2A_OPER_MSI_L0__GR_REFS_20221026T132143_S20221018T102437_D01_N02.08	{"product_group_id": "S2A_OPER_MSI_L0__DS_REFS_20221026T132143_S20221018T102028_N02.08", "product_type_string": "MSI_L0__GR", "orbit_number_integer": "", "ending_date_time_date": "2022-10-18T10:24:37.399000Z", "quality_status_integer": "NOMINAL", "beginning_date_time_date": "2022-10-18T10:24:37.399000Z", "processing_level_integer": 0, "processor_version_string": "", "instrument_short_name_string": "MSI", "platform_serial_identifier_string": "S2A"}	S2_L0	4500	t	f	\N	\N	f	\N	\N	2022-10-26 13:39:59.665001	2022-10-26 13:40:00.72	\N	\N	\N	\N	\N
+3606	S2A_OPER_MSI_L0__GR_REFS_20221026T132143_S20221020T102437_D01_N02.08	{"product_group_id": "S2A_OPER_MSI_L0__DS_REFS_20221026T132143_S20221020T102028_N02.08", "product_type_string": "MSI_L0__GR", "orbit_number_integer": "", "ending_date_time_date": "2022-10-20T10:24:37.399000Z", "quality_status_integer": "NOMINAL", "beginning_date_time_date": "2022-10-20T10:24:37.399000Z", "processing_level_integer": 0, "processor_version_string": "", "instrument_short_name_string": "MSI", "platform_serial_identifier_string": "S2A"}	S2_L0	4500	t	f	2022-10-18 10:24:37.399	2022-10-20 11:24:37.399	t	\N	\N	2022-10-26 13:39:59.665001	2022-10-26 13:40:00.72	2022-10-20 11:24:35.399	\N	\N	\N	\N
+3607	S2A_OPER_MSI_L0__GR_REFS_20221026T132143_S20221021T102437_D01_N02.08	{"product_group_id": "S2A_OPER_MSI_L0__DS_REFS_20221026T132143_S20221021T102028_N02.08", "product_type_string": "MSI_L0__GR", "orbit_number_integer": "", "ending_date_time_date": "2022-10-21T10:24:37.399000Z", "quality_status_integer": "NOMINAL", "beginning_date_time_date": "2022-10-21T10:24:37.399000Z", "processing_level_integer": 0, "processor_version_string": "", "instrument_short_name_string": "MSI", "platform_serial_identifier_string": "S2A"}	S2_L0	4500	t	f	2022-10-18 10:24:37.399	2022-10-21 11:24:37.399	t	\N	\N	2022-10-26 13:39:59.665001	2022-10-26 13:40:00.72	2022-10-21 11:24:35.399	\N	\N	\N	\N
+3608	S2A_OPER_MSI_L0__GR_REFS_20221026T132143_S20221022T102437_D01_N02.08	{"product_group_id": "S2A_OPER_MSI_L0__DS_REFS_20221026T132143_S20221022T102028_N02.08", "product_type_string": "MSI_L0__GR", "orbit_number_integer": "", "ending_date_time_date": "2022-10-22T10:24:37.399000Z", "quality_status_integer": "NOMINAL", "beginning_date_time_date": "2022-10-22T10:24:37.399000Z", "processing_level_integer": 0, "processor_version_string": "", "instrument_short_name_string": "MSI", "platform_serial_identifier_string": "S2A"}	S2_L0	4500	t	t	2022-10-18 10:24:37.399	2022-10-22 11:24:37.399	t	\N	\N	2022-10-26 13:39:59.665001	2022-10-26 13:40:00.72	2022-10-22 11:24:35.399	\N	\N	\N	\N
+3609	S2A_OPER_MSI_L0__GR_REFS_20221026T132143_S20221023T102437_D01_N02.08	{"product_group_id": "S2A_OPER_MSI_L0__DS_REFS_20221026T132143_S20221023T102028_N02.08", "product_type_string": "MSI_L0__GR", "orbit_number_integer": "", "ending_date_time_date": "2022-10-23T10:24:37.399000Z", "quality_status_integer": "NOMINAL", "beginning_date_time_date": "2022-10-23T10:24:37.399000Z", "processing_level_integer": 0, "processor_version_string": "", "instrument_short_name_string": "MSI", "platform_serial_identifier_string": "S2A"}	S2_L0	4500	t	t	2022-10-18 10:24:37.399	2022-10-23 11:24:37.399	t	\N	\N	2022-10-26 13:39:59.665001	2022-10-26 13:40:00.72	2022-10-23 11:24:35.399	\N	\N	\N	\N
+\.
+
+
+--
+-- Name: external_input_id_seq; Type: SEQUENCE SET; Schema: public; Owner: monitoring
+--
+
+SELECT pg_catalog.setval('public.external_input_id_seq', 10755, true);
+
+
+--
+-- Name: invalidation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: monitoring
+--
+
+SELECT pg_catalog.setval('public.invalidation_id_seq', 2, true);
+
+
+--
+-- Name: missing_products_id_seq; Type: SEQUENCE SET; Schema: public; Owner: monitoring
+--
+
+SELECT pg_catalog.setval('public.missing_products_id_seq', 14, true);
+
+
+--
+-- Name: processing_id_seq; Type: SEQUENCE SET; Schema: public; Owner: monitoring
+--
+
+SELECT pg_catalog.setval('public.processing_id_seq', 5, true);
+
+
+--
+-- Name: product_id_seq; Type: SEQUENCE SET; Schema: public; Owner: monitoring
+--
+
+SELECT pg_catalog.setval('public.product_id_seq', 3609, true);
+
+
+--
+-- Name: aux_data aux_data_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.aux_data
+    ADD CONSTRAINT aux_data_pkey PRIMARY KEY (parent_id);
+
+
+--
+-- Name: chunk chunk_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.chunk
+    ADD CONSTRAINT chunk_pkey PRIMARY KEY (parent_id);
+
+
+--
+-- Name: dsib dsib_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.dsib
+    ADD CONSTRAINT dsib_pkey PRIMARY KEY (parent_id);
+
+
+--
+-- Name: external_input external_input_filename_key; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.external_input
+    ADD CONSTRAINT external_input_filename_key UNIQUE (filename);
+
+
+--
+-- Name: external_input external_input_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.external_input
+    ADD CONSTRAINT external_input_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: flyway_schema_history flyway_schema_history_pk; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.flyway_schema_history
+    ADD CONSTRAINT flyway_schema_history_pk PRIMARY KEY (installed_rank);
+
+
+--
+-- Name: input_list_external input_list_external_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.input_list_external
+    ADD CONSTRAINT input_list_external_pkey PRIMARY KEY (processing_id, external_input_id);
+
+
+--
+-- Name: input_list_internal input_list_internal_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.input_list_internal
+    ADD CONSTRAINT input_list_internal_pkey PRIMARY KEY (processing_id, product_id);
+
+
+--
+-- Name: invalidation_completeness invalidation_completeness_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.invalidation_completeness
+    ADD CONSTRAINT invalidation_completeness_pkey PRIMARY KEY (parent_id);
+
+
+--
+-- Name: invalidation invalidation_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.invalidation
+    ADD CONSTRAINT invalidation_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: invalidation_timeliness invalidation_timeliness_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.invalidation_timeliness
+    ADD CONSTRAINT invalidation_timeliness_pkey PRIMARY KEY (parent_id);
+
+
+--
+-- Name: missing_products missing_products_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.missing_products
+    ADD CONSTRAINT missing_products_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: output_list output_list_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.output_list
+    ADD CONSTRAINT output_list_pkey PRIMARY KEY (processing_id, product_id);
+
+
+--
+-- Name: processing processing_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.processing
+    ADD CONSTRAINT processing_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: product product_filename_key; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.product
+    ADD CONSTRAINT product_filename_key UNIQUE (filename);
+
+
+--
+-- Name: product product_pkey; Type: CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.product
+    ADD CONSTRAINT product_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: flyway_schema_history_s_idx; Type: INDEX; Schema: public; Owner: monitoring
+--
+
+CREATE INDEX flyway_schema_history_s_idx ON public.flyway_schema_history USING btree (success);
+
+
+--
+-- Name: invalidation invalidation_update_trigger; Type: TRIGGER; Schema: public; Owner: monitoring
+--
+
+CREATE TRIGGER invalidation_update_trigger BEFORE UPDATE ON public.invalidation FOR EACH ROW EXECUTE FUNCTION public.invalidation_update();
+
+
+--
+-- Name: aux_data aux_data_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.aux_data
+    ADD CONSTRAINT aux_data_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.external_input(id) ON DELETE CASCADE;
+
+
+--
+-- Name: chunk chunk_dsib_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.chunk
+    ADD CONSTRAINT chunk_dsib_id_fkey FOREIGN KEY (dsib_id) REFERENCES public.dsib(parent_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: chunk chunk_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.chunk
+    ADD CONSTRAINT chunk_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.external_input(id) ON DELETE CASCADE;
+
+
+--
+-- Name: dsib dsib_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.dsib
+    ADD CONSTRAINT dsib_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.external_input(id) ON DELETE CASCADE;
+
+
+--
+-- Name: input_list_external input_list_external_external_input_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.input_list_external
+    ADD CONSTRAINT input_list_external_external_input_id_fkey FOREIGN KEY (external_input_id) REFERENCES public.external_input(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: input_list_external input_list_external_processing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.input_list_external
+    ADD CONSTRAINT input_list_external_processing_id_fkey FOREIGN KEY (processing_id) REFERENCES public.processing(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: input_list_internal input_list_internal_processing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.input_list_internal
+    ADD CONSTRAINT input_list_internal_processing_id_fkey FOREIGN KEY (processing_id) REFERENCES public.processing(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: input_list_internal input_list_internal_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.input_list_internal
+    ADD CONSTRAINT input_list_internal_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.product(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: invalidation_completeness invalidation_completeness_missing_products_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.invalidation_completeness
+    ADD CONSTRAINT invalidation_completeness_missing_products_id_fkey FOREIGN KEY (missing_products_id) REFERENCES public.missing_products(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: invalidation_completeness invalidation_completeness_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.invalidation_completeness
+    ADD CONSTRAINT invalidation_completeness_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.invalidation(id) ON DELETE CASCADE;
+
+
+--
+-- Name: invalidation_timeliness invalidation_timeliness_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.invalidation_timeliness
+    ADD CONSTRAINT invalidation_timeliness_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.invalidation(id) ON DELETE CASCADE;
+
+
+--
+-- Name: invalidation_timeliness invalidation_timeliness_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.invalidation_timeliness
+    ADD CONSTRAINT invalidation_timeliness_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.product(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: missing_products missing_products_processing_failed_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.missing_products
+    ADD CONSTRAINT missing_products_processing_failed_id_fkey FOREIGN KEY (processing_failed_id) REFERENCES public.processing(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: output_list output_list_processing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.output_list
+    ADD CONSTRAINT output_list_processing_id_fkey FOREIGN KEY (processing_id) REFERENCES public.processing(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: output_list output_list_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: monitoring
+--
+
+ALTER TABLE ONLY public.output_list
+    ADD CONSTRAINT output_list_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.product(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
