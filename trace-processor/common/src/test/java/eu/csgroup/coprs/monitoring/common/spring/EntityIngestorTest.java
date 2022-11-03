@@ -84,6 +84,7 @@ public class EntityIngestorTest {
         dsib.setFilename("dsib");
         final var chunk = new Chunk();
         chunk.setFilename("chunk");
+        chunk.setDsib(dsib);
         final var auxData = new AuxData();
         auxData.setFilename("auxData");
         final var processing = new Processing();
@@ -92,6 +93,7 @@ public class EntityIngestorTest {
         inputListExternal.getId().setExternalInput(dsib);
 
         final var product = new Product();
+        product.setFilename("product");
         final var inputListInternal = new InputListInternal();
         inputListInternal.getId().setProcessing(processing);
         inputListInternal.getId().setProduct(product);

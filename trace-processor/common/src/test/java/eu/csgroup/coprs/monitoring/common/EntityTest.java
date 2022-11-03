@@ -5,10 +5,8 @@ import eu.csgroup.coprs.monitoring.common.datamodel.Level;
 import eu.csgroup.coprs.monitoring.common.datamodel.Status;
 import eu.csgroup.coprs.monitoring.common.datamodel.Workflow;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.*;
-import org.hibernate.annotations.Type;
 import org.junit.Test;
 
-import javax.persistence.Column;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;

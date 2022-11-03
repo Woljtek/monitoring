@@ -14,7 +14,6 @@ import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyLeaf;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.*;

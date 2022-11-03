@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.csgroup.coprs.monitoring.common.json.PropertyNames;
 import lombok.*;
 
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 
 @Data
 @AllArgsConstructor

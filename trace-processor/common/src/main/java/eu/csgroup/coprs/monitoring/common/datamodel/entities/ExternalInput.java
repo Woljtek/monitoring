@@ -3,7 +3,6 @@ package eu.csgroup.coprs.monitoring.common.datamodel.entities;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import eu.csgroup.coprs.monitoring.common.bean.AutoMergeableMap;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
