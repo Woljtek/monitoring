@@ -282,6 +282,12 @@ Below are all the dependecies used during runtime and their respective licence.
     - Licence: [BSD 3-Clause "New" or "Revised" License](https://github.com/eclipse-ee4j/jaxb-ri/blob/2.3.7-RI/LICENSE.md)
     - Source: https://github.com/eclipse-ee4j/jaxb-ri/tree/2.3.7-RI/jaxb-ri/runtime
 
+- jboss-logging
+  - org.jboss.logging:jboss-logging
+    - Version: 3.4.3.Final
+    - Licence: [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
+    - Source: https://github.com/jboss-logging/jboss-logging/tree/3.4.3.Final
+
 - jopt-simple
   - net.sf.jopt-simple:jopt-simple
     - Version: 5.0.4
