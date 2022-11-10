@@ -14,7 +14,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -152,12 +151,12 @@ public class ProcessingIngestionTests {
 
         final var missingOutput1 = new HashMap<String, Object>();
         missingOutput1.put("estimated_count_integer", 8);
-        missingOutput1.put("end_to_end_product", true);
+        missingOutput1.put("end_to_end_product_boolean", true);
         missingOutput1.put("product_metadata_custom_object", List.of(Map.of("pmco1", "value1"), Map.of("pmco2", "value2")));
 
         final var missingOutput2 = new HashMap<String, Object>();
         missingOutput2.put("estimated_count_integer", 2);
-        missingOutput2.put("end_to_end_product", false);
+        missingOutput2.put("end_to_end_product_boolean", false);
         missingOutput2.put("product_metadata_custom_object", List.of(Map.of("pmco3", "value3")));
 
         ((EndTask)(ref.getLog().getTrace().getTask())).setMissingOutput(List.of(missingOutput1, missingOutput2));

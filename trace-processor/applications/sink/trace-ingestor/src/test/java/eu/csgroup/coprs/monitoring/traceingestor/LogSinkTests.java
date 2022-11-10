@@ -234,7 +234,7 @@ public class LogSinkTests {
                     return true;
                 })
                 .extracting(AuxData::getCustom)
-                .matches(map -> map.equals(custom));
+                .isEqualTo(custom);
     }
 
     @Test

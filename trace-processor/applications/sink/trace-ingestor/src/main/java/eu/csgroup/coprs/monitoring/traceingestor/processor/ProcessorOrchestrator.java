@@ -153,19 +153,26 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
             Map<String, List<EntityProcessing>> processedEntities) {
 
         var initialQuery = conf.getQuery();
+        log.debug("Apply duplicate process (query %s)".formatted(conf.getQuery()));
+
         var inputQuery = initialQuery;
 
-        final var values = new ArrayList<List<Object>>();
-        var index = 1;
         if (inputQuery != null) {
+            final var values = new ArrayList<List<Object>>();
+            var index = 1;
             final var matcher = Pattern.compile("<([a-zA-Z0-9_,.]*)>").matcher(inputQuery);
+            final var debugParameter = new StringBuilder("Query parameters: ");
+
             while(matcher.find()) {
                 final var rawPath = matcher.group(1);
 
                 values.add(getValueForDuplicateProcess(initialQuery, matcher.group(0), rawPath, processedEntities));
 
                 inputQuery = inputQuery.replace(matcher.group(0), "?" + index++);
+
+                debugParameter.append(rawPath).append(" => ").append(values.get(values.size() - 1)).append(";");
             }
+            log.debug(debugParameter.toString());
 
             // Abnormal situation when nothing is retrieved (at least we must have ids of input our output of the processing)
             if (values.isEmpty()) {

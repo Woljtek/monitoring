@@ -9,4 +9,12 @@ public class InterruptedOperationException extends RuntimeException {
     public InterruptedOperationException(String message) {
         super(message);
     }
+
+    public InterruptedOperationException (Exception e) {
+        super(e);
+    }
+
+    public InterruptedOperationException(String message, Exception e) {
+        super(message, e);
+    }
 }

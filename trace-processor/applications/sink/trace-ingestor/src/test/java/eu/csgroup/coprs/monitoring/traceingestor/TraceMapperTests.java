@@ -54,7 +54,7 @@ public class TraceMapperTests {
 
         header.setMission("S1");
         final var copy = ((Chunk)(newEntity.get(0).getDelegate().getWrappedInstance())).copy();
-        handler.mergeWith(List.of(EntityProcessing.fromEntity(copy)));
+        handler.setDefaultEntities(List.of(EntityProcessing.fromEntity(copy)), List.of(mapping));
         final var notUpdatedEntity = mapper.map(List.of(mapping), handler);
 
         // Then

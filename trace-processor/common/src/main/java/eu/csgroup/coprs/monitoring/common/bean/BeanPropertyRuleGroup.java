@@ -46,7 +46,10 @@ public class BeanPropertyRuleGroup implements Predicate<BeanAccessor> {
         try {
             value = beanAccessor.getPropertyValue(rule.getProperty());
             if (value != null) {
+                log.debug("Compare %s %s to configured value %s".formatted(value, rule.getProperty(), rule.getRawValue()));
                 match = rule.test(value);
+            } else {
+                log.debug("No value found %s".formatted(rule.getProperty()));
             }
         } catch (InvalidPropertyException e) {
             log.trace(e.getMessage());

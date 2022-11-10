@@ -6,8 +6,6 @@ ingestions:
         to: dsib.mission
       - from: log.trace.task.output[filename]
         to: dsib.filename
-      - from: log.trace.task.output[satellite]
-        to: dsib.satellite
       - from: log.trace.task.output[pickup_point_seen_date]
         to: dsib.seen_date
       - from: log.trace.task.output[pickup_point_available_date]

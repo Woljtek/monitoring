@@ -1,71 +1,84 @@
 package eu.csgroup.coprs.monitoring.traceingestor.mapper;
 
-import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
+import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
-import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityDescriptor;
-import lombok.Data;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
 @Slf4j
-@Data
+@RequiredArgsConstructor
 public class EntityCache {
+
     private final DefaultHandler handler;
 
-    private final Map<BeanProperty, Object> cachedProperties = new HashMap<>();
+    private final Map<TreePropertyNode, List<EntityProcessing>> entities = new HashMap<>();
 
-    private EntityDescriptor current;
+    private final Map<TreePropertyNode, Map<Mapping, Object>> treeProperties = new HashMap<>();
 
-    private List<EntityDescriptor> cached;
+    private final Map<TreePropertyNode, TreePropertyNode> parentsNode = new HashMap<>();
 
 
-    public EntityCache(DefaultHandler handler) {
-        this.handler = handler;
-        this.cached = new ArrayList<>();
-        nextEntity();
+    private TreePropertyNode activeNode;
+
+
+    public void setActiveNode (TreePropertyNode node) {
+        activeNode = node;
+
+        // Prepare property cache for the current node (if not already done)
+        final var nodeProperties = Optional.of(node)
+                .map(treeProperties::get)
+                .orElseGet(() -> {
+                    final var cache = new HashMap<Mapping, Object>();
+                    treeProperties.put(node, cache);
+
+                    return cache;
+                });
+
+        // By default, we only store properties for later use.
+        // Retrieve parent properties node
+        // Create a copy and set it as active node
+        Optional.ofNullable(parentsNode.get(node))
+                .map(treeProperties::get)
+                .filter(Objects::nonNull)
+                .ifPresent(nodeProperties::putAll);
+
+        // Set relation between parent and child
+        node.getNodes().forEach(subNode -> parentsNode.put(subNode, node));
     }
 
-    public EntityCache(EntityCache cache, Map<BeanProperty, Object> cachedProperties) {
-        this.handler = cache.getHandler();
-        this.cached = cache.getCached();
-        this.current = cache.getCurrent();
-        this.cachedProperties.putAll(cache.cachedProperties);
-        this.cachedProperties.putAll(cachedProperties);
+    public Map<Mapping, Object> getPropertiesForActiveNode () {
+        return treeProperties.get(activeNode);
     }
 
-    public void setPropertyValue (BeanProperty property, Object value) {
-        setPropertyValue(property, value, true);
+    /**
+     * Remove active entities from cache
+     */
+    public void discardActiveEntities () {
+        Optional.ofNullable(entities.get(activeNode))
+                .ifPresent(List::clear);
     }
 
-    public void setPropertyValue (BeanProperty property, Object value, boolean cache) {
-        current.getEntityProcessing().setPropertyValue(property, value);
-        log.debug("Set value %s for property %s".formatted(value, property));
-        if (cache) {
-            cachedProperties.put(property, value);
-        }
+    public List<EntityProcessing> getActiveEntities () {
+        return entities.computeIfAbsent(activeNode, k -> handler.getDefaultEntity(treeProperties.get(activeNode)));
     }
 
-    public boolean hasNext() {
-        return current != null && current.hasNext();
+    public void setActiveEntities (List<EntityProcessing> entities) {
+        this.entities.put(activeNode, entities);
     }
 
-    public void nextEntity () {
-        if (current != null && ! current.isPreFilled()) {
-            current = handler.clone(current.getEntity());
-        } else {
-            current = handler.getNextEntity();
-            cachedProperties.forEach((key, value) -> current.getEntityProcessing().setPropertyValue(
-                    key,
-                    value));
-
-        }
-        cached.add(current);
+    public List<EntityProcessing> dump () {
+        return entities.values().stream().flatMap(Collection::stream).toList();
     }
 
-    public void flush() {
-        while (hasNext()) {
-            nextEntity();
-        }
+    public void setPropertyValue (Mapping mapping, Object value) {
+        treeProperties.computeIfAbsent(activeNode, k -> new HashMap<>())
+                .put(mapping, value);
+    }
+
+    public EntityProcessing copy (EntityProcessing entity) {
+        return handler.clone(entity.getEntity());
     }
 }

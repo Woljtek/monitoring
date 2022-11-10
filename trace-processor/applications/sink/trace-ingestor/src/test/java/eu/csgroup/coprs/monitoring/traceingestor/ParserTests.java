@@ -4,6 +4,7 @@ import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.datamodel.EndTask;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.Parser;
+import eu.csgroup.coprs.monitoring.traceingestor.mapper.TreePropertyNode;
 import org.junit.Test;
 import org.springframework.beans.PropertyAccessorFactory;
 
@@ -85,7 +86,7 @@ public class ParserTests {
                 .hasSize(10)
                 .allMatch(node -> {
                             final var finalList = combination.stream()
-                                    .filter(list -> list.containsAll(node.getPaths()))
+                                    .filter(list -> list.containsAll(node.getNodes().stream().map(TreePropertyNode::getPath).toList()))
                                     .findFirst();
                             if (finalList.isPresent()) {
                                 combination.remove(finalList.get());

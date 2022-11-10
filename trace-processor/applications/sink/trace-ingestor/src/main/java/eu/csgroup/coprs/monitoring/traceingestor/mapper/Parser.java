@@ -18,7 +18,7 @@ public record Parser(List<Mapping> rules) {
     }
 
     public TreePropertyNode parse(Iterator<Mapping> iterator, BeanAccessor wrapper) {
-        final var tree = new TreePropertyNode();
+        final var tree = new TreePropertyNode("");
         while (iterator.hasNext()) {
             parse(tree, iterator.next(), wrapper);
         }
@@ -74,8 +74,10 @@ public record Parser(List<Mapping> rules) {
      */
     private void parsePropertyNode(TreePropertyNode tree, BeanAccessor wrapper, Mapping rule, BeanProperty beanProperty,  String rootPath, String[] splittedPropertyPath) {
         var currentPath = rootPath;
+        var stopParsing = false;
+        var index = 0;
 
-        for (int index = 0; index < splittedPropertyPath.length; index++) {
+        while (! stopParsing && index < splittedPropertyPath.length) {
             currentPath = PropertyUtil.getPath(currentPath, splittedPropertyPath[index]);
 
             try {
@@ -84,18 +86,31 @@ public record Parser(List<Mapping> rules) {
                 // End of the path reached; create leaf
                 if (!currentPath.isEmpty() && index == splittedPropertyPath.length - 1) {
                     createOrUpdateLeaf(tree, rule, beanProperty, object);
-                } else if (object instanceof final Collection<?> collection && ! collection.isEmpty()) {
+                } else if (object instanceof final Collection<?> collection) {
                     final var remainingSplittedPropertyPath = Arrays.copyOfRange(splittedPropertyPath, index + 1, splittedPropertyPath.length);
 
                     parsePropertyNode(tree, wrapper, rule, beanProperty, currentPath, remainingSplittedPropertyPath, collection);
-                    break;
-                } else if (object == null || object instanceof Collection<?>) {
-                    createOrUpdateLeaf(tree, rule, beanProperty, object);
+
+                    stopParsing = true;
+                } else if (object == null) {
+                    createOrUpdateLeaf(tree, rule, beanProperty, null);
                 }
             } catch (InvalidPropertyException e) {
-                // Exclude property where path does not match with bean tree
-                log.warn(e.getMessage());
+                if (! currentPath.matches(".*\\[[a-z0-9_]+\\].*")) {
+                    // Refer to a field that is not part of trace structure
+                    throw new InterruptedOperationException(
+                            "Path %s (%s) refer to a field that is not part of trace structure".formatted(currentPath, beanProperty)
+                            , e
+                    );
+                } else {
+                    // Exclude property where path does not match with bean tree
+                    log.warn(e.getMessage());
+
+                    stopParsing = true;
+                }
             }
+
+            index++;
         }
     }
 
@@ -124,7 +139,7 @@ public record Parser(List<Mapping> rules) {
             // Find a node which contains desired path
             var opTreeNode = tree.getNodes()
                     .stream()
-                    .filter(treeNode -> treeNode.getPaths().contains(currentPath))
+                    .filter(subNode -> subNode.getPath().equals(currentPath))
                     .findFirst();
 
 
@@ -147,17 +162,25 @@ public record Parser(List<Mapping> rules) {
                                 splittedPropertyPath
                         )
                 );
-            } else if (opTreeNode.isEmpty()) {
-                // Otherwise create new one
-                var treeNode = new TreePropertyNode();
-                treeNode.addPath(currentPath);
-                tree.addNode(treeNode);
+            } else {
+                TreePropertyNode treeNode;
+                if (opTreeNode.isEmpty()) {
+                    // Otherwise create new one
+                    treeNode = new TreePropertyNode(currentPath);
+                    tree.addNode(treeNode);
+                } else {
+                    treeNode = opTreeNode.get();
+                }
 
                 parsePropertyNode(treeNode, wrapper, rule, beanProperty, currentPath, splittedPropertyPath);
             }
         }
 
-        tree.addAllNode(newNodes);
+        if (node.isEmpty()) {
+            createOrUpdateLeaf(tree, rule, beanProperty, null);
+        } else {
+            tree.addAllNode(newNodes);
+        }
     }
 
     /**
@@ -180,13 +203,12 @@ public record Parser(List<Mapping> rules) {
         for (var treeNode : tree.getNodes()) {
             TreePropertyNode currentNode;
             if (duplicate) {
-                currentNode = treeNode.copy();
+                currentNode = treeNode.copy(rootPath);
                 // Don't add node directly to the tree otherwise it will be used for next index.
                 newNodes.add(currentNode);
             } else {
                 currentNode = treeNode;
             }
-            currentNode.addPath(rootPath);
 
             parsePropertyNode(currentNode, wrapper, rule, beanProperty, rootPath, splittedPropertyPath);
         }

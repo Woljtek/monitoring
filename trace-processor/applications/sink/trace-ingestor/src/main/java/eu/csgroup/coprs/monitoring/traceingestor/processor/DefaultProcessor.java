@@ -105,15 +105,15 @@ public record DefaultProcessor(
                 );
             }
 
-            final var requiredEntities = mapper.map(treePropertyValue, handler);
+            final var requiredEntities = mapper.map(beanPropDep, handler);
 
             log.debug("Number of available entities %s".formatted(availableEntities));
             log.debug("Number of required entities %s".formatted(requiredEntities));
 
             if (availableEntities.isEmpty()) {
-                handler.mergeWith(requiredEntities);
+                handler.setDefaultEntities(requiredEntities, beanPropDep);
             } else if (availableEntities.size() == requiredEntities.size()) {
-                handler.mergeWith(availableEntities);
+                handler.setDefaultEntities(availableEntities, beanPropDep);
             } else {
                 final var availableEntityValues = availableEntities.stream()
                         .collect(Collectors.toMap(
@@ -128,7 +128,7 @@ public record DefaultProcessor(
                         .map(entity -> getAvailableEntity(entity, beanPropDep, availableEntityValues, handler).orElse(entity))
                         .toList();
 
-                handler.mergeWith(requiredAndAvailableEntities);
+                handler.setDefaultEntities(requiredAndAvailableEntities, beanPropDep);
             }
         }
 

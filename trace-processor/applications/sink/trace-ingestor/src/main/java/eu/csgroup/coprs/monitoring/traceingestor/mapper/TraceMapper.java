@@ -5,104 +5,143 @@ import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.traceingestor.config.AliasWrapper;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.DefaultHandler;
-import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityDescriptor;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public record TraceMapper(BeanAccessor wrapper, String configurationName) {
     public List<EntityProcessing> map(List<Mapping> mappings, DefaultHandler handler) {
         final var tree = new Parser(mappings).parse(wrapper);
 
-        return map(tree, handler);
-    }
+        final var cache = new EntityCache(handler);
 
-    public List<EntityProcessing> map(TreePropertyNode tree, DefaultHandler handler) {
-        try {
-            var entityCache = new EntityCache(handler);
-            map(tree, entityCache);
+        map(tree, cache);
 
-            entityCache.flush();
-
-            return entityCache.getCached()
-                    .stream()
-                    .map(EntityDescriptor::getEntityProcessing)
-                    .toList();
-        } catch (InterruptedOperationException e) {
-            log.warn("", e);
-            return List.of();
-        }
+        return cache.dump();
     }
 
     private void map(TreePropertyNode tree, EntityCache entityCache) throws InterruptedOperationException {
-        final var propertyCache = new HashMap<BeanProperty, Object>();
+        entityCache.setActiveNode(tree);
 
-        for (var leaf : tree.getLeafs()) {
-            mapLeafs(leaf, entityCache, propertyCache);
+        try {
+            for (var leaf : tree.getLeafs()) {
+                mapLeafs(leaf, entityCache);
+            }
+
+            if (tree.getNodes() == null || tree.getNodes().isEmpty()) {
+                // Force calculation of entities to use even if there is no mapping
+                entityCache.getActiveEntities();
+
+                // Start creating entity for this branch
+                entityCache.getPropertiesForActiveNode()
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.groupingBy(entry -> entry.getKey().getTo()))
+                        .forEach((key, entry) -> populateEntities(entityCache, entry));
+            } else {
+                mapNodes(tree.getNodes(), entityCache);
+            }
+        } catch (InterruptedOperationException e) {
+            entityCache.discardActiveEntities();
         }
-
-        mapNodes(tree.getNodes(), entityCache, propertyCache);
     }
 
-    private void mapLeafs (TreePropertyLeaf leaf, EntityCache entityCache, Map<BeanProperty, Object> propertyCache) {
-        if (! leaf.getRule().isSetValueOnlyIfNull() || entityCache.getCurrent().getEntityProcessing().getPropertyValue(leaf.getRule().getTo()) == null) {
-            final var value = mapPropertyValue(leaf.getRule(), leaf.getRawValues());
+    private boolean isValueNotSet(Mapping mapping, List<EntityProcessing> entities) {
+        return entities.stream()
+                .findFirst()
+                .map(entity -> entity.getPropertyValue(mapping.getTo()))
+                .map(Objects::isNull)
+                .orElse(true);
+    }
 
-            // Do not set null property value to avoid non handled null value conversion
-            if (value != null) {
+    private void populateEntities (EntityCache entityCache, List<Map.Entry<Mapping, Object>> mappings) {
+        final var mappingsIt = mappings.iterator();
+        var initialEntities = entityCache.getActiveEntities();
+        List<EntityProcessing> populatedEntities = new ArrayList<>();
+
+        while (mappingsIt.hasNext()) {
+            final var entry = mappingsIt.next();
+
+            // Assume that all active entities are identical in terms of value set or not.
+            // If one entity has a value set for this field the others entity have also a value set for the same field.
+            if (! entry.getKey().isSetValueOnlyIfNull() || isValueNotSet(entry.getKey(), initialEntities)) {
                 try {
-                    entityCache.setPropertyValue(leaf.getRule().getTo(), value);
-                    propertyCache.put(leaf.getRule().getTo(), value);
+                    populatedEntities.addAll(populateEntitiesWithSingleValue(entityCache, entry.getKey(), entry.getValue(), initialEntities, false));
                 } catch (ConversionNotSupportedException e) {
-                    if (value instanceof final Collection<?> collection) {
-                        mapCollection(leaf, entityCache, collection);
+                    if (entry.getValue() instanceof final Collection<?> collection) {
+                        populatedEntities.addAll(populateEntitiesWithMultiValue(entityCache, entry.getKey(), collection, initialEntities));
                     } else {
                         throw e;
                     }
                 }
             } else {
-                log.warn("No value found for '%s' for configuration '%s'%n%s".formatted(leaf.getRule().getFrom(), configurationName, wrapper.getDelegate().getWrappedInstance()));
+                populatedEntities.addAll(initialEntities);
             }
+
+            initialEntities = populatedEntities;
+            populatedEntities = new ArrayList<>();
+        }
+
+        entityCache.setActiveEntities(initialEntities);
+    }
+
+    private List<EntityProcessing> populateEntitiesWithMultiValue (EntityCache entityCache, Mapping mapping, Collection<?> values, List<EntityProcessing> entities) {
+        final var result = new ArrayList<EntityProcessing>();
+        boolean duplicate = false;
+
+        if (! values.isEmpty()) {
+            for (Object value : values) {
+                result.addAll(populateEntitiesWithSingleValue(entityCache, mapping, value, entities, duplicate));
+
+                duplicate = true;
+            }
+        } else if (mapping.isRemoveEntityIfNull()) {
+            throw new InterruptedOperationException("Value for property %s can't be null".formatted(mapping.getTo().getRawPropertyPath()));
+        }
+
+        return result;
+    }
+
+    private List<EntityProcessing> populateEntitiesWithSingleValue (EntityCache entityCache, Mapping mapping, Object value, List<EntityProcessing> entities, boolean duplicate) {
+        final var entitiesIt = entities.iterator();
+        final var result = new ArrayList<EntityProcessing>();
+
+        while (entitiesIt.hasNext()) {
+            EntityProcessing entity;
+            if (duplicate) {
+                entity = entityCache.copy(entitiesIt.next());
+            } else {
+                entity =  entitiesIt.next();
+            }
+
+            entity.setPropertyValue(mapping.getTo(), value);
+            result.add(entity);
+        }
+        return result;
+    }
+
+    private void mapLeafs (TreePropertyLeaf leaf, EntityCache entityCache) {
+        final var value = mapPropertyValue(leaf.getRule(), leaf.getRawValues());
+
+        // Do not set null property value to avoid non handled null value conversion
+        if (value != null) {
+            entityCache.setPropertyValue(leaf.getRule(), value);
+        } else {
+            log.warn("No value found for '%s' for configuration '%s'%n%s".formatted(leaf.getRule().getFrom(), configurationName, wrapper.getDelegate().getWrappedInstance()));
         }
     }
 
-    private void mapNodes (List<TreePropertyNode> nodes, EntityCache entityCache, Map<BeanProperty, Object> propertyCache) {
-        final var nodeIt = nodes.iterator();
-        while (nodeIt.hasNext()) {
-            final var node = nodeIt.next();
-            map(node, new EntityCache(entityCache, propertyCache));
-
-            if (nodeIt.hasNext()) {
-                entityCache.nextEntity();
-            }
+    private void mapNodes (List<TreePropertyNode> nodes, EntityCache entityCache) {
+        for (TreePropertyNode node : nodes) {
+            map(node, entityCache);
         }
     }
 
-    private void mapCollection (TreePropertyLeaf leaf, EntityCache entityCache, Collection<?> collection) {
-        if (! collection.isEmpty()) {
-            final var collectionIt = collection.iterator();
-
-            while (collectionIt.hasNext()) {
-                final var singleValue = collectionIt.next();
-
-                // Do not set null property value and so create new entity
-                entityCache.setPropertyValue(leaf.getRule().getTo(), singleValue, false);
-
-                if (collectionIt.hasNext()) {
-                    entityCache.nextEntity();
-                }
-            }
-
-        } else if (leaf.getRule().isRemoveEntityIfNull()) {
-            throw new InterruptedOperationException("Value for property %s can't be null".formatted(leaf.getRule().getTo().getRawPropertyPath()));
-        }
-    }
-
-
-    public static Object mapPropertyValue(Mapping rule, Map<BeanProperty, Object> rawValues) throws InterruptedOperationException {
+    public static Object mapPropertyValue(Mapping rule, Map<BeanProperty, Object> rawValues) {
         checkInputs(rule, rawValues);
 
         // Key => alias
