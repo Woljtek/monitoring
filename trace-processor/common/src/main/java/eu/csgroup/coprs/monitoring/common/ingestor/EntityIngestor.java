@@ -28,33 +28,29 @@ public class EntityIngestor implements EntityFinder {
     public static final List<String> SQL_ARRAY_OPERATOR = List.of("ANY", "SOME", "ALL", "IN");
 
     public static final String RECURSIVE_DUPLICATE_QUERY = """
-            WITH RECURSIVE child_proc AS (
-                select
-                    distinct on (ol.processing_id) ol.processing_id as output_processing,
-                    cast(null as bigint) as input_product,
-                    ol.product_id as output_product
-                FROM
-                    processing
-                JOIN
-                    output_list ol on ol.processing_id  = processing.id
-                WHERE
-                    %s and processing.duplicate = false
-                UNION
-                    select
-                        distinct on (ili.processing_id) ili.processing_id as output_processing,
-                        child_proc.output_product as input_product,
-                        ol.product_id as output_product
+                WITH RECURSIVE duplicate_proc AS (
+                    SELECT
+                        DISTINCT processing.id AS id,
+                        processing.rs_chain_name
                     FROM
-                        child_proc
-                    join
-                        input_list_internal ili on ili.product_id = child_proc.output_product
-                    join
-                        output_list ol on ol.processing_id = ili.processing_id
-                    join
-                        processing p on p.id = ili.processing_id
-                    where
-                        p.duplicate = false
-            ) update processing set duplicate = true from child_proc where processing.id = child_proc.output_processing
+                        processing
+                    WHERE
+                        %s AND processing.duplicate = false
+                    UNION
+                        SELECT
+                            DISTINCT ili.processing_id AS id,
+                            p.rs_chain_name
+                        FROM
+                            duplicate_proc
+                        JOIN
+                            output_list ol ON ol.processing_id = duplicate_proc.id
+                        JOIN
+                            input_list_internal ili ON ili.product_id = ol.product_id
+                        JOIN
+                            processing p ON p.id = ili.processing_id
+                        WHERE
+                            p.duplicate = false
+                ) UPDATE processing SET duplicate = true FROM duplicate_proc WHERE processing.id = duplicate_proc.id
             """;
     public static final String BASE_PACKAGE = "eu.csgroup.coprs.monitoring.common.datamodel.entities";
 

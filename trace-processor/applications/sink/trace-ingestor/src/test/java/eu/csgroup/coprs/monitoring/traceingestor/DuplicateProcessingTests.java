@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -49,6 +50,7 @@ public class DuplicateProcessingTests {
     }
 
     @Test
+    //@Rollback(value = false)
     public void testChunkAsInputQuery () {
         // Given
         entityIngestor.process(this::getDataSet);
@@ -145,13 +147,14 @@ public class DuplicateProcessingTests {
         final var sink = conf.traceIngestor(factory, entityIngestor);
 
         final var input = List.of(
-                "l7-0"
+                "l6-0"
         );
 
         final var output = List.of(
-                "l8-0-bis"
+                "l7ab-0",
+                "l7-0"
         );
-        final var duplicateProc = List.of("l8", "l8-bis", "l9", "l9-bis");
+        final var duplicateProc = List.of("l7", "l8", "l8ab", "l9", "l9ab");
 
         final var processingRef = getProcessingRef("duplicate_processing", input, output);
         processingRef.getLog().getTrace().getHeader().setRsChainName("input_list_internal");
@@ -162,7 +165,7 @@ public class DuplicateProcessingTests {
         // Then
         assertThat(entityIngestor.findAll(Processing.class))
                 .filteredOn(Processing::isDuplicate)
-                .hasSize(4)
+                .hasSize(5)
                 .allMatch(proc -> duplicateProc.contains(proc.getRsChainName()));
     }
 
@@ -259,25 +262,21 @@ public class DuplicateProcessingTests {
             // Create second branch
             if (index > 7) {
                 var isolatedProcessing = new Processing();
-                isolatedProcessing.setRsChainName("l%s-bis".formatted(index));
+                isolatedProcessing.setRsChainName("l%sab".formatted(index));
                 isolatedProcessing.setProcessingDate(Instant.parse("2022-10-28T10:23:00.00Z"));
                 allEntities.add(isolatedProcessing);
 
-                if (intermediateInput.isEmpty()) {
-                    for (var inputProduct : nextInput) {
-                        allEntities.add(new InputListInternal(new InputListInternalId(isolatedProcessing, inputProduct)));
-                    }
-                } else {
-                    for (var inputProduct : intermediateInput) {
-                        allEntities.add(new InputListInternal(new InputListInternalId(isolatedProcessing, inputProduct)));
-                    }
+
+                for (var inputProduct : intermediateInput) {
+                    allEntities.add(new InputListInternal(new InputListInternalId(isolatedProcessing, inputProduct)));
                 }
+                intermediateInput.clear();
 
                 var random = new Random();
                 var outputNumber = random.nextInt(1,10);
                 for (var outputIndex = 0; outputIndex < outputNumber; outputIndex++) {
                     final var outputProduct = new Product();
-                    outputProduct.setFilename("l%s-%s-bis".formatted(index, outputIndex));
+                    outputProduct.setFilename("l%sab-%s".formatted(index, outputIndex));
                     allEntities.add(outputProduct);
                     intermediateInput.add(outputProduct);
 
@@ -298,6 +297,19 @@ public class DuplicateProcessingTests {
 
                 allEntities.add(new OutputList(new OutputListId(currentProcessing, outputProduct)));
 
+            }
+
+            if (index == 7) {
+                outputNumber = random.nextInt(1,10);
+                for (var outputIndex = 0; outputIndex < outputNumber; outputIndex++) {
+                    final var outputProduct = new Product();
+                    outputProduct.setFilename("l%sab-%s".formatted(index, outputIndex));
+                    allEntities.add(outputProduct);
+                    intermediateInput.add(outputProduct);
+
+                    allEntities.add(new OutputList(new OutputListId(currentProcessing, outputProduct)));
+
+                }
             }
         }
 
