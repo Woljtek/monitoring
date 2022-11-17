@@ -45,6 +45,7 @@ export const Panel: React.FC<Props> = ({
   );
 
   const { postgresDatasourceName } = options;
+  console.log("postgresDatasourceName", postgresDatasourceName, data)
   if (postgresDatasourceName === undefined) {
     throw new Error("'Front PostgreSQL Datasource' is not defined in Panel options");
   }
@@ -152,13 +153,13 @@ export const Panel: React.FC<Props> = ({
               <UnlinkInvalidationButton
                 disabled={!invalidationsAreSelected}
                 selectedRows={selectedRows}
-                table="invalidation"
+                table="invalidation_timeliness"
                 toggleAllRowsSelected={toggleAllRowsSelected}
               />
               <DeleteInvalidationButton
                 disabled={!invalidationsAreSelected}
                 selectedRows={selectedRows}
-                table="invalidation"
+                table="invalidation_timeliness"
                 toggleAllRowsSelected={toggleAllRowsSelected}
               />
             </HorizontalGroup>

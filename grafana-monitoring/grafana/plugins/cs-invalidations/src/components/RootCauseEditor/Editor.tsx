@@ -1,7 +1,7 @@
 import { StandardEditorProps } from '@grafana/data';
 import {
   Button,
-  CollapsableSection,
+
   // Field,
   // Collapse,
 
@@ -17,7 +17,7 @@ import {
   stylesFactory,
   VerticalGroup,
 } from '@grafana/ui';
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { css, cx } from 'emotion';
 import { DEFAULTVALUEROOTCAUSE, SELECTOPTIONSICONS } from './options';
@@ -27,9 +27,8 @@ interface Props extends StandardEditorProps<RootCauseEditorOptions[], RootCauseE
 
 const RootCauseEditor: React.FC<Props> = ({ value, onChange, item }) => {
   const styles = getStyles();
-  console.log("valueEdirotrootcause", value)
-  const [isOpen, setIsOpen] = useState(false); //Collapse
-  const impact = item.settings?.impact ? item.settings?.impact : '';
+  // const [isOpen, setIsOpen] = useState(false); //Collapse
+  // const impact = item.settings?.impact ? item.settings?.impact : '';
   const { control, handleSubmit, register } = useForm<any, FormDTO>({
     mode: 'onChange',
     defaultValues: {
@@ -55,44 +54,44 @@ const RootCauseEditor: React.FC<Props> = ({ value, onChange, item }) => {
     /*TODO we don't use the grafanaUI's FORM because it's not working with the 7.2 version, make the change in case of
           grafana update*/
     <div className={cx(styles.container)}>
-      <CollapsableSection label={impact} isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <VerticalGroup>
-            {fields && fields.map((item: any, index: number) => {
+      {/* <CollapsableSection label={impact} isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)}> */}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <VerticalGroup>
+          {fields && fields.map((item: any, index: number) => {
 
-              return (
-                <div key={item.id}>
-                  <VerticalGroup >
-                    <Label className={cx(styles.label)} description="Displayed name of invalidation in toolbox">
-                      Label
-                    </Label>
-                    {/* <Input required name={`rootCauses[${index}].label`} defaultValue={`${item.label}`} ref={register()} /> */}
-                    <Input
-                      required
-                      // placeholder="Roger Waters"
-                      // name={`rootCauses[${index}].label`}
-                      defaultValue={item.label}
-                      {...register(`rootCauses[${index}].label`)}
-                    />
-                    <Label className={cx(styles.label)} description="Short description of the invalidation">
-                      Description
-                    </Label>
-                    <Input
-                      // name={`rootCauses[${index}].description`}
-                      defaultValue={item.description}
-                      {...register(`rootCauses[${index}].description`)}
-                    />
+            return (
+              <div key={item.id}>
+                <VerticalGroup >
+                  <Label className={cx(styles.label)} description="Displayed name of invalidation in toolbox">
+                    Label
+                  </Label>
+                  {/* <Input required name={`rootCauses[${index}].label`} defaultValue={`${item.label}`} ref={register()} /> */}
+                  <Input
+                    required
+                    // placeholder="Roger Waters"
+                    // name={`rootCauses[${index}].label`}
+                    defaultValue={item.label}
+                    {...register(`rootCauses[${index}].label`)}
+                  />
+                  <Label className={cx(styles.label)} description="Short description of the invalidation">
+                    Description
+                  </Label>
+                  <Input
+                    // name={`rootCauses[${index}].description`}
+                    defaultValue={item.description}
+                    {...register(`rootCauses[${index}].description`)}
+                  />
 
-                    <Label className={cx(styles.label)} description="How invalidation will be stored in the datatabase">
-                      Value
-                    </Label>
-                    <Input required defaultValue={item.value} {...register(`rootCauses[${index}].value`)} />
+                  <Label className={cx(styles.label)} description="How invalidation will be stored in the datatabase">
+                    Value
+                  </Label>
+                  <Input required defaultValue={item.value} {...register(`rootCauses[${index}].value`)} />
 
-                    <Label className={cx(styles.label)} description="Icon of the invalidation in toolbox">
-                      Icon
-                    </Label>
+                  <Label className={cx(styles.label)} description="Icon of the invalidation in toolbox">
+                    Icon
+                  </Label>
 
-                    {/* <InputControl
+                  {/* <InputControl
                       name={`rootCauses[${index}].imgUrl`}
                       control={control}
                       rules={{
@@ -105,7 +104,7 @@ const RootCauseEditor: React.FC<Props> = ({ value, onChange, item }) => {
                       options={SELECTOPTIONSICONS}
                       as={Select}
                     /> */}
-                    {/* <InputControl
+                  {/* <InputControl
                       name={`rootCauses[${index}].imgUrl`}
                       control={control}
                       rules={{
@@ -116,63 +115,63 @@ const RootCauseEditor: React.FC<Props> = ({ value, onChange, item }) => {
 
 
                     /> */}
-                    <InputControl
-                      name={`rootCauses[${index}].imgUrl`}
+                  <InputControl
+                    name={`rootCauses[${index}].imgUrl`}
 
-                      control={control}
-                      rules={{
-                        required: false,
-                      }}
+                    control={control}
+                    rules={{
+                      required: false,
+                    }}
 
-                      defaultValue={item.imgUrl}
-                      render={({ field }) =>
-                        <Select
-                          {...field}
-                          options={SELECTOPTIONSICONS}
-                          onChange={(e) => field.onChange(e.imgUrl)}
-                        />}
+                    defaultValue={item.imgUrl}
+                    render={({ field }) =>
+                      <Select
+                        {...field}
+                        options={SELECTOPTIONSICONS}
+                        onChange={(e) => field.onChange(e.imgUrl)}
+                      />}
 
 
 
-                    />
-                    <Button
-                      className={cx(styles.ButtonTrash)}
-                      variant="destructive"
-                      icon="trash-alt"
-                      name="Delete"
-                      size="md"
-                      onClick={() => {
-                        remove(index);
-                      }}
-                    ></Button>
-                  </VerticalGroup>
-                </div>
-              );
-            })}
-          </VerticalGroup>
-          <VerticalGroup>
-            <HorizontalGroup className={cx(styles.label)}>
-              <Button
-                className={cx(styles.ButtonAppend)}
-                type="button"
-                onClick={() => {
-                  append({
-                    label: '',
-                    description: '',
-                    value: '',
-                    imgUrl: '',
-                  });
-                }}
-              >
-                append
-              </Button>
-              <Button className={cx(styles.ButtonValidate)} type="submit">
-                validate
-              </Button>
-            </HorizontalGroup>
-          </VerticalGroup>
-        </form>
-      </CollapsableSection>
+                  />
+                  <Button
+                    className={cx(styles.ButtonTrash)}
+                    variant="destructive"
+                    icon="trash-alt"
+                    name="Delete"
+                    size="md"
+                    onClick={() => {
+                      remove(index);
+                    }}
+                  ></Button>
+                </VerticalGroup>
+              </div>
+            );
+          })}
+        </VerticalGroup>
+        <VerticalGroup>
+          <HorizontalGroup className={cx(styles.label)}>
+            <Button
+              className={cx(styles.ButtonAppend)}
+              type="button"
+              onClick={() => {
+                append({
+                  label: '',
+                  description: '',
+                  value: '',
+                  imgUrl: '',
+                });
+              }}
+            >
+              append
+            </Button>
+            <Button className={cx(styles.ButtonValidate)} type="submit">
+              validate
+            </Button>
+          </HorizontalGroup>
+        </VerticalGroup>
+      </form>
+      {/* </CollapsableSection> */}
     </div>
   );
 };

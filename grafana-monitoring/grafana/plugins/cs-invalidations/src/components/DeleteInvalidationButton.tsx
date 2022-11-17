@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Button, ConfirmModal } from '@grafana/ui';
 import { MutableDataFrame } from '@grafana/data';
 import { PanelContext } from 'SimplePanel';
-import { refresh, removeOrphanedInvalidation, unlinkInvalidations } from './utils';
+import { refresh, removeOrphanedInvalidation, removeOrphanedInvalidationTimeliness, unlinkInvalidations } from './utils';
 import { QueryContext } from './types';
 
 export const DeleteInvalidationButton = ({
@@ -24,7 +24,7 @@ export const DeleteInvalidationButton = ({
     setDeleteModaleIsVisible(true);
   };
   const inval_ids = selectedRows.fields.find(f => f.name === 'inval_id')?.values.toArray();
-
+  console.log("deleteinval", inval_ids, selectedRows.fields)
   return (
     <>
       <Button onClick={onDeleteClicked} disabled={disabled} icon="trash-alt">
@@ -37,7 +37,7 @@ export const DeleteInvalidationButton = ({
           <p>
             {`Are you sure you want to delete this invalidation?`}
             <br />
-            {`It will affect any other datatake linked to it!`}
+            {`It will affect any other product linked to it!`}
           </p>
         }
         confirmText="Delete"
@@ -45,11 +45,13 @@ export const DeleteInvalidationButton = ({
         onConfirm={() => {
           Promise.all(
             inval_ids?.map((id: any) =>
-              getProductsLinkedToInvalidation(queryContext, id, table).then(r =>
-                unlinkInvalidations(queryContext, r.data[0].rows.flat())
-              )
+              getProductsLinkedToInvalidation(queryContext, id, table).then(data => {
+                console.log("retour get ptoduct r", data)
+                unlinkInvalidations(queryContext, data?.data[0]?.fields[0]?.values?.buffer)
+              })
             ) || []
           )
+            .then(r => removeOrphanedInvalidationTimeliness(queryContext, table))
             .then(r => removeOrphanedInvalidation(queryContext, table))
             .then(r => toggleAllRowsSelected(false))
             .then(r => setDeleteModaleIsVisible(false))
@@ -62,7 +64,8 @@ export const DeleteInvalidationButton = ({
 };
 
 const getProductsLinkedToInvalidation = async (queryContext: QueryContext, inval_id: number, table: string) => {
-  const rawSql = `SELECT datatake_id FROM ${table} WHERE invalidation_id = ${inval_id}`;
+  const rawSql = `SELECT * FROM product INNER JOIN invalidation_timeliness ON product.id = ANY(product_ids) WHERE parent_id=${inval_id}`;
+  console.log("getProductsLinkedToInvalid", rawSql)
   const { dataSource, timeRange } = queryContext;
   return dataSource.query(rawSql, timeRange);
 };

@@ -1,4 +1,4 @@
-import React, { FC, useContext, useReducer, useState } from 'react';
+import React, { FC, useContext, useReducer, useState, useEffect } from 'react';
 import { MutableDataFrame, SelectableValue, TimeRange } from '@grafana/data';
 import {
   Button,
@@ -10,6 +10,7 @@ import {
   // Input,
   InputControl,
   Select,
+  stylesFactory,
   TimeRangeInput,
   VerticalGroup,
 } from '@grafana/ui';
@@ -17,7 +18,9 @@ import { PanelContext } from 'SimplePanel';
 import _ from 'lodash';
 // import { buildOptionsFromData, refresh } from './utils';
 import { QueryContext } from './types';
-import { buildOptionsFromData } from './utils';
+import { buildOptionsFromData, refresh } from './utils';
+import { css, cx } from 'emotion';
+
 
 const FormContext = React.createContext({});
 
@@ -32,19 +35,23 @@ interface Props {
 }
 
 export const InvalidationLinkEditor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
+  const styles = getStyles();
   const [options, setOptions] = useState<Array<SelectableValue<number>>>([]);
   const [value, setValue] = useState<SelectableValue<number>>({});
   const [optionIsInvalid, setOptionIsInvalid] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { dataSource, timeRange } = useContext(PanelContext);
   const queryContext = { dataSource, timeRange };
-  const datatakeDbIds = selectedRows.fields.find(f => f.name === 'datatake_db_id')?.values.toArray() || [];
 
-  // useEffect(() => {
-  //   getOptions({ dataSource, timeRange }).then(options => setOptions(options));
-  // }, [dataSource, timeRange]);
+  const productIds = selectedRows.fields.find(f => f.name === 'id')?.values.toArray() || [];
+
+  useEffect(() => {
+
+    getOptions({ dataSource, timeRange }).then(options => setOptions(options));
+  }, [dataSource, timeRange]);
 
   const createOption = (v: string) => {
+
     const value = parseInt(v, 10);
     if (isNaN(value)) {
       setOptionIsInvalid(true);
@@ -64,6 +71,7 @@ export const InvalidationLinkEditor: FC<Props> = ({ selectedRows, onClose, unSel
     }
   };
 
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   return (
     <Drawer
       title="Invalidation Link selection"
@@ -72,11 +80,12 @@ export const InvalidationLinkEditor: FC<Props> = ({ selectedRows, onClose, unSel
     >
       <div>
         <Form
-          onSubmit={(formData: FormDTO) =>
-            onSubmit(formData, queryContext, datatakeDbIds)
+          onSubmit={(formData: FormDTO) => {
+            onSubmit(formData, queryContext, productIds)
               .then(unSelect)
               .then(onClose)
-            // .then(refresh)
+              .then(refresh)
+          }
           }
         >
           {({ register, control }) => (
@@ -93,11 +102,13 @@ export const InvalidationLinkEditor: FC<Props> = ({ selectedRows, onClose, unSel
                   optionIsInvalid={optionIsInvalid}
                   errorMessage={errorMessage}
                 />
-                <CollapsableSection label="Advanced Invalidation list search" isOpen={false}>
-                  <InvalidationSearch onChange={setOptions} />
-                </CollapsableSection>
+                <VerticalGroup>
+                  <CollapsableSection className={cx(styles.collapse)} label="Advanced Invalidation list search" isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)}> </CollapsableSection>
+                  {isOpen ? <InvalidationSearch onChange={setOptions} /> : null}
+
+                </VerticalGroup>
                 <HorizontalGroup>
-                  <Button variant="primary">Link</Button>
+                  <Button type='submit' variant="primary">Link</Button>
                   <Button
                     variant="secondary"
                     onClick={e => {
@@ -117,11 +128,14 @@ export const InvalidationLinkEditor: FC<Props> = ({ selectedRows, onClose, unSel
   );
 };
 
-const onSubmit = async (formData: FormDTO, queryContext: QueryContext, datatakeDbIds: number[]) => {
+const onSubmit = async (formData: FormDTO, queryContext: QueryContext, productIds: number[]) => {
+
   const { invalidationId } = formData;
-  const table = 'planned_datatake';
-  const datatakeIds = datatakeDbIds.join(',');
-  const rawSql = `UPDATE ${table} set invalidation_id = ${invalidationId.value} WHERE datatake_id IN(${datatakeIds})`;
+  // const table = 'invalidation_timeliness';
+  // const datatakeIds = productIds.join(',');
+  const rawSql = `INSERT INTO invalidation_timeliness (parent_id,product_ids)values(${invalidationId},'{${productIds}}') `
+  // const rawSql = `UPDATE invalidation_timeliness SET product_ids =  array_cat(product_ids,'{${productIds}}') WHERE parent_id = ${invalidationId}`;
+  console.log("rawSqllinkEditor", rawSql)
   const { dataSource, timeRange } = queryContext;
   return dataSource.query(rawSql, timeRange);
 };
@@ -150,6 +164,7 @@ const InvalidationSelect = ({
       label="Invalidation ID"
       invalid={optionIsInvalid}
       error={errorMessage}
+
     /* By default Form component assumes form elements are uncontrolled .
     There are some components like RadioButton or Select that are controlled-only and require some extra work.
     To make them work with the form, you need to render those using InputControl component */
@@ -172,13 +187,14 @@ const InvalidationSelect = ({
         <InputControl
           name="invalidationId"
 
-
+          defaultValue={value}
           control={control}
           rules={{
             required: false,
           }}
 
-          render={({ field }: any) => <Select {...field} onCreateOption={onCreateOption} options={options} defaultValue={value as any} onChange={([v]: any) => onChange(v)} />}
+          render={({ field }) => <Select  {...field} width={50} allowCustomValue defaultValue={value}
+            onCreateOption={onCreateOption} options={options} onChange={(e) => field.onChange(e.value)} />}
 
 
         />}
@@ -256,26 +272,23 @@ interface BuildQueryProps {
 }
 
 const buildQuery = ({ timeRange }: BuildQueryProps) => {
-  const { from: fromDate, to: toDate } = timeRange;
-  const from = fromDate.toISOString();
-  const to = toDate.toISOString();
-  const table = 'planned_datatake';
+  // const { from: fromDate, to: toDate } = timeRange;
+  // const from = fromDate.toISOString();
+  // const to = toDate.toISOString();
+  // const table = 'invalidation';
   const query = `
       SELECT id AS value, id AS label, comment AS description FROM invalidation
-      WHERE update_date  BETWEEN '${from}' AND '${to}' AND origin_table = '${table}' ORDER BY id
     `;
   return query;
 };
 
 const getInvalidationFromId = async (queryContext: QueryContext, id: number) => {
   const { dataSource, timeRange } = queryContext;
-  const origin_table = 'planned_datatake';
+
   const rawSql = `
-      SELECT id AS value, id AS label, comment AS description FROM invalidation
-      WHERE id = ${id}
-      AND origin_table = '${origin_table}'
-      ORDER BY id
+      SELECT id AS value, id AS label, comment AS description FROM invalidation  WHERE id = ${id} ORDER BY id 
     `;
+
   return dataSource
     .query(rawSql, timeRange)
     .then((data: any) => buildOptionsFromData(data))
@@ -287,3 +300,12 @@ const getInvalidationFromId = async (queryContext: QueryContext, id: number) => 
       }
     });
 };
+const getStyles = stylesFactory(() => {
+  return {
+    collapse: css`
+     width:'300px'
+     height:'15px'
+    `,
+
+  };
+});

@@ -7,7 +7,7 @@ interface Settings {
   datasourceType: 'postgres';
 }
 
-interface Props extends StandardEditorProps<string | string[], Settings> {}
+interface Props extends StandardEditorProps<string | string[], Settings> { }
 
 export const DatasourceSelectEditor: React.FC<Props> = ({ item, value, onChange }) => {
   const [options, setOptions] = useState([]);
@@ -24,5 +24,6 @@ export const DatasourceSelectEditor: React.FC<Props> = ({ item, value, onChange 
     )
     .then(options => setOptions(options));
 
-  return <Select<string> isLoading={false} value={value} onChange={e => onChange(e.value)} options={options} />;
+  console.log("optionsdatasource", options)
+  return <Select value={value} onChange={(e: any) => onChange(e.value)} options={options} />;
 };

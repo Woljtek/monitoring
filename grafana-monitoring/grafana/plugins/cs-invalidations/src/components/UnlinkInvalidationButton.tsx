@@ -1,10 +1,9 @@
 import React, { FC, useState, useContext } from 'react';
 import { Button, ConfirmModal } from '@grafana/ui';
 import { MutableDataFrame } from '@grafana/data';
-import { unlinkInvalidations, removeOrphanedInvalidation, refresh } from './utils';
+import { unlinkInvalidations, refresh, removeOrphanedInvalidation, removeOrphanedInvalidationTimeliness } from './utils';
 import { PanelContext } from 'SimplePanel';
-// import { PanelContext } from 'SimplePanel';
-// import { refresh, removeOrphanedInvalidation, unlinkInvalidations } from './utils';
+
 
 interface Props {
   disabled: boolean;
@@ -20,7 +19,7 @@ export const UnlinkInvalidationButton: FC<Props> = ({ disabled, selectedRows, ta
     e.preventDefault();
     setUnlinkModaleIsVisible(true);
   };
-  const datatakeDbIds = selectedRows.fields.find(f => f.name === 'datatake_db_id')?.values.toArray() || [];
+  const productIds = selectedRows.fields.find(f => f.name === 'id')?.values.toArray() || [];
   const queryContext = { dataSource, timeRange };
   return (
     <>
@@ -40,7 +39,8 @@ export const UnlinkInvalidationButton: FC<Props> = ({ disabled, selectedRows, ta
         confirmText="Unlink"
         icon="exclamation-triangle"
         onConfirm={() =>
-          unlinkInvalidations(queryContext, datatakeDbIds)
+          unlinkInvalidations(queryContext, productIds)
+            .then(r => removeOrphanedInvalidationTimeliness(queryContext, 'invalidation_timeliness'))
             .then(r => removeOrphanedInvalidation(queryContext, table))
             .then(r => toggleAllRowsSelected(false))
             .then(r => setUnlinkModaleIsVisible(false))

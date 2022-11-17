@@ -109,31 +109,39 @@ async function createInvalidation(formData: FormDTO, queryContext: QueryContext,
   //   return dataSource.query(rawSql, timeRange);
   // }
   // else {
-  datatakeDbIds.map(async (datatakeDbId: number) => {
+  // datatakeDbIds.map(async (datatakeDbId: number) => {
 
+  // let sql = ``;
+  // datatakeDbIds.map((datatakeDbId: number, index: number) => {
+  //   sql = sql +
+  //     `((select id from created_id),
+  //     ${datatakeDbId}),
+  //     `;
+  //   return datatakeDbId
+  // })
 
-    const rawSql =
-      // `with created_id as (
-      //     insert into invalidation (
-      //       responsibility,
-      //       label,
-      //       root_cause,
-      //       anomaly_identifier,
-      //       comment,
-      //       update_date)
-      //       values (
-      //        ${values.responsibility},
-      //        ${values.label},
-      //        ${values.rootCause}, 
-      //        ${values.anomalyIdentifier},
-      //        ${values.comment},
-      //        ${values.update_date})
-      //     returning id
-      //    )
-      //    update ${table} set parent_id=(select id from created_id),
-      //    product_id = (${datatakeDbIds[0]})
-      //    `;
-      `with created_id as (
+  const rawSql =
+    // `with created_id as (
+    //     insert into invalidation (
+    //       responsibility,
+    //       label,
+    //       root_cause,
+    //       anomaly_identifier,
+    //       comment,
+    //       update_date)
+    //       values (
+    //        ${values.responsibility},
+    //        ${values.label},
+    //        ${values.rootCause}, 
+    //        ${values.anomalyIdentifier},
+    //        ${values.comment},
+    //        ${values.update_date})
+    //     returning id
+    //    )
+    //    update ${table} set parent_id=(select id from created_id),
+    //    product_id = (${datatakeDbIds[0]})
+    //    `;
+    `with created_id as (
           insert into invalidation (
            responsibility,
            label,
@@ -152,30 +160,59 @@ async function createInvalidation(formData: FormDTO, queryContext: QueryContext,
         )
         insert into ${table} (
           parent_id,
-        product_id)
-        values (
-        (select id from created_id),
-         ${datatakeDbId}
-        )
+          product_ids)
+          values (
+          (select id from created_id),
+           '{${datatakeDbIds}}')
         `;
-    const { dataSource, timeRange } = queryContext;
-    return await dataSource.query(rawSql, timeRange);
-  })
+  // update ${table} set invalidation_id=(select id from created_invalidation_id) where ${table}.id IN(${sliceDbIds});
+
+  //   const essai = `with created_id as (
+  // insert into invalidation (
+  //    responsibility,
+  //    label,
+  //    root_cause,
+  //    anomaly_identifier,
+  //    comment,
+  //    update_date)
+  //    values (
+  //     'E2E',
+  //     'dsfsfd',
+  //     'MTI', 
+  //     8899,
+  //     'sdfdsf',
+  //     '2022-11-14T12:51:03.216Z')
+  //     returning id
+  // )
+  // insert into invalidation_timeliness (
+  //   parent_id,
+  //   product_ids
+  // )
+  // values 
+  // ((select id from created_id),$()),
+  // ((select id from created_id),2334);
+
+  console.log("requete", rawSql, datatakeDbIds)
+  const { dataSource, timeRange } = queryContext;
+  return dataSource.query(rawSql, timeRange);
+
+  // })
 }
 // }
 
 async function updateInvalidation(formData: FormDTO, queryContext: QueryContext, inval_id: number) {
   const nowUtc = dateTime().utc();
   const now = nowUtc.toISOString();
-
+  console.log("anomaliid", formData.anomalyIdentifier, typeof formData.anomalyIdentifier)
   const values = {
     responsibility: formData.responsibility ? `'${formData.responsibility.value}'` : null,
     rootCause: formData.rootCause ? `'${formData.rootCause.value}'` : null,
     comment: formData.comment ? `'${formData.comment.replace("'", "''")}'` : null,
     label: formData.label ? `'${formData.label.replace("'", "''")}'` : null,
-    anomalyIdentifier: formData.anomalyIdentifier !== 0 ? formData.anomalyIdentifier : null,
+    anomalyIdentifier: formData.anomalyIdentifier > 0 ? formData.anomalyIdentifier : null,
     update_date: `'${now}'`,
   };
+
   const rawSql = `update invalidation
        set responsibility = ${values.responsibility},
        root_cause = ${values.rootCause},
@@ -184,7 +221,7 @@ async function updateInvalidation(formData: FormDTO, queryContext: QueryContext,
        anomaly_identifier = ${values.anomalyIdentifier},
        update_date = ${values.update_date}
        where id=${inval_id}`;
-
+  console.log("rawSqlUpdate", rawSql)
   const { dataSource, timeRange } = queryContext;
   return dataSource.query(rawSql, timeRange);
 }
@@ -206,19 +243,18 @@ export const Editor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
 
   const queryContext = { dataSource, timeRange };
   const defaultResponsibility = selectedRows.fields.find(f => f.name === 'responsibility')?.values.toArray()[0];
-  console.log(selectedRows.fields,)
   const defaultLabel = selectedRows.fields.find(f => f.name === 'label')?.values.toArray()[0];
   const defaultAnomalyIdentifier = selectedRows.fields.find(f => f.name === 'anomaly_identifier')?.values.toArray()[0];
   const [responsibility,] = React.useState<SelectableValue<EResponsibility>>(defaultResponsibility ?? emptyFormData.responsibility);
   const initialDefaultRootCause = selectedRows.fields.find(f => f.name === 'root_cause')?.values.toArray()[0];
   const [defaultRootCause] = React.useState<SelectableValue<string>>(initialDefaultRootCause ?? SELECTOPTIONS.TIMELINESS.rootCause.options[0]);
-  const [anomalyIdentifier] = React.useState<number>(defaultAnomalyIdentifier ?? 0);
+  const [anomalyIdentifier] = React.useState<number>(defaultAnomalyIdentifier);
   const [label] = React.useState(defaultLabel ?? "");
 
 
   // We take the first CAMS_ID available (assuming that modification will be allowed when only one DT would be selected anyway)
   // const defaultCAMSId = selectedRows.fields.find(f => f.name === 'CAMS_ID')?.values.get(0);
-  console.log("slectedRow", selectedRows)
+
   const datatakeDbIds = selectedRows.fields.find(f => f.name === 'id')?.values.toArray();
   if (!datatakeDbIds) {
     throw new Error('`id` column not found in data');
@@ -231,7 +267,7 @@ export const Editor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
   const defaultComment = selectedRows.fields.find(f => f.name === 'comment')?.values.toArray()[0];
   const [comment] = React.useState(defaultComment ?? "");
   const { rootCause } = React.useContext(SelectContext);
-  console.log("rootCause", rootCause)
+
   // const initialDefaultRootCause = selectedRows.fields
   //   .find(f => f.name === 'root_cause')
   //   ?.values.toArray()[0]
@@ -250,19 +286,17 @@ export const Editor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
   // const { rootCause } = React.useContext(SelectContext);
   const confirmUpdateCallback = useCallback(
     (formData: FormDTO) => {
-      console.log("formData", formData);
       setConfirmUpdate(true);
       setConfirmData(formData);
     },
     [setConfirmUpdate, setConfirmData]
   );
-  console.log("submit", queryContext, defaultInval_id, datatakeDbIds)
+
   return (
     <div className={cx(styles.wrapper)}>
       <Drawer title="Invalidation edition" subtitle="Create or Modify an invalidation" onClose={onClose}>
         <Form
           onSubmit={(formData: FormDTO) => {
-            console.log("submitformData", formData)
             onSubmit(formData, queryContext, defaultInval_id, datatakeDbIds, confirmUpdateCallback)
               .then(unSelect)
               .then(onClose)
@@ -280,7 +314,7 @@ export const Editor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
                       name="responsibility"
                       control={control}
                       rules={{
-                        required: false,
+                        required: true,
                       }}
                       defaultValue={responsibility}
                       // defaultValue={value}
@@ -298,7 +332,7 @@ export const Editor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
                 </FieldSet>
                 <FieldSet label="Invalidation label">
                   <Input
-
+                    required
                     //  onChange={setLabel}
                     defaultValue={label}
                     {...register('label', { required: true })}
@@ -311,8 +345,9 @@ export const Editor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
                 <FieldSet label="Invalidation properties">
                   {/* <SelectImpact defaultValue={defaultImpact} /> */}
                   {/* <SelectRootCause defaultValue={defaultRootCause} handleChange={setDefaultRootCause} /> */}
-                  <Field label="Invalidation label">
+                  <Field label="Anomaly identifier">
                     <Input
+                      required
                       type='number'
                       //  onChange={setLabel}
                       defaultValue={anomalyIdentifier}
@@ -331,9 +366,7 @@ export const Editor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
 
                       control={control}
                       rules={{ required: true }}
-                      defaultValue={rootCause.options.find(o => o.value === (defaultRootCause === null ? rootCause.value : defaultRootCause))
-                        ? rootCause.options.find(o => o.value === (defaultRootCause === null ? rootCause.value : defaultRootCause))
-                        : ''}
+                      defaultValue={defaultRootCause}
                       // defaultValue={value}
                       render={({ field: { onChange, onBlur, value, name, ref } }) => (
                         <Select

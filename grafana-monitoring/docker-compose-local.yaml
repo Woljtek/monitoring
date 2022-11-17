@@ -27,7 +27,7 @@ services:
     container_name: grafana
     volumes:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini
-      - ./grafana/plugins/invalidations:/var/lib/grafana/plugins/invalidations
+      - ./grafana/plugins/cs-invalidations:/var/lib/grafana/plugins/cs-invalidations
       - ./grafana/plugins/queue-error-management:/var/lib/grafana/plugins/queue-error-management
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/etc/dashboards

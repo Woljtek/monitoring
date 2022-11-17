@@ -25,7 +25,7 @@ export function SelectCategory({
           required: false,
         }}
         // defaultValue={value}
-        render={({ field }) => <Select {...field} options={CATEGORYOPTIONS} value={value} onChange={([v]: any) => { console.log("handlechange", v); handleChange(v.value) }} />}
+        render={({ field }) => <Select {...field} options={CATEGORYOPTIONS} value={value} onChange={([v]: any) => { handleChange(v.value) }} />}
 
 
       />
