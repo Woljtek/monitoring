@@ -30,8 +30,6 @@ public class MissingProducts implements DefaultEntity {
 
     private Integer estimatedCount;
 
-    private boolean duplicate;
-
     private boolean endToEndProduct;
 
 

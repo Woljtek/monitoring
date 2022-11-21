@@ -138,7 +138,6 @@ public class EntityTest {
         missingProducts.setProcessing(getProcessing());
         missingProducts.setProductMetadataCustom(new AutoMergeableMap());
         missingProducts.setEstimatedCount(10);
-        missingProducts.setDuplicate(false);
         missingProducts.setEndToEndProduct(false);
 
         final var allArgsConstructor = new MissingProducts(
@@ -146,7 +145,6 @@ public class EntityTest {
                 getProcessing(),
                 new AutoMergeableMap(),
                 10,
-                false,
                 false
         );
 
@@ -226,7 +224,6 @@ public class EntityTest {
                 "Timeliness name",
                 10,
                 false,
-                false,
                 Instant.parse("2022-10-13T10:23:59.00Z"),
                 Instant.parse("2022-10-14T10:23:59.00Z"),
                 Instant.parse("2022-10-15T10:23:59.00Z"),
@@ -295,7 +292,6 @@ public class EntityTest {
         product.setTimelinessName("Timeliness name");
         product.setTimelinessValueSeconds(10);
         product.setEndToEndProduct(false);
-        product.setDuplicate(false);
         product.setT0PdgsDate(Instant.parse("2022-10-13T10:23:59.00Z"));
         product.setGenerationBeginDate(Instant.parse("2022-10-14T10:23:59.00Z"));
         product.setGenerationEndDate(Instant.parse("2022-10-15T10:23:59.00Z"));

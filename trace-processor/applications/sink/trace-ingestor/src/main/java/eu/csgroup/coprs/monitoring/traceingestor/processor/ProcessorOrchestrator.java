@@ -166,7 +166,12 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
             while(matcher.find()) {
                 final var rawPath = matcher.group(1);
 
-                values.add(getValueForDuplicateProcess(initialQuery, matcher.group(0), rawPath, processedEntities));
+                final var value = getValueForDuplicateProcess(initialQuery, matcher.group(0), rawPath, processedEntities);
+                if (value.isEmpty()) {
+                    log.warn("Cancel duplicate processing because all conditions are not met (no value found or null value for %s)".formatted(rawPath));
+                    return;
+                }
+                values.add(value);
 
                 inputQuery = inputQuery.replace(matcher.group(0), "?" + index++);
 
@@ -211,6 +216,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                     .flatMap(List::stream)
                     .map(entityProcessing -> BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(entityProcessing.getEntity())))
                     .map(bean -> bean.getPropertyValue(new BeanProperty(rawPath)))
+                    .filter(Objects::nonNull)
                     .toList();
     }
 }

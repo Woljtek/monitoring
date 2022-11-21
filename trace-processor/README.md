@@ -366,6 +366,7 @@ duplicate_processings:
   - query: processing.id in (select ili.processing_id from input_list_internal ili where ili.product_id in <input_product.id>)
     rules:
       log.trace.header.rs_chain_name: l1c|l1ab|l2
+  - query: processing.id in (select ol.processing_id from output_list ol where ol.product_id in <output_product.id>)
 ```
 
 | input_product                                | rs_chain_name | output_product                               |
@@ -385,6 +386,7 @@ duplicate_processings:
 Available queries are:
 - processing.id in (select ile.processing_id from input_list_external ile where ile.external_input_id in <chunk.id,dsib.id>)
 - processing.id in (select ili.processing_id from input_list_internal ili where ili.product_id in <input_product.id>)
+- processing.id in (select ol.processing_id from output_list ol where ol.product_id in <output_product.id>)
 
 In listed queries, 'input_product' is the alias to identify product used as input of the processing (see [alias](#alias) for further details).
 

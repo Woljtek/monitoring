@@ -14,6 +14,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.messaging.Message;
 
+import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Consumer;
@@ -34,7 +35,8 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
 
     @Override
     public void accept(Message<FilteredTrace> message) {
-        final Instant start = Instant.now();
+        final var mxBean = ManagementFactory.getThreadMXBean();
+        long cpuTimeStart = mxBean.getThreadCpuTime(Thread.currentThread().getId());
 
         final var filteredTrace = message.getPayload();
         // Find mapping associated to filter name
@@ -51,11 +53,13 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
             final var ingestionConfig = ingestionStrategy.get();
             ingest(filteredTrace.getLog(), ingestionConfig);
 
-            final var duration = Duration.between(start, Instant.now());
-            try (MDC.MDCCloseable ignored = MDC.putCloseable("log_param", ",\"ingestion_duration_in_ms\":%s".formatted(duration.toMillis()))) {
+            final var cpuTimedurationNs = mxBean.getThreadCpuTime(Thread.currentThread().getId()) - cpuTimeStart;
+            try (
+                    MDC.MDCCloseable ignored = MDC.putCloseable("log_param", ",\"ingestion_duration_in_ms\":%s".formatted(cpuTimedurationNs/1000000))
+            ) {
                 log.info("Trace ingestion with configuration '%s' done (took %s ms)%n%s".formatted(
                         ingestionConfig.getName(),
-                        duration.toMillis(),
+                        cpuTimedurationNs/1000000,
                         filteredTrace.getLog()));
             }
         }
