@@ -4,6 +4,7 @@ package eu.csgroup.coprs.monitoring.tracefilter;
 import java.util.List;
 import java.util.function.Function;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
 import eu.csgroup.coprs.monitoring.common.message.FilteredTrace;
 import eu.csgroup.coprs.monitoring.tracefilter.json.JsonValidator;
@@ -25,6 +26,7 @@ public class TraceFilterConfiguration {
     public ObjectMapper traceMapper () {
         return JsonMapper.builder()
                 .findAndAddModules()
+                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
                 .build();
     }
 

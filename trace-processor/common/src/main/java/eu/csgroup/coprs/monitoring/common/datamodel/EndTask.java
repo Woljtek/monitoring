@@ -3,7 +3,7 @@ package eu.csgroup.coprs.monitoring.common.datamodel;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Map;
 

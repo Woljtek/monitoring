@@ -1,6 +1,6 @@
 package eu.csgroup.coprs.monitoring.tracefilter.json;
 
-import jakarta.validation.ConstraintViolation;
+import javax.validation.ConstraintViolation;
 import java.util.Set;
 
 public class JsonValidationException extends Exception {
