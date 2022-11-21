@@ -56,7 +56,7 @@ Below are all the dependecies used during runtime and their respective licence.
 
 - common
   - eu.csgroup.coprs.monitoring:common
-    - Version: 1.3.0
+    - Version: 1.4.0
     - Licence: [Apache License 2.0](https://github.com/COPRS/monitoring/blob/release/1.3.0/LICENSE)
     - Source: https://github.com/COPRS/monitoring/tree/release/1.3.0
 
@@ -152,7 +152,7 @@ Below are all the dependecies used during runtime and their respective licence.
     
 - hibernate-validator
   - org.hibernate.validator:hibernate-validator
-    - Version: 8.0.0.Final
+    - Version: 6.2.5.Final
     - Licence: [Apache License 2.0](https://github.com/hibernate/hibernate-validator/blob/8.0.0.Final/license.txt)
     - Source: https://github.com/hibernate/hibernate-validator/tree/8.0.0.Final
     
@@ -200,9 +200,9 @@ Below are all the dependecies used during runtime and their respective licence.
 
 - jackson-datatype-jdk8
   - com.fasterxml.jackson.datatype:jackson-datatype-jdk8
-    - Version: 2.13.3
-    - Licence: [Apache License 2.0](https://github.com/FasterXML/jackson-modules-java8/blob/jackson-modules-java8-2.13.3/LICENSE)
-    - Source: https://github.com/FasterXML/jackson-modules-java8/tree/jackson-modules-java8-2.13.3
+    - Version: 2.13.4
+    - Licence: [Apache License 2.0](https://github.com/FasterXML/jackson-modules-java8/blob/jackson-modules-java8-2.13.4/LICENSE)
+    - Source: https://github.com/FasterXML/jackson-modules-java8/tree/jackson-modules-java8-2.13.4
 
 - jackson-datatype-jsr310
   - com.fasterxml.jackson.datatype:jackson-datatype-jsr310
@@ -254,7 +254,7 @@ Below are all the dependecies used during runtime and their respective licence.
 
 - jakarta.validation-api
   - jakarta.validation:jakarta.validation-api
-    - Version: 3.0.2
+    - Version: 2.0.2
     - Licence: [Apache License 2.0](https://github.com/jakartaee/validation/blob/3.0.2/license.txt)
     - Source: https://github.com/jakartaee/validation/tree/3.0.2
 
@@ -323,6 +323,7 @@ Below are all the dependecies used during runtime and their respective licence.
     - Version: 3.1.2
     - Licence: [Apache License 2.0](https://github.com/apache/kafka/blob/3.1.2/LICENSE)
     - Source: https://github.com/apache/kafka/tree/3.1.2/metadata/src
+
 - kafka-raft
   - org.apache.kafka:kafka-raft
     - Version: 3.1.2

@@ -12,12 +12,16 @@ spring:
         bindings:
           trace-ingestor-in-0: input
           trace-ingestor-out-0: output
+  jackson:
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
   # Define Data source access to store notification definitions and templates
   datasource:
     driverClassName: org.postgresql.Driver
   ## Hibernate Properties
   # The SQL dialect makes Hibernate generate better SQL for the chosen database
   jpa:
+    open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     ## This is important
     # Hibernate ddl auto (create, create-drop, validate, update)
