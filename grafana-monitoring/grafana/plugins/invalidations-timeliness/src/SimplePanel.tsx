@@ -9,7 +9,7 @@ import { UnlinkInvalidationButton } from 'components/UnlinkInvalidationButton';
 import { css, cx } from 'emotion';
 import { InvalidationLinkEditor } from 'components/InvalidationLinkEditor';
 import { DataSource } from 'components/utils';
-import { DatasourceSelectEditor, optionsDataSource } from 'components/DatasourceSelectEditor';
+
 
 interface PanelContextProps {
   timeRange: TimeRange;
@@ -45,8 +45,8 @@ export const Panel: React.FC<Props> = ({
     () => (value?: boolean | undefined) => { }
   );
 
-  const postgresDatasourceName = optionsDataSource[0].value;
-  console.log("datasource", options, postgresDatasourceName, DatasourceSelectEditor)
+  const postgresDatasourceName = 'PostgreSQL';
+
   if (postgresDatasourceName === undefined) {
     throw new Error("'Front PostgreSQL Datasource' is not defined in Panel options");
   }
