@@ -11,6 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 > - **Fixed** for any bug fixes.
 > - **Security** in case of vulnerabilities.
 
+## [1.4.0-rc1] - 2022-11-23
+### Added
+- [#484 - [RS core Monitoring] Handle duplicate production RULE n°3 (PRODUCT contamination)](https://github.com/COPRS/rs-issues/issues/484)
+- [#485 - [RS core Monitoring] Handle duplicate production RULE n°4 (PROCESSING contamination)](https://github.com/COPRS/rs-issues/issues/485)
+
 ## [1.3.0-rc1] - 2022-10-26
 ### Added
 - [#483 - [RS core Monitoring] Handle duplicate production RULE n°2 (same PRODUCT input)](https://github.com/COPRS/rs-issues/issues/483)
