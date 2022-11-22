@@ -11,11 +11,11 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=trace
-      - REPMGR_PASSWORD=repmgrpassword
-      - REPMGR_PRIMARY_HOST=postgresql
-      - REPMGR_NODE_NETWORK_NAME=postgresql
-      - REPMGR_NODE_NAME=postgresql-0
-      - REPMGR_PARTNER_NODES=postgresql
+      # - REPMGR_PASSWORD=repmgrpassword
+      # - REPMGR_PRIMARY_HOST=postgresql
+      # - REPMGR_NODE_NETWORK_NAME=postgresql
+      # - REPMGR_NODE_NAME=postgresql-0
+      # - REPMGR_PARTNER_NODES=postgresql
     # networks:
     #   s1pdgs:
     #     ipv4_address: 172.16.238.60
@@ -27,8 +27,9 @@ services:
     container_name: grafana
     volumes:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini
-      - ./grafana/plugins/cs-invalidations:/var/lib/grafana/plugins/cs-invalidations
-      - ./grafana/plugins/queue-error-management:/var/lib/grafana/plugins/queue-error-management
+      # - ./grafana/plugins/queue-error-management:/var/lib/grafana/plugins/queue-error-management
+      - ./grafana/plugins/invalidations-timeliness:/var/lib/grafana/plugins/invalidations-timeliness
+      - ./grafana/plugins/invalidations-completeness:/var/lib/grafana/plugins/invalidations-completeness
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/etc/dashboards
 
