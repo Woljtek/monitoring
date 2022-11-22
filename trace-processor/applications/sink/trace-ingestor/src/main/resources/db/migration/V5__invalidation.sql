@@ -1,5 +1,5 @@
 CREATE TYPE responsibility AS ENUM
-(
+    (
     'PDGS',
     'E2E'
 );
@@ -18,19 +18,19 @@ CREATE TABLE invalidation
 CREATE TABLE invalidation_timeliness
 (
     parent_id bigint NOT NULL REFERENCES invalidation(id) ON DELETE CASCADE,
-    product_id bigint NOT NULL REFERENCES product(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    product_ids bigint[],
     PRIMARY KEY (parent_id)
 );
 
 CREATE TABLE invalidation_completeness
 (
     parent_id bigint NOT NULL REFERENCES invalidation(id) ON DELETE CASCADE,
-    missing_products_id bigint NOT NULL REFERENCES missing_products(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    missing_products_ids bigint[],
     PRIMARY KEY (parent_id)
 );
 
 CREATE  FUNCTION invalidation_update()
-RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS $$
 BEGIN
     NEW.update_date = now();
 RETURN NEW;
@@ -42,4 +42,4 @@ CREATE TRIGGER invalidation_update_trigger
     ON
         invalidation
     FOR EACH ROW
-EXECUTE PROCEDURE invalidation_update();
+    EXECUTE PROCEDURE invalidation_update();
