@@ -74,7 +74,7 @@ data:
           log.trace.task.event: END
           log.trace.task.status: OK
       -
-        name: JobProcessing_Product-mutliOutput
+        name: JobProcessing_Product-multiOutput
         rules:
           log.trace.task.name: JobProcessing
           log.trace.task.event: END
@@ -90,7 +90,7 @@ data:
           log.trace.header.rs_chain_name: S3-L0P
           log.trace.task.output[filename_string]: .+
       -
-        name: JobProcessing_Product-NOK
+        name: JobProcessing_Product-onlyMissingOutput
         rules:
           log.trace.task.name: JobProcessing
           log.trace.task.event: END

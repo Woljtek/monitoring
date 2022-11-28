@@ -136,7 +136,7 @@ data:
             action: SUBSTRACT al1 al2
             to: product.catalog_storage_begin_date
       -
-        name: JobProcessing_Product-mutliOutput
+        name: JobProcessing_Product-multiOutput
         mappings:
           - from: log.trace.task.input[filename_strings]
             action: MATCH DCS_.+?_DSIB\.xml$
@@ -272,7 +272,7 @@ data:
         duplicate_processings:
           - query: processing.id in (select ol.processing_id from output_list ol where ol.product_id in <output_product.id>) and processing.rs_chain_name = <processing.rs_chain_name> and processing.rs_chain_version = <processing.rs_chain_version>
       -
-        name: JobProcessing_Product-NOK
+        name: JobProcessing_Product-onlyMissingOutput
         mappings:
           - from: log.trace.task.input[filename_strings]
             action: MATCH DCS_.+?_DSIB\.xml$
@@ -290,7 +290,7 @@ data:
           - from: log.trace.header.mission
             to: aux_data.mission
           - from: log.trace.task.input[filename_strings]
-            action: FORMAT ^.+(?=.zip)|.+$ %1$s
+            action: FORMAT ^S[0-9][A-Z].+(?=.zip)$|^S[0-9][A-Z].+$ %1$s
             to: input_product.filename
           - from: log.trace.task.status
             to: processing.status
