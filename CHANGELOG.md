@@ -14,7 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ## [1.4.0-rc1] - 2022-11-23
 ### Added
 - [#484 - [RS core Monitoring] Handle duplicate production RULE n°3 (PRODUCT contamination)](https://github.com/COPRS/rs-issues/issues/484)
-- [#485 - [RS core Monitoring] Handle duplicate production RULE n°4 (PROCESSING contamination)](https://github.com/COPRS/rs-issues/issues/485)
+- [#485 - [RS core Monitoring] Handle duplicate production RULE n°4 (PROCESSING contamination)](https://github.com/COPRS/rs-issues/issues/485)client_golang
+### Fixed
+- Fix build of FINOPS services
 
 ## [1.3.0-rc1] - 2022-10-26
 ### Added
