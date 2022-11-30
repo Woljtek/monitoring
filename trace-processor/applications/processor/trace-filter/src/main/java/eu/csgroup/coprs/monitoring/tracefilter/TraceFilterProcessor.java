@@ -92,7 +92,7 @@ public class TraceFilterProcessor
      * @return Updated structure
      */
     public String undecorate (String dirtyJson) {
-        return dirtyJson.replace("\\\"", "\"")
+        return dirtyJson.replaceAll("\\\\*\"", "\"")
                 .replace("\"{", "{")
                 .replace("}\"", "}");
     }

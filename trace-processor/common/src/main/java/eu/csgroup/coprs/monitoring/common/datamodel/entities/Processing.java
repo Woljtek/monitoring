@@ -2,14 +2,12 @@
 package eu.csgroup.coprs.monitoring.common.datamodel.entities;
 
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import eu.csgroup.coprs.monitoring.common.datamodel.Status;
 import eu.csgroup.coprs.monitoring.common.datamodel.Level;
 import eu.csgroup.coprs.monitoring.common.datamodel.Workflow;
 import lombok.*;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 import javax.persistence.*;
 import java.io.Serial;

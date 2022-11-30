@@ -1,16 +1,16 @@
 <<<<<<< HEAD
 package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
-import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
-import eu.csgroup.coprs.monitoring.common.bean.InstantPropertyEditor;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityHelper;
+import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.PropertyAccessorFactory;
 
-import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 
 @RequiredArgsConstructor
@@ -19,42 +19,59 @@ public class DefaultHandler {
     @Getter
     private final Class<? extends DefaultEntity> entityClass;
 
-    private List<DefaultEntity> mergeableEntities;
+    private List<Mapping> entityMappingSelection;
+
+    private List<EntityProcessing> defaultEntities;
 
 
-    public void mergeWith(List<DefaultEntity> entities) {
-        mergeableEntities = new Vector<>(entities);
+    public EntityProcessing clone (DefaultEntity entity) {
+        final var clone = EntityHelper.copy(entity, true);
+
+        return EntityProcessing.fromEntity(clone);
     }
 
+    public List<EntityProcessing> getDefaultEntity(Map<Mapping, Object> entityMappingSelection) {
+        var selectedEntities = new ArrayList<EntityProcessing>();
 
-    public EntityDescriptor getNextEntity() {
-        final var entityDesc = new EntityDescriptor();
-
-        DefaultEntity entity;
-        if (mergeableEntities != null && ! mergeableEntities.isEmpty()) {
-            entity = mergeableEntities.remove(0);
-            entityDesc.setPreFilled(true);
-            entityDesc.setHasNext(! mergeableEntities.isEmpty());
+        if (defaultEntities == null || defaultEntities.isEmpty()) {
+            selectedEntities.add(
+                    EntityProcessing.fromEntity(
+                            createDefaultInstanceFor(entityClass)
+                    )
+            );
         } else {
-            // No more entity to merge with create default one
-            entity = getDefaultEntity();
+            final var selection = entityMappingSelection.entrySet()
+                    .stream()
+                    .filter(entry -> this.entityMappingSelection.contains(entry.getKey()))
+                    .toList();
+
+            if (selection.isEmpty()) {
+                selectedEntities.addAll(defaultEntities);
+            } else {
+                for (final var entry : selection) {
+
+                    var tempSelection = defaultEntities.stream()
+                            .filter(entity -> entry.getValue().equals(entity.getPropertyValue(entry.getKey().getTo())))
+                            .toList();
+
+                    // Attempt with array type
+                    if (tempSelection.isEmpty() && entry.getValue() instanceof Collection<?> collection) {
+                        tempSelection = defaultEntities.stream()
+                                .filter(entity -> collection.contains(entity.getPropertyValue(entry.getKey().getTo())))
+                                .toList();
+                    }
+
+                    selectedEntities.addAll(tempSelection);
+                }
+            }
         }
 
-        entityDesc.setBean(getWrapper(entity));
-
-        return entityDesc;
+        return selectedEntities;
     }
 
-    public EntityDescriptor clone (DefaultEntity entity) {
-        final var entityDesc = new EntityDescriptor();
-        final var clone = EntityHelper.copy(entity, true);
-        entityDesc.setBean(getWrapper(clone));
-
-        return entityDesc;
-    }
-
-    private DefaultEntity getDefaultEntity() {
-        return createDefaultInstanceFor(entityClass);
+    public void setDefaultEntities(List<EntityProcessing> defaultEntities, List<Mapping> entityMappingSelection) {
+        this.defaultEntities = defaultEntities;
+        this.entityMappingSelection = entityMappingSelection;
     }
 
     private <E> E createDefaultInstanceFor(Class<E> className) {
@@ -63,14 +80,6 @@ public class DefaultHandler {
         } catch (Exception e) {
             throw new EntityHandlerException("Unable to create default instance for class %s".formatted(className.getName()), e);
         }
-    }
-
-    public BeanAccessor getWrapper (DefaultEntity entity) {
-        var wrapper = PropertyAccessorFactory.forBeanPropertyAccess(entity);
-        wrapper.setAutoGrowNestedPaths(true);
-        wrapper.registerCustomEditor(Instant.class, new InstantPropertyEditor());
-
-        return new BeanAccessor(wrapper);
     }
 }
 ||||||| b8aeece

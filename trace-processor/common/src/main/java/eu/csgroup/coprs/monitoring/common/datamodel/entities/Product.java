@@ -46,8 +46,6 @@ public class Product implements DefaultEntity, Serializable {
 
     private boolean endToEndProduct;
 
-    private boolean duplicate;
-
     @Column(name = "t0_pdgs_date")
     private Instant t0PdgsDate;
 

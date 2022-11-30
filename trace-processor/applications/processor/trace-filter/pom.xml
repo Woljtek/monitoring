@@ -19,16 +19,6 @@
         <scdf.properties.classname>eu.csgroup.coprs.monitoring.tracefilter.TraceFilterProperties</scdf.properties.classname>
     </properties>
 
-    <dependencies>
-
-        <!-- Common -->
-
-        <!-- Logs -->
-
-        <!-- Tests -->
-
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>

@@ -15,6 +15,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.messaging.Message;
 
+import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Consumer;
@@ -35,7 +36,8 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
 
     @Override
     public void accept(Message<FilteredTrace> message) {
-        final Instant start = Instant.now();
+        final var mxBean = ManagementFactory.getThreadMXBean();
+        long cpuTimeStart = mxBean.getThreadCpuTime(Thread.currentThread().getId());
 
         final var filteredTrace = message.getPayload();
         // Find mapping associated to filter name
@@ -52,30 +54,33 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
             final var ingestionConfig = ingestionStrategy.get();
             ingest(filteredTrace.getLog(), ingestionConfig);
 
-            final var duration = Duration.between(start, Instant.now());
-            try (MDC.MDCCloseable ignored = MDC.putCloseable("log_param", ",\"ingestion_duration_in_ms\":%s".formatted(duration.toMillis()))) {
+            final var cpuTimedurationNs = mxBean.getThreadCpuTime(Thread.currentThread().getId()) - cpuTimeStart;
+            try (
+                    MDC.MDCCloseable ignored = MDC.putCloseable("log_param", ",\"ingestion_duration_in_ms\":%s".formatted(cpuTimedurationNs/1000000))
+            ) {
                 log.info("Trace ingestion with configuration '%s' done (took %s ms)%n%s".formatted(
                         ingestionConfig.getName(),
-                        duration.toMillis(),
+                        cpuTimedurationNs/1000000,
                         filteredTrace.getLog()));
             }
         }
     }
 
-    protected final void ingest(TraceLog traceLog, Ingestion mapping) {
-        // Create entity instance from trace instance based on mapping rules.
+    protected final void ingest(TraceLog traceLog, Ingestion ingestionConfig) {
+        // Create entity instance from trace instance based on ingestionConfig rules.
         try {
             final var beanAccessor = BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(traceLog));
 
-            final var processDescs = new DescriptorBuilder(mapping).build();
+            final var processDescs = new DescriptorBuilder(ingestionConfig).build();
 
             final var orchestrator = new ProcessorOrchestrator();
             orchestrator.setBeanAccessor(beanAccessor);
             orchestrator.setProcessorDescriptions(processDescs);
+            orchestrator.setIngestionConfig(ingestionConfig);
 
             entityIngestor.process(orchestrator);
         } catch (Exception e) {
-            final var errorMessage = "Error occurred ingesting trace with configuration '%s'%n%s: ".formatted(mapping.getName(), traceLog);
+            final var errorMessage = "Error occurred ingesting trace with configuration '%s'%n%s: ".formatted(ingestionConfig.getName(), traceLog);
             log.error(errorMessage, e);
             throw new IngestionException(errorMessage, e);
         }
