@@ -33,10 +33,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Change folder
-        run: |
-          cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
-
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
@@ -45,7 +41,9 @@ jobs:
           cache-dependency-path: 'grafana-monitoring/grafana/plugins/${{ matrix.component }}'
 
       - name: Install dependencies
-        run: yarn install --immutable --prefer-offline --modules-folder grafana-monitoring/grafana/plugins/${{ matrix.component }}
+        run: |
+          cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
+          yarn install --immutable --prefer-offline --modules-folder grafana-monitoring/grafana/plugins/${{ matrix.component }}
 
       #- name: Check types
       #  run: yarn typecheck
@@ -54,17 +52,21 @@ jobs:
       #  run: yarn lint
 
       - name: Build frontend
-        run: yarn build
+        run: |
+          cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
+          yarn build
 
       - name: Remove node_modules
         run: |
+          cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
           rm -rf node_modules
       
       - name: Zip plugins
         run: |
-          cd grafana-monitoring/grafana/plugins/
+          cd grafana-monitoring/grafana/plugins
           zip -qq -r ${{ matrix.component }}.zip ${{ matrix.component }}
       
       - name: Upload zipped plugins
         run: |
+          cd grafana-monitoring/grafana/plugins
           curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${{ matrix.component }}.zip" -X PUT "${REGISTRY_URL}/${{ matrix.component }}.zip"
