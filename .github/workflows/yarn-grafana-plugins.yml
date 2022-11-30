@@ -45,7 +45,7 @@ jobs:
           cache-dependency-path: 'grafana-monitoring/grafana/plugins/${{ matrix.component }}'
 
       - name: Install dependencies
-        run: yarn install --immutable --prefer-offline
+        run: yarn install --immutable --prefer-offline --modules-folder grafana-monitoring/grafana/plugins/${{ matrix.component }}
 
       - name: Check types
         run: yarn typecheck
