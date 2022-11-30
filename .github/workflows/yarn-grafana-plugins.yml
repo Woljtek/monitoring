@@ -1,0 +1,69 @@
+name: Yarn CI for Grafana plugins
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'develop'
+    paths:
+      - 'grafana-monitoring/**'
+      - '.github/workflows/yarn-grafana-plugins.yml'
+  pull_request:
+    branches:
+      - 'feature/**'
+      - 'develop'
+    paths:
+      - 'grafana-monitoring/**'
+      - '.github/workflows/yarn-grafana-plugins.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY_USER: ${{ secrets.CS_ARTIFACTORY_USER }}
+  REGISTRY_PWD: ${{ secrets.CS_ARTIFACTORY_PASSWORD }}
+  REGISTRY_BASE: artifactory.coprs.esa-copernicus.eu
+  REGISTRY_PROJECT: rs-zip
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: [invalidations-completeness, invalidations-timeliness]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      
+      - name: Change folder
+        run: |
+          cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
+
+      - name: Install dependencies
+        run: yarn install --immutable --prefer-offline
+
+      - name: Check types
+        run: yarn typecheck
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build frontend
+        run: yarn build
+
+      - name: Remove node_modules
+        run: |
+          rm -rf node_modules
+      
+      - name: Zip plugins
+        run: |
+          cd grafana-monitoring/grafana/plugins/
+          zip -qq -r ${{ matrix.component }}.zip ${{ matrix.component }}
+      
+      - name: Upload zipped plugins
+        run: |
+          curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${{ matrix.component }}.zip" -X PUT "${REGISTRY_URL}/${{ matrix.component }}.zip"
