@@ -45,12 +45,6 @@ jobs:
           cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
           yarn cache clean && yarn install && yarn cache clean && yarn add @grafana/toolkit@9.0.2 && yarn build
 
-      #- name: Check types
-      #  run: yarn typecheck
-
-      #- name: Lint
-      #  run: yarn lint
-
       - name: Remove node_modules
         run: |
           cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
@@ -61,7 +55,14 @@ jobs:
           cd grafana-monitoring/grafana/plugins
           zip -qq -r ${{ matrix.component }}.zip ${{ matrix.component }}
       
-      - name: Upload zipped plugins
+      - name: Upload zipped plugins in Artifactory
         run: |
           cd grafana-monitoring/grafana/plugins
-          curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${{ matrix.component }}.zip" -X PUT "${REGISTRY_BASE}/artifactory/${REGISTRY_PROJECT}/${{ matrix.component }}.zip"
+          curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${{ matrix.component }}.zip" -X PUT ""https://${REGISTRY_BASE}/artifactory/${REGISTRY_PROJECT}/monitoring/${{ matrix.component }}.zip"
+
+      - name: Upload zipped plugins in GH
+        uses: actions/upload-artifact@master
+        with:
+          name: grafana-plugin-${{ matrix.component }}
+          path: |
+            grafana-monitoring/grafana/plugins/${{ matrix.component }}.zip
