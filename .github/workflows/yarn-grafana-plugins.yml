@@ -33,6 +33,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Set environment variables
+        run: |
+          # TAG
+          GIT_TAG=${GITHUB_REF/refs\/tags\//}
+          echo "GIT_TAG=$GIT_TAG" >> $GITHUB_ENV
+          # ZIP Name
+          ZIP_NAME="${{ matrix.component }}_$GIT_TAG.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
@@ -53,16 +62,16 @@ jobs:
       - name: Zip plugins
         run: |
           cd grafana-monitoring/grafana/plugins
-          zip -qq -r ${{ matrix.component }}.zip ${{ matrix.component }}
+          zip -qq -r ${ZIP_NAME} ${{ matrix.component }}
 
       - name: Upload zipped plugins in GH
         uses: actions/upload-artifact@master
         with:
           name: grafana-plugin-${{ matrix.component }}
           path: |
-            grafana-monitoring/grafana/plugins/${{ matrix.component }}.zip
+            grafana-monitoring/grafana/plugins/${ZIP_NAME}
       
       - name: Upload zipped plugins in Artifactory
         run: |
           cd grafana-monitoring/grafana/plugins
-          curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${{ matrix.component }}.zip" -X PUT "https://${REGISTRY_BASE}/artifactory/${REGISTRY_PROJECT}/monitoring/${{ matrix.component }}.zip"
+          curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${ZIP_NAME}" -X PUT "https://${REGISTRY_BASE}/artifactory/${REGISTRY_PROJECT}/monitoring/${ZIP_NAME}"
