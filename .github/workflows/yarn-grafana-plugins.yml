@@ -64,4 +64,4 @@ jobs:
       - name: Upload zipped plugins
         run: |
           cd grafana-monitoring/grafana/plugins
-          curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${{ matrix.component }}.zip" -X PUT "${REGISTRY_URL}/${{ matrix.component }}.zip"
+          curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${{ matrix.component }}.zip" -X PUT "${REGISTRY_BASE}/artifactory/${REGISTRY_PROJECT}/${{ matrix.component }}.zip"
