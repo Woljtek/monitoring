@@ -74,7 +74,7 @@ jobs:
           path: |
             grafana-monitoring/grafana/plugins/${ZIP_NAME}
 
-      - Compute checksum
+      - name: Compute checksum
         run: |
           ARTIFACT_MD5_CHECKSUM=$(md5sum ${ZIP_NAME} | awk '{print $1}')
           ARTIFACT_SHA1_CHECKSUM=$(shasum -a 1 ${ZIP_NAME} | awk '{ print $1 }')
