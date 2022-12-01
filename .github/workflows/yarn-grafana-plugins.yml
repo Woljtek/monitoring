@@ -5,6 +5,8 @@ on:
     paths:
       - 'grafana-monitoring/**'
       - '.github/workflows/yarn-grafana-plugins.yml'
+    branches:
+      - 'feature/**'
     tags:
       - "[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
       - "[0-9]+.[0-9]+.[0-9]+"
