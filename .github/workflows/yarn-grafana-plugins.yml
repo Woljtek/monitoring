@@ -8,13 +8,13 @@ on:
     paths:
       - 'grafana-monitoring/**'
       - '.github/workflows/yarn-grafana-plugins.yml'
-  pull_request:
-    branches:
-      - 'feature/**'
-      - 'develop'
-    paths:
-      - 'grafana-monitoring/**'
-      - '.github/workflows/yarn-grafana-plugins.yml'
+  #pull_request:
+  #  branches:
+  #    - 'feature/**'
+  #    - 'develop'
+  #  paths:
+  #    - 'grafana-monitoring/**'
+  #    - '.github/workflows/yarn-grafana-plugins.yml'
   workflow_dispatch:
 
 env:
@@ -43,7 +43,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
-          yarn install --immutable --prefer-offline --modules-folder grafana-monitoring/grafana/plugins/${{ matrix.component }} && yarn build
+          yarn install --verbose --immutable --prefer-offline --modules-folder grafana-monitoring/grafana/plugins/${{ matrix.component }} && yarn build  --verbose
 
       #- name: Check types
       #  run: yarn typecheck
