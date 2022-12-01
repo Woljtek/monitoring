@@ -118,8 +118,8 @@ public record DefaultProcessor(
                 final var availableEntityValues = availableEntities.stream()
                         .collect(Collectors.toMap(
                                 entity -> beanPropDep.stream()
-                                            .map(rule -> entity.getPropertyValue(rule.getTo()))
-                                            .toList(),
+                                        .map(rule -> entity.getPropertyValue(rule.getTo()))
+                                        .toList(),
                                 entity -> entity)
                         );
 

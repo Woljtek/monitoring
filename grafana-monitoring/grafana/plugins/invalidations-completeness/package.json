@@ -1,0 +1,33 @@
+{
+  "name": "cs-group-invalidations-completeness",
+  "version": "1.0.0",
+  "description": "A panel to manage completeness invalidations",
+  "scripts": {
+    "build": "grafana-toolkit plugin:build",
+    "test": "grafana-toolkit plugin:test",
+    "dev": "grafana-toolkit plugin:dev",
+    "watch": "grafana-toolkit plugin:dev --watch",
+    "sign": "grafana-toolkit plugin:sign",
+    "start": "yarn watch"
+  },
+  "author": "CS Group",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@grafana/data": "9.0.2",
+    "@grafana/runtime": "9.0.2",
+    "@grafana/toolkit": "9.0.2",
+    "@grafana/ui": "9.0.2",
+    "@types/lodash": "^4.14.167",
+    "@types/react-table": "^7.7.12",
+    "@types/react-window": "^1.8.1",
+    "@types/tinycolor2": "1.4.3",
+    "emotion": "10.0.27",
+    "lodash": "^4.17.20",
+    "react-window": "1.8.7",
+    "tinycolor2": "1.4.2"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "dependencies": {}
+}

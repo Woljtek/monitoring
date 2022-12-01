@@ -209,14 +209,14 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         var separatorIndex = rawPath.indexOf(".");
 
         final var entityType = separatorIndex != -1 ? rawPath.substring(0, separatorIndex) : rawPath;
-            return processedEntities.entrySet()
-                    .stream()
-                    .filter(entry -> entry.getKey().equals(entityType))
-                    .map(Map.Entry::getValue)
-                    .flatMap(List::stream)
-                    .map(entityProcessing -> BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(entityProcessing.getEntity())))
-                    .map(bean -> bean.getPropertyValue(new BeanProperty(rawPath)))
-                    .filter(Objects::nonNull)
-                    .toList();
+        return processedEntities.entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().equals(entityType))
+                .map(Map.Entry::getValue)
+                .flatMap(List::stream)
+                .map(entityProcessing -> BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(entityProcessing.getEntity())))
+                .map(bean -> bean.getPropertyValue(new BeanProperty(rawPath)))
+                .filter(Objects::nonNull)
+                .toList();
     }
 }
