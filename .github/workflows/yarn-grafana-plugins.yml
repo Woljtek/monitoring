@@ -62,17 +62,10 @@ jobs:
           cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
           rm -rf node_modules
       
-      - name: Zip plugins
+      - name: Zip plugin
         run: |
           cd grafana-monitoring/grafana/plugins
           zip -qq -r ${ZIP_NAME} ${{ matrix.component }}
-
-      - name: Upload zipped plugins in GH
-        uses: actions/upload-artifact@master
-        with:
-          name: grafana-plugin-${{ matrix.component }}
-          path: |
-            grafana-monitoring/grafana/plugins/${ZIP_NAME}
 
       - name: Compute checksum
         run: |
@@ -84,7 +77,7 @@ jobs:
           echo "ARTIFACT_SHA1_CHECKSUM=$ARTIFACT_SHA1_CHECKSUM" >> $GITHUB_ENV
           echo "ARTIFACT_SHA256_CHECKSUM=$ARTIFACT_SHA256_CHECKSUM" >> $GITHUB_ENV
       
-      - name: Upload zipped plugins in Artifactory
+      - name: Upload zipped plugin in Artifactory
         run: |
           cd grafana-monitoring/grafana/plugins
           curl --header "X-Checksum-MD5:${ARTIFACT_MD5_CHECKSUM}" \
