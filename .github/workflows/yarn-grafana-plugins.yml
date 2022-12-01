@@ -73,8 +73,22 @@ jobs:
           name: grafana-plugin-${{ matrix.component }}
           path: |
             grafana-monitoring/grafana/plugins/${ZIP_NAME}
+
+      - Compute checksum
+        run: |
+          ARTIFACT_MD5_CHECKSUM=$(md5sum ${ZIP_NAME} | awk '{print $1}')
+          ARTIFACT_SHA1_CHECKSUM=$(shasum -a 1 ${ZIP_NAME} | awk '{ print $1 }')
+          ARTIFACT_SHA256_CHECKSUM=$(shasum -a 256 ${ZIP_NAME} | awk '{ print $1 }')
+          echo "ARTIFACT_MD5_CHECKSUM=$ARTIFACT_MD5_CHECKSUM" >> $GITHUB_ENV
+          echo "ARTIFACT_SHA1_CHECKSUM=$ARTIFACT_SHA1_CHECKSUM" >> $GITHUB_ENV
+          echo "ARTIFACT_SHA256_CHECKSUM=$ARTIFACT_SHA256_CHECKSUM" >> $GITHUB_ENV
       
       - name: Upload zipped plugins in Artifactory
         run: |
           cd grafana-monitoring/grafana/plugins
-          curl -u "${REGISTRY_USER}:${REGISTRY_PWD}" -T "${ZIP_NAME}" -X PUT "https://${REGISTRY_BASE}/artifactory/${REGISTRY_PROJECT}/monitoring/${ZIP_NAME}"
+          curl --header "X-Checksum-MD5:${ARTIFACT_MD5_CHECKSUM}" \
+               --header "X-Checksum-Sha1:${ARTIFACT_SHA1_CHECKSUM}" \
+               --header "X-Checksum-Sha256:${ARTIFACT_SHA256_CHECKSUM}" \
+               -u "${REGISTRY_USER}:${REGISTRY_PWD}" \
+               -T "${ZIP_NAME}" \
+               -X PUT "https://${REGISTRY_BASE}/artifactory/${REGISTRY_PROJECT}/monitoring/${ZIP_NAME}"
