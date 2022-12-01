@@ -43,7 +43,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd grafana-monitoring/grafana/plugins/${{ matrix.component }}
-          yarn cache clean && yarn install --immutable --prefer-offline --modules-folder grafana-monitoring/grafana/plugins/${{ matrix.component }} && yarn build
+          yarn cache clean && yarn install --immutable --prefer-offline --modules-folder grafana-monitoring/grafana/plugins/${{ matrix.component }} && yarn cache clean && yarn add @grafana/toolkit@9.0.2 && yarn build
 
       #- name: Check types
       #  run: yarn typecheck
