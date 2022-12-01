@@ -41,6 +41,9 @@ jobs:
           # ZIP Name
           ZIP_NAME="${{ matrix.component }}_$GIT_TAG.zip"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          # Test to be removed for final version
+          ZIP_NAME="${{ matrix.component }}.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
