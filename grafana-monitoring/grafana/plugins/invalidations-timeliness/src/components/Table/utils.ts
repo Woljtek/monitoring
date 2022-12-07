@@ -2,7 +2,6 @@ import { Column, Row } from 'react-table';
 import memoizeOne from 'memoize-one';
 import { css, cx } from 'emotion';
 import tinycolor from 'tinycolor2';
-// import { ContentPosition, TextAlignProperty } from 'csstype';
 import {
   DataFrame,
   Field,
@@ -20,30 +19,30 @@ import { TableCellProps, TableFieldOptions } from './types';
 import { TableCellDisplayMode } from '@grafana/ui';
 import { SelectorColumn, SELECTION_COLUMN_WIDTH } from './SelectorColumn';
 
-// export function getTextAlign(field?: Field): TextAlignProperty {
-//   if (!field) {
-//     return 'left';
-//   }
+export function getTextAlign(field?: Field): any {
+  if (!field) {
+    return 'left';
+  }
 
-//   if (field.config.custom) {
-//     const custom = field.config.custom as TableFieldOptions;
+  if (field.config.custom) {
+    const custom = field.config.custom as TableFieldOptions;
 
-//     switch (custom.align) {
-//       case 'right':
-//         return 'right';
-//       case 'left':
-//         return 'left';
-//       case 'center':
-//         return 'center';
-//     }
-//   }
+    switch (custom.align) {
+      case 'right':
+        return 'right';
+      case 'left':
+        return 'left';
+      case 'center':
+        return 'center';
+    }
+  }
 
-//   if (field.type === FieldType.number) {
-//     return 'right';
-//   }
+  if (field.type === FieldType.number) {
+    return 'right';
+  }
 
-//   return 'left';
-// }
+  return 'left';
+}
 
 export function getColumns(
   data: DataFrame,
@@ -197,19 +196,19 @@ export function filterByValue(rows: Row[], id: string, filterValues?: Selectable
   });
 }
 
-// export function getHeaderAlign(field?: Field): ContentPosition {
-//   const align = getTextAlign(field);
+export function getHeaderAlign(field?: Field): any {
+  const align = getTextAlign(field);
 
-//   if (align === 'right') {
-//     return 'flex-end';
-//   }
+  if (align === 'right') {
+    return 'flex-end';
+  }
 
-//   if (align === 'center') {
-//     return align;
-//   }
+  if (align === 'center') {
+    return align;
+  }
 
-//   return 'flex-start';
-// }
+  return 'flex-start';
+}
 
 export function calculateUniqueFieldValues(rows: any[], field?: Field) {
   if (!field || rows.length === 0) {

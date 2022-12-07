@@ -45,10 +45,6 @@ export const Panel: React.FC<Props> = ({
   );
 
   const postgresDatasourceName = "PostgreSQL";
-
-  // if (postgresDatasourceName === undefined) {
-  //   throw new Error("'Front PostgreSQL Datasource' is not defined in Panel options");
-  // }
   const dataSource = useMemo(() => new DataSource(postgresDatasourceName), [postgresDatasourceName]);
 
   const getSelectedData = useCallback(
@@ -124,7 +120,6 @@ export const Panel: React.FC<Props> = ({
           <HorizontalGroup>
             <HorizontalGroup>
               <Button
-                // variant="link"
                 disabled={noSelection || invalidationsAreSelected}
                 icon="plus-circle"
                 onClick={() => setInvalidationEditorIsOpen(true)}
@@ -132,7 +127,6 @@ export const Panel: React.FC<Props> = ({
                 Create
               </Button>
               <Button
-                // variant="pen"
                 disabled={selectionLength > 1 || !invalidationsAreSelected}
                 icon="pen"
                 onClick={() => setInvalidationEditorIsOpen(true)}
@@ -140,7 +134,6 @@ export const Panel: React.FC<Props> = ({
                 Edit
               </Button>
               <Button
-                // variant="link"
                 disabled={noSelection || invalidationsAreSelected}
                 icon="link"
                 onClick={() => setInvalidationLinkEditorIsOpen(true)}
