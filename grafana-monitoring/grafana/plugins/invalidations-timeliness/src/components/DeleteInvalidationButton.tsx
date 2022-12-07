@@ -24,7 +24,7 @@ export const DeleteInvalidationButton = ({
     setDeleteModaleIsVisible(true);
   };
   const inval_ids = selectedRows.fields.find(f => f.name === 'inval_id')?.values.toArray();
-  console.log("inval_ids", inval_ids)
+
   return (
     <>
       <Button onClick={onDeleteClicked} disabled={disabled} icon="trash-alt">

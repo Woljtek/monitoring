@@ -57,7 +57,7 @@ export const BarGaugeCell: FC<TableCellProps> = props => {
         display={field.display}
         value={displayValue}
         orientation={VizOrientation.Horizontal}
-        // theme={tableStyles.theme as GrafanaTheme2}
+        theme={tableStyles.theme as any}
         itemSpacing={1}
         lcdCellWidth={8}
         displayMode={barGaugeMode}

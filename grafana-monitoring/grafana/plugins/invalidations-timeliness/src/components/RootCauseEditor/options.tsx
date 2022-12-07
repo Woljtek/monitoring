@@ -8,20 +8,11 @@ export const DEFAULTVALUEROOTCAUSE: RootCauseEditorOptions[] = [];
 export const getSelectOptions = (options: PanelOptions): SelectCategory => {
   const selectOptions = _.cloneDeep(SELECTOPTIONS);
   if (
-    // impact === 'TIMELINESS' &&
     options?.rootCauseListTimeliness !== undefined &&
     options['rootCauseListTimeliness'].length > 0
   ) {
     selectOptions["TIMELINESS"]['rootCause']['options'] = options['rootCauseListTimeliness'];
     selectOptions["TIMELINESS"]['rootCause']['value'] = options['rootCauseListTimeliness'][0].value;
-    // }
-    // else if (
-    //   impact === 'COMPLETENESS' &&
-    //   options?.rootCauseListCompleteness !== undefined &&
-    //   options['rootCauseListCompleteness'].length > 0
-    // ) {
-    //   selectOptions[impact]['rootCause']['options'] = options['rootCauseListCompleteness'];
-    //   selectOptions[impact]['rootCause']['value'] = options['rootCauseListCompleteness'][0].value;
   } else {
     selectOptions["TIMELINESS"]['rootCause']['options'] = [];
     selectOptions["TIMELINESS"]['rootCause']['value'] = ' ';

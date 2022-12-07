@@ -8,7 +8,6 @@ export const unlinkInvalidations = async (queryContext: QueryContext, productsId
   if (productsIds.length === 0) {
     return Promise.reject('Nothing to unlink');
   }
-  console.log('unlink', productsIds)
   const rawSql = `update invalidation_completeness set missing_products_ids=(SELECT array(SELECT unnest(missing_products_ids) EXCEPT SELECT unnest('{${productsIds}}'::int[])))`
   return dataSource.query(rawSql, timeRange);
 };

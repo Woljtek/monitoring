@@ -1,9 +1,7 @@
 import { PanelPlugin } from '@grafana/data';
 import { TableCellDisplayMode } from '@grafana/ui';
-// import { DatasourceSelectEditor } from 'components/DatasourceSelectEditor';
 import { SELECTOPTIONS } from 'components/InvalidationEditor/options';
 import RootCauseEditor from 'components/RootCauseEditor/Editor';
-
 import { tablePanelChangedHandler } from 'migrations';
 import { Panel } from 'SimplePanel';
 import { PanelOptions } from './types';
@@ -57,18 +55,6 @@ export const plugin = new PanelPlugin<PanelOptions>(Panel)
   })
   .setPanelOptions(builder => {
     return builder
-      // .addCustomEditor({
-      //   id: 'postgresDatasourceNameField',
-      //   path: 'postgresDatasourceName',
-      //   name: 'Front PostgreSQL Datasource',
-      //   description: 'Datasource used to write data into PostgreSQL database',
-      //   editor: DatasourceSelectEditor,
-
-      //   category: ['Actions'],
-      //   settings: {
-      //     datasourceType: 'postgres',
-      //   },
-      // })
       .addCustomEditor({
         id: 'rootCauseListTimeliness',
         path: 'rootCauseListTimeliness',
@@ -81,16 +67,4 @@ export const plugin = new PanelPlugin<PanelOptions>(Panel)
           impact: 'Timeliness',
         },
       })
-    // .addCustomEditor({
-    //   id: 'rootCauseListCompleteness',
-    //   path: 'rootCauseListCompleteness',
-    //   name: '',
-    //   description: '',
-    //   category: ['Rootcauses Lists'],
-    //   defaultValue: SELECTOPTIONS['COMPLETENESS']['rootCause']['options'],
-    //   editor: RootCauseEditor,
-    //   settings: {
-    //     impact: 'Completeness',
-    //   },
-    // });
   });
