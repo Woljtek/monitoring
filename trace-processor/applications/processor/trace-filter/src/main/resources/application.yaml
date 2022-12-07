@@ -12,6 +12,9 @@ spring:
         bindings:
           trace-filter-in-0: input
           trace-filter-out-0: output
+  jackson:
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
 
 logging:
   config: classpath:log4j2.yaml

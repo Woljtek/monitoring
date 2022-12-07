@@ -11,8 +11,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 > - **Fixed** for any bug fixes.
 > - **Security** in case of vulnerabilities.
 
+## [1.5.0-rc1] - 2023-01-04
+- [#735 - [MONITORING] Add information "late" and "duplicate" for each product.](https://github.com/COPRS/rs-issues/issues/735)
+
+## [1.4.0-rc1] - 2022-11-23
+### Added
+- [#484 - [RS core Monitoring] Handle duplicate production RULE n°3 (PRODUCT contamination)](https://github.com/COPRS/rs-issues/issues/484)
+- [#485 - [RS core Monitoring] Handle duplicate production RULE n°4 (PROCESSING contamination)](https://github.com/COPRS/rs-issues/issues/485)
+### Fixed
+- Fix build of FINOPS services
+
 ## [1.3.0-rc1] - 2022-10-26
 ### Added
+- [#483 - [RS core Monitoring] Handle duplicate production RULE n°2 (same PRODUCT input)](https://github.com/COPRS/rs-issues/issues/483)
+- [#482 - [RS core Monitoring] Handle duplicate production RULE n°1 (CHUNK & DSIB)](https://github.com/COPRS/rs-issues/issues/482)
 - [#564 - [MONITORING] Set date fields in the database](https://github.com/COPRS/rs-issues/issues/564)
 
 ## [1.2.0-rc1] - 2022-09-28

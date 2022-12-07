@@ -90,7 +90,7 @@ func GetNodeGabarits() ([]NodeGabarit, error) {
 			return nodeGabarits, fmt.Errorf("Failed to create the k8s client - %s", err.Error())
 		}
 	}
-	nodes, err := k8sClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := k8sClient.CoreV1().Nodes().List(nil, metav1.ListOptions{})
 	if err != nil {
 		return nodeGabarits, fmt.Errorf("Failed to list the nodes - %s", err.Error())
 	}
