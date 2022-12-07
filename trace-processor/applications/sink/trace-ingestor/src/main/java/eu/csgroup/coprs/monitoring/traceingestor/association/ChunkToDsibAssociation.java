@@ -13,18 +13,37 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * Specialized association class to inject {@link Dsib} entity instance (reference)
+ * in {@link Chunk} entity instance (container)
+ */
 public class ChunkToDsibAssociation extends DefaultAssociation {
     private static final String DSIB_EXTENSION = "DSIB.xml";
 
+    /**
+     * Regex to extract filename without specific chunk information.
+     */
     private static final String FILENAME_MATCH = "^.+(?=DSDB)";
 
+    /**
+     * Pattern
+     */
     private static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_MATCH);
 
+    /**
+     * Regex to transform chunk filename into dsib filename.
+     */
     private static final String FILENAME_REPLACE = "%1$s" + DSIB_EXTENSION;
 
-    // Re-use retrieved or created dsib to not to have to do each time it's requested (one dsib for many chunk).
+    /**
+     * Store retrieved or created dsib instance (one dsib for many chunk).
+     */
     private final Map<String, EntityProcessing> cache = new HashMap<>();
 
+    /**
+     * Constructor for specialized association between {@link Chunk} entity and {@link Dsib} entity
+     * @param associationFields Chained field list to use to set dsib entity in chunk entity
+     */
     public ChunkToDsibAssociation (Deque<Field> associationFields) {
         super(associationFields);
     }
@@ -34,7 +53,7 @@ public class ChunkToDsibAssociation extends DefaultAssociation {
         final var dsibFilename = chunkToDsibFilename(((Chunk)entityContainer.getEntity()).getFilename());
 
         return references.stream()
-                // Keep dsib where filename match to requested one.
+                // Keep dsib entity (reference) where filename match to chunk entity (container).
                 .filter(dsib -> dsibFilename.equals(((Dsib)dsib.getEntity()).getFilename()))
                 .findFirst()
                 // If no one found in list of references, find it in db or create one.

@@ -3,6 +3,49 @@ package eu.csgroup.coprs.monitoring.traceingestor.converter;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Class that handle the subtract action (two value or more can be set).<br>
+ * <br>
+ * Order and definition of required arguments is the following:
+ * <ul>
+ *  <li>DYNAMIC: reference value</li>
+ *  <li>DYNAMIC: value to subtract to the reference value</li>
+ * </ul>
+ *
+ * Result type of the operation is of type of the first argument.<br>
+ * <br>
+ * Action support the following reference type and for each one compatible type are:
+ * <ul>
+ *     <li>{@link Instant}:</li>
+ *      <ul>
+ *          <li>{@link Instant}</li>
+ *          <li>{@link Long} which is considered as a duration in seconds</li>
+ *          <li>{@link Integer} which is considered as a duration in seconds</li>
+ *          <li>{@link Double} which is considered as a duration in seconds (float part can have a precision in nanoseconds)</li>
+ *      </ul>
+ *     <li>{@link Integer}:</li>
+ *      <ul>
+ *          <li>{@link Long}</li>
+ *          <li>{@link Integer}</li>
+ *          <li>{@link Double} which is cast as an int value</li>
+ *          <li>{@link Instant} which is considered as a value in milliseconds</li>
+ *      </ul>
+ *     <li>{@link Long}:</li>
+ *      <ul>
+ *          <li>{@link Long}</li>
+ *          <li>{@link Integer}</li>
+ *          <li>{@link Double} which is cast as a long value</li>
+ *          <li>{@link Instant} which is considered as a value in milliseconds</li>
+ *      </ul>
+ *     <li>{@link Double}:</li>
+ *      <ul>
+ *          <li>{@link Long}</li>
+ *          <li>{@link Integer}</li>
+ *          <li>{@link Double}</li>
+ *          <li>{@link Instant} which is considered as a value in milliseconds</li>
+ *      </ul>
+ * </ul>
+ */
 public class SubstractAction extends Action {
 
     public SubstractAction(String rawAction) {

@@ -4,19 +4,66 @@ import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.InvalidPropertyException;
 
 import java.util.*;
 
+/**
+ * Construct tree structure of a trace based on a set of {@link Mapping}/<br>
+ * <br>
+ * Node is created when parsing of a bean property reach a collection value.
+ * If value of a bean property path is a collection, no node is created but a leaf is created instead.
+ * <pre><code>
+ * {
+ *   trace: {
+ *     task: {
+ *       missing_output: [
+ *         {
+ *           product_metadata_custom_object: {
+ *           },
+ *           estimated_count_integer: 10
+ *         },
+ *         {
+ *           product_metadata_custom_object: {
+ *           },
+ *           estimated_count_integer: 14
+ *         },
+ *       ]
+ *     }
+ *   }
+ * }
+ * </code></pre>
+ * If mapping contains the following bean property trace.task.missing_output[estimated_count_integer],
+ * the following tree will be created:
+ * <pre><code>
+ *                             trace.task
+ *                              /     \
+ *     trace.task.missing_output[0] trace.task.missing_output[1]
+ * </code></pre>
+ * Whereas setting following bean property trace.task.missing_output no node will be created.
+ *
+ * @param rules Set of mapping to use to create tree.
+ */
 @Slf4j
 public record Parser(List<Mapping> rules) {
+    /**
+     * Parse given bean to create tree according to mappings set.
+     *
+     * @param wrapper bean to parse
+     * @return tree structure of the bean associated to given mappings
+     */
     public TreePropertyNode parse(BeanAccessor wrapper) {
         return parse(rules.iterator(), wrapper);
     }
 
+    /**
+     * Parse given bean to create tree according to mappings set.
+     *
+     * @param iterator list of mapping to use to create the tree
+     * @param wrapper bean to parse
+     * @return tree structure of the bean associated to given mappings
+     */
     public TreePropertyNode parse(Iterator<Mapping> iterator, BeanAccessor wrapper) {
         final var tree = new TreePropertyNode("");
         while (iterator.hasNext()) {
@@ -26,15 +73,30 @@ public record Parser(List<Mapping> rules) {
         return tree;
     }
 
+    /**
+     * Create/Update leaf representing a value for the given  {@link Mapping} and {@link BeanProperty}.
+     * As a mapping can contain multiple bean property, leaf can also contain multiple value (one value per bean property).<br>
+     * <br>
+     * A leaf is updated only if for the given {@link TreePropertyNode} a leaf exists and his mapping is the same than
+     * the given one.
+     *
+     * @param tree Current node
+     * @param rule mapping rule
+     * @param beanProperty bean property
+     * @param value value to set in leaf for the associated bean property and mapping rule.
+     */
     private void createOrUpdateLeaf (TreePropertyNode tree, Mapping rule, BeanProperty beanProperty, Object value) {
+        // Check if a leaf for the given mapping rule already exists
         final var existingLeaf = tree.getLeafs()
                 .stream()
                 .filter(leaf -> leaf.getRule().equals(rule))
                 .findFirst();
 
+        // If so set/update the value in the found leaf
         if (existingLeaf.isPresent()) {
             existingLeaf.get().putRawValue(beanProperty, value);
         } else {
+            // Otherwise create new leaf and set value
             var leaf = new TreePropertyLeaf(rule);
             leaf.putRawValue(beanProperty, value);
 
@@ -42,6 +104,15 @@ public record Parser(List<Mapping> rules) {
         }
     }
 
+    /**
+     * Extract value for the given mapping. If value is directly accessed, create leaf for this value in the current node.
+     * If value can't be accessed directly, parse each level of the path to detect collection and create associated node until
+     * last level of the path is reached to create the leaf.
+     *
+     * @param tree Current node
+     * @param rule Mapping for which to extract the value
+     * @param wrapper Bean in which to extract the value
+     */
     private void parse(TreePropertyNode tree, Mapping rule, BeanAccessor wrapper) {
         for (var wrappedBeanProperty : rule.getFrom()) {
             final var beanProperty = wrappedBeanProperty.getWrappedObject();
@@ -77,6 +148,7 @@ public record Parser(List<Mapping> rules) {
         var stopParsing = false;
         var index = 0;
 
+        // Parse path until reaching collection value or null value (path not complete in trace)
         while (! stopParsing && index < splittedPropertyPath.length) {
             currentPath = PropertyUtil.getPath(currentPath, splittedPropertyPath[index]);
 
@@ -90,12 +162,13 @@ public record Parser(List<Mapping> rules) {
                     final var remainingSplittedPropertyPath = Arrays.copyOfRange(splittedPropertyPath, index + 1, splittedPropertyPath.length);
 
                     parsePropertyNode(tree, wrapper, rule, beanProperty, currentPath, remainingSplittedPropertyPath, collection);
-
+                    // Stop loop because end of the path was parsed in the above function
                     stopParsing = true;
                 } else if (object == null) {
                     createOrUpdateLeaf(tree, rule, beanProperty, null);
                 }
             } catch (InvalidPropertyException e) {
+                // Do not take into account path which refer to map value type
                 if (! currentPath.matches(".*\\[[a-z0-9_]+\\].*")) {
                     // Refer to a field that is not part of trace structure
                     throw new InterruptedOperationException(

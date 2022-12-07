@@ -7,6 +7,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * Class that handle the match action (only match one value at a time).<br>
+ * <br>
+ * Order and definition of required arguments is the following:
+ * <ul>
+ *  <li>STATIC: Pattern to match</li>
+ *  <li>DYNAMIC: value to match to</li>
+ * </ul>
+ * <br><br>
+ */
 public class MatchAction extends Action {
     public MatchAction(String rawAction) {
         super(rawAction);
@@ -30,7 +40,9 @@ public class MatchAction extends Action {
         try {
             return match(matcher, value) ? value : null;
         } catch (ConversionNotSupportedException | ClassCastException e) {
+            // If format failed it may be caused by the value which is a list of value
             if (value instanceof final Collection<?> collection) {
+                // Handle case where value is a list
                 return collection.stream()
                         .map(val -> match(matcher, (String) val) ? val : null)
                         .filter(Objects::nonNull)

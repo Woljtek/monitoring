@@ -9,11 +9,18 @@ import org.springframework.context.annotation.PropertySource;
 
 import java.util.List;
 
+
+/**
+ * Configuration class to group set of {@link Ingestion} configuration
+ */
 @Data
 @Configuration
 @PropertySource(name = "ingestionGroup", value = "${ingestion.path}", factory = ReloadableYamlPropertySourceFactory.class)
 @ConfigurationProperties
 @Slf4j
 public class IngestionGroup {
+    /**
+     * Ingestion group
+     */
     List<Ingestion> ingestions;
 }

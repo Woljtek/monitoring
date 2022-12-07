@@ -13,6 +13,9 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Default association instance
+ */
 @RequiredArgsConstructor
 public class DefaultAssociation implements EntityAssociation {
 
@@ -55,11 +58,14 @@ public class DefaultAssociation implements EntityAssociation {
             // If association field size is greater than 1 it means that we are associating a reference
             final var iter = associationFields.iterator();
 
+            // Construct path to set reference entity in container entity for chained field
+            // The value "entity" is arbitrary and does not have importance (represent container entity level)
             var path = "entity";
             while (iter.hasNext()) {
                 path = PropertyUtil.getPath(path, iter.next().getName());
             }
 
+            // Set reference entity in container entity
             containerRef.setPropertyValue(new BeanProperty(path), reference.getEntity());
             return containerRef;
         } catch (Exception e) {

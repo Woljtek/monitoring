@@ -8,11 +8,27 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * Class that handle the format action (only format one value at a time).<br>
+ * <br>
+ * Order and definition of required arguments is the following:
+ * <ul>
+ *  <li>STATIC: Pattern to match containing capturing group</li>
+ *  <li>STATIC: Format pattern of the value</li>
+ *  <li>DYNAMIC: value to format</li>
+ * </ul>
+ * <br><br>
+ * To use a capturing group in the format pattern use % followed by the number of the desired capturing group
+ * (see {@link Pattern} to identify the number of the desired capturing group).<br>
+ * <br>
+ * To format value contained in a capturing group see {@link java.util.Formatter}
+ */
 public class FormatAction extends Action {
 
     public FormatAction(String rawAction) {
         super(rawAction);
     }
+
 
     @Override
     protected List<ARG_TYPE> getArgsMapping() {
@@ -33,7 +49,9 @@ public class FormatAction extends Action {
         try {
             return format(matcher, formatter, value);
         } catch (ConversionNotSupportedException | ClassCastException e) {
+            // If format failed it may be caused by the value which is a list of value
             if (value instanceof final Collection<?> collection) {
+                // Handle case where value is a list
                 return collection.stream()
                         .map(val -> format(
                                 matcher,
@@ -59,6 +77,7 @@ public class FormatAction extends Action {
         final var matcher = match.matcher(value);
 
         if (matcher.find()) {
+            // Get capturing group
             int count = 0;
             final var groupCount = matcher.groupCount();
             final var groups = new LinkedList<String>();
@@ -66,6 +85,7 @@ public class FormatAction extends Action {
                 groups.add(matcher.group(count++));
             }
 
+            // Then format the value according to given pattern
             return replace.formatted(groups.toArray(String[]::new));
         } else {
             return null;

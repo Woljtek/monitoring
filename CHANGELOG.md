@@ -12,7 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 > - **Security** in case of vulnerabilities.
 
 ## [1.5.0-rc1] - 2023-01-04
+### Added
 - [#735 - [MONITORING] Add information "late" and "duplicate" for each product.](https://github.com/COPRS/rs-issues/issues/735)
+- Set javadoc and comment
 
 ## [1.4.0-rc1] - 2022-11-23
 ### Added

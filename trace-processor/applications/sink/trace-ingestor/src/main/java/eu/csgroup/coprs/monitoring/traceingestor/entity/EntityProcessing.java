@@ -12,6 +12,12 @@ import org.springframework.beans.PropertyAccessorFactory;
 
 import java.time.Instant;
 
+/**
+ * Extends {@link BeanAccessor} to add a processing state on the processed entity.<br>
+ * <br>
+ * The state principally indicate if the entity is newly created, updated (retrieved from storage and at least one field was updated)
+ * or unchanged (retrieved from storage without field updated).
+ */
 @EqualsAndHashCode(callSuper = true)
 public class EntityProcessing extends BeanAccessor {
     @Getter
@@ -54,10 +60,25 @@ public class EntityProcessing extends BeanAccessor {
         return wrapper;
     }
 
+    /**
+     * Static class to create instance for the entity to process.<br>
+     * <br>
+     * By default, the state is set to new
+     *
+     * @param entity Entity to process
+     * @return {@link EntityProcessing} instance for the given entity
+     */
     public static EntityProcessing fromEntity(DefaultEntity entity) {
         return new EntityProcessing(getWrapper(entity));
     }
 
+    /**
+     * Static class to create instance with the given state for the entity to process
+     *
+     * @param entity Entity to process
+     * @param state Start state to set
+     * @return {@link EntityProcessing} instance for the given entity
+     */
     public static EntityProcessing fromEntity(DefaultEntity entity, EntityState state) {
         return new EntityProcessing(getWrapper(entity), state);
     }
