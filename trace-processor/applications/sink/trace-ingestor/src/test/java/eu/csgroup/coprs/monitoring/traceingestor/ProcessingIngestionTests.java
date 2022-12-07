@@ -64,7 +64,7 @@ public class ProcessingIngestionTests {
         assertThat(entityIngestor.findAll(AuxData.class))
                 .hasSize(3);
         assertThat(entityIngestor.findAll(InputListExternal.class))
-                    .hasSize(9);
+                .hasSize(9);
         assertThat(entityIngestor.findAll(Processing.class))
                 .hasSize(1);
         assertThat(entityIngestor.findAll(Product.class))

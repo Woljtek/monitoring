@@ -15,8 +15,8 @@ import java.util.Map;
 @NoArgsConstructor
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "event", visible = true)
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = BeginTask.class, name = "BEGIN"),
-    @JsonSubTypes.Type(value = EndTask.class, name = "END") }
+        @JsonSubTypes.Type(value = BeginTask.class, name = "BEGIN"),
+        @JsonSubTypes.Type(value = EndTask.class, name = "END") }
 )
 public class Task {
     @NotNull

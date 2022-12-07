@@ -27,18 +27,18 @@ public class ReloadableBeanFactory {
     public <T> T getBean(Class<T> className) {
         return getBeanConfiguration(className)
                 .flatMap(beanConfig -> {
-                    final var psAnno = className.getAnnotation(org.springframework.context.annotation.PropertySource.class);
-                    String psName;
-                    if (psAnno != null) {
-                        psName = psAnno.name();
-                    } else {
-                        psName = beanConfig.getName();
-                    }
+                            final var psAnno = className.getAnnotation(org.springframework.context.annotation.PropertySource.class);
+                            String psName;
+                            if (psAnno != null) {
+                                psName = psAnno.name();
+                            } else {
+                                psName = beanConfig.getName();
+                            }
 
-                    final var reloadableBean = findReloadablePropertySource(psName);
-                    return reloadableBean.map(rb -> this.reload(beanConfig, rb, className));
-                }
-            ).orElse(null);
+                            final var reloadableBean = findReloadablePropertySource(psName);
+                            return reloadableBean.map(rb -> this.reload(beanConfig, rb, className));
+                        }
+                ).orElse(null);
     }
 
     private <T> T reload (ConfigurationPropertiesBean beanConfig, ReloadableBean reloadableBean, Class<T> className) {
@@ -61,8 +61,8 @@ public class ReloadableBeanFactory {
 
     private <T> Optional<ConfigurationPropertiesBean> getBeanConfiguration (Class<T> className) {
         final var beanConfig =  ConfigurationPropertiesBean.getAll(context).values().stream()
-            .filter(cpb -> ClassUtils.getUserClass(Objects.requireNonNull(cpb.asBindTarget().getType().getRawClass())).equals(className))
-            .findFirst();
+                .filter(cpb -> ClassUtils.getUserClass(Objects.requireNonNull(cpb.asBindTarget().getType().getRawClass())).equals(className))
+                .findFirst();
 
         if (beanConfig.isEmpty()) {
             log.warn("No config associated to bean: %s".formatted(className.getName()));

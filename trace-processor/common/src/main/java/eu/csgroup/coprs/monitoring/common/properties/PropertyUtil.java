@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 public class PropertyUtil {
 
     private PropertyUtil () {
-        
+
     }
     public static final String PROPERTY_DELIMITER = ".";
 

@@ -33,7 +33,7 @@ public class EntityFactory {
 
         scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
 
-       return scanner.findCandidateComponents(EntityIngestor.BASE_PACKAGE)
+        return scanner.findCandidateComponents(EntityIngestor.BASE_PACKAGE)
                 .stream()
                 .map(BeanDefinition::getBeanClassName)
                 .map(this::createMetadata)
@@ -55,7 +55,7 @@ public class EntityFactory {
     private void postCreate(EntityMetadata metadata) {
         final var entityClass = metadata.getEntityClass();
         final var relyOn = EntityHelper.relyOn(metadata.getEntityClass())
-            .entrySet()
+                .entrySet()
                 .stream()
                 .map(entry -> Map.entry(cache.get(entry.getKey()), entry.getValue())
                 ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

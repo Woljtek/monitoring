@@ -86,8 +86,8 @@ public class ChunkToDsibAssociation extends DefaultAssociation {
         if (dsibProc == null) {
             // Find in database
             final var dbDsib = entityFinder.findAll(
-                        Specification.<Dsib>where(null).and(EntitySpecification.getEntityBy("filename", dsibFilename)),
-                        Dsib.class
+                            Specification.<Dsib>where(null).and(EntitySpecification.getEntityBy("filename", dsibFilename)),
+                            Dsib.class
                     ).stream()
                     .findFirst();
 
