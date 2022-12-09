@@ -10,6 +10,10 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+/**
+ * Deserialize a string in json format and parse parameterized class to find and validate all
+ * {@link javax.validation.constraints} annotation to check validity of the object.
+ */
 @Component
 public class JsonValidator {
     @Autowired

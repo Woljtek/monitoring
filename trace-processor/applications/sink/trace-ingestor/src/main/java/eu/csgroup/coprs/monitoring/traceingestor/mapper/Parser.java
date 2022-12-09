@@ -87,7 +87,7 @@ public record Parser(List<Mapping> rules) {
      */
     private void createOrUpdateLeaf (TreePropertyNode tree, Mapping rule, BeanProperty beanProperty, Object value) {
         // Check if a leaf for the given mapping rule already exists
-        final var existingLeaf = tree.getLeafs()
+        final var existingLeaf = tree.getLeaves()
                 .stream()
                 .filter(leaf -> leaf.getRule().equals(rule))
                 .findFirst();

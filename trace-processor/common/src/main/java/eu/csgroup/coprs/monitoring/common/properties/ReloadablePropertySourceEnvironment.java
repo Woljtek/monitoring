@@ -5,6 +5,9 @@ import lombok.Setter;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Singleton instance that manipulate global properties to define refresh period for configuration files
+ */
 @Getter
 @Setter
 public class ReloadablePropertySourceEnvironment {
@@ -26,6 +29,12 @@ public class ReloadablePropertySourceEnvironment {
         return INSTANCE;
     }
 
+    /**
+     * Change global refresh period
+     *
+     * @param refreshPeriod period
+     * @param timeUnit unit time
+     */
     public void setRefreshPeriod(long refreshPeriod, TimeUnit timeUnit) {
         this.refreshPeriodValue = refreshPeriod;
         this.refreshPeriodUnit = timeUnit;

@@ -17,13 +17,13 @@ public class TreePropertyNode implements TreeProperty {
     @ToString.Include
     private final String path;
 
-    private final List<TreePropertyLeaf> leafs = new ArrayList<>();
+    private final List<TreePropertyLeaf> leaves = new ArrayList<>();
 
     private final List<TreePropertyNode> nodes = new ArrayList<>();
 
 
     public void addLeaf(TreePropertyLeaf leaf) {
-        add(leafs, leaf);
+        add(leaves, leaf);
     }
 
     public void addNode(TreePropertyNode node) {
@@ -46,7 +46,7 @@ public class TreePropertyNode implements TreeProperty {
             newNode.addNode(node.copy(node.path));
         }
 
-        for (var leaf: this.getLeafs()) {
+        for (var leaf: this.getLeaves()) {
             newNode.addLeaf(leaf.copy());
         }
 

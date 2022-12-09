@@ -28,8 +28,8 @@ public record TraceMapper(BeanAccessor wrapper, String configurationName) {
         entityCache.setActiveNode(tree);
 
         try {
-            for (var leaf : tree.getLeafs()) {
-                mapLeafs(leaf, entityCache);
+            for (var leaf : tree.getLeaves()) {
+                mapLeaf(leaf, entityCache);
             }
 
             if (tree.getNodes() == null || tree.getNodes().isEmpty()) {
@@ -124,7 +124,7 @@ public record TraceMapper(BeanAccessor wrapper, String configurationName) {
         return result;
     }
 
-    private void mapLeafs (TreePropertyLeaf leaf, EntityCache entityCache) {
+    private void mapLeaf(TreePropertyLeaf leaf, EntityCache entityCache) {
         final var value = mapPropertyValue(leaf.getRule(), leaf.getRawValues());
 
         // Do not set null property value to avoid non handled null value conversion

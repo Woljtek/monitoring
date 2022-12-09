@@ -23,10 +23,22 @@ import lombok.extern.slf4j.Slf4j;
 public class TraceFilterProcessor
     implements Function<Message<String>, List<Message<FilteredTrace>>> {
 
+    /**
+     * deserializer and validation trace instance
+     */
     private final JsonValidator jsonValidator;
 
+    /**
+     * Factory used to check for configuration update and reload it when needed
+     */
     private final ReloadableBeanFactory factory;
 
+    /**
+     * @deprecated
+     * Used to manipulate log value when trace filtering fail and next trace processed is the same than the one stored
+     * in this field
+     */
+    @Deprecated(forRemoval = true)
     private String lastProcessedRawTrace;
 
     public TraceFilterProcessor(JsonValidator jsonValidator, ReloadableBeanFactory factory) {
@@ -35,6 +47,7 @@ public class TraceFilterProcessor
     }
 
     public List<Message<FilteredTrace>> apply(Message<String> json) {
+        // Remove backslash which will cause error when deserializing trace
         final var rawJson = undecorate(json.getPayload());
         try {
             if (lastProcessedRawTrace != null && lastProcessedRawTrace.equals(rawJson)) {
@@ -53,6 +66,7 @@ public class TraceFilterProcessor
             // Prepare log result
             var traceLogDebug = new StringBuilder("Trace handled");
 
+            // Retrieve configuration and the apply it to the given trace (find filter that match the trace)
             var matchingFilter = Optional.of(beanAccessor).flatMap(factory.getBean(FilterGroup.class));
 
             // Finalize log result and send it

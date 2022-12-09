@@ -37,7 +37,7 @@ public class ParserTests {
 
         // Then
         assertThat(res.getNodes()).isEmpty();
-        assertThat(res.getLeafs())
+        assertThat(res.getLeaves())
                 .hasSize(1);
     }
 
@@ -97,6 +97,6 @@ public class ParserTests {
                         }
                 );
         assertThat(combination).isEmpty();
-        assertThat(res.getLeafs()).isEmpty();
+        assertThat(res.getLeaves()).isEmpty();
     }
 }

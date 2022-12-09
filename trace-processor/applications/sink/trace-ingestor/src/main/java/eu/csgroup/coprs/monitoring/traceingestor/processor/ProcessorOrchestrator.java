@@ -168,7 +168,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
     }
 
     private DefaultProcessor createProcessor(ProcessorDescription processorDesc, EntityFinder entityFinder) {
-        return new DefaultProcessor(this.ingestionConfig.getName(), processorDesc, entityFinder);
+        return new DefaultProcessor(processorDesc, entityFinder);
     }
 
     /**

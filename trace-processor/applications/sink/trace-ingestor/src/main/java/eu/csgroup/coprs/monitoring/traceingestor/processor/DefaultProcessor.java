@@ -47,17 +47,15 @@ import java.util.stream.Collectors;
  * With entities retrieved from storage and those created, fill entities with leaf values that were not extracted in
  * the above step.<br>
  * <br>
- * The last step is a check process which ensure that entities are well formed that's to say no duplicate entities
+ * The last step is a check process which ensure that entities are well-formed that's to say no duplicate entities
  * (where field annotated with unique attribute is set to true) and no entities with null values (where field annotated
  * with non null attribute is set to true)
  *
- * @param name Processor name
- * @param processorDesc description of the entity type to creare and the mapping to use to fill entities
+ * @param processorDesc description of the entity type to create and the mapping to use to fill entities
  * @param entityFinder Instance to find stored entities
  */
 @Slf4j
 public record DefaultProcessor(
-        String name,
         ProcessorDescription processorDesc,
         EntityFinder entityFinder) implements Function<BeanAccessor, List<EntityProcessing>> {
     /**
@@ -92,7 +90,7 @@ public record DefaultProcessor(
                 .map(field -> processorDesc.getMappings()
                         .stream()
                         // The 'to' clause (path) is associated to a field of the mapping
-                        // So check if it match to the desired one.
+                        // So check if it matches to the desired one.
                         .filter(mapping -> mapping.getTo().getBeanPropertyPath().equals(field.getName()))
                         .findFirst()
                         .orElse(null)
@@ -106,24 +104,24 @@ public record DefaultProcessor(
      * @param tree Tree from which to extract leafs.
      * @return all leaf of the tree.
      */
-    private Collection<TreePropertyLeaf> extractLeafs(TreePropertyNode tree) {
-        return new ArrayList<>(tree.getLeafs());
+    private Collection<TreePropertyLeaf> extractLeaves(TreePropertyNode tree) {
+        return new ArrayList<>(tree.getLeaves());
     }
 
     /**
      * Construct the 'to' clause value from a set of 'from' clause value (reduce operation) for each leaf given.
      * The value is constructed with the help of {@link TraceMapper#mapPropertyValue(Mapping, Map)}
      *
-     * @param leafs Set of leaf to construct 'to' clause value
+     * @param leaves Set of leaf to construct 'to' clause value
      * @return a list of value if the is more than one leaf given otherwise a single value or a collection depending on
      * the result of the operation
      */
-    private Object reducePropertyValues(List<TreePropertyLeaf> leafs) {
-        if (leafs.size() == 1) {
-            final var leaf = leafs.get(0);
+    private Object reducePropertyValues(List<TreePropertyLeaf> leaves) {
+        if (leaves.size() == 1) {
+            final var leaf = leaves.get(0);
             return TraceMapper.mapPropertyValue(leaf.getRule(), leaf.getRawValues());
         } else {
-            return leafs.stream()
+            return leaves.stream()
                     .map(leaf -> TraceMapper.mapPropertyValue(leaf.getRule(), leaf.getRawValues()))
                     .filter(Objects::nonNull)
                     .toList();
@@ -152,7 +150,7 @@ public record DefaultProcessor(
     @Override
     public List<EntityProcessing> apply(BeanAccessor beanAccessor) {
         final var handler = new DefaultHandler(processorDesc.getEntityMetadata().getEntityClass());
-        final var mapper = new TraceMapper(beanAccessor, this.name);
+        final var mapper = new TraceMapper(beanAccessor, processorDesc().getConfigurationName());
         // Create tree structure associated to extracted value from given mapping list (node is an index of a list)
         final var treePropertyValue = new Parser(processorDesc.getMappings()).parse(beanAccessor);
 
@@ -165,7 +163,7 @@ public record DefaultProcessor(
         if (!beanPropDep.isEmpty()) {
             // Compute value for unique entity field
             // Can be single value or array
-            final var dependencyValue = extractLeafs(treePropertyValue).stream()
+            final var dependencyValue = extractLeaves(treePropertyValue).stream()
                     // Find leaf which are associated to a field where value must be unique.
                     .filter(leaf -> beanPropDep.contains(leaf.getRule()))
                     // Group values associated to same mapping (case of values dispatched over different index of a list)

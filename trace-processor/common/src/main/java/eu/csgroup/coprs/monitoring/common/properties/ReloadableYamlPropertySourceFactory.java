@@ -10,6 +10,10 @@ import org.springframework.core.io.support.EncodedResource;
 
 import java.io.IOException;
 
+/**
+ * Specialized factory to use an alternative way to load YAML configuration file and data sent to spring boot to create
+ * associated configuration object
+ */
 public class ReloadableYamlPropertySourceFactory extends DefaultPropertySourceFactory {
 
     @Override

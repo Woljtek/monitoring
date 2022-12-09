@@ -15,21 +15,28 @@ public class BeanProperty {
     @ToString.Include
     @EqualsAndHashCode.Include
     private final String rawPropertyPath;
+    /**
+     * Raw bean property path without bean name (same as {@link #rawPropertyPath} without first part of the path)<br>
+     * <br>
+     * Snake case
+     */
     private String rawBeanPropertyPath;
 
     /**
-     * Pascal case
+     * Bean name (first part of {@link #rawPropertyPath} converted in pascale case)
      */
     private String beanName;
 
     /**
-     * Camel case
+     * Same as {@link #rawBeanPropertyPath} but converted in Camel case
      */
     private String beanPropertyPath;
 
     /**
-     * Snake case
+     * @deprecated
+     * last part of the path (in snake case)
      */
+    @Deprecated(forRemoval = true)
     private String propertyName;
 
 
@@ -38,6 +45,9 @@ public class BeanProperty {
         convert();
     }
 
+    /**
+     * Extract all informations from the given path (bean name, path without bean name)
+     */
     private void convert () {
         final var splittedPath = PropertyUtil.splitPath(rawPropertyPath, 2);
         beanName = PropertyUtil.snake2PascalCasePropertyName(splittedPath[0]);

@@ -9,16 +9,28 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Editor that allow the use of string to set date in bean handled by a {@link BeanAccessor} or directly by a
+ * {@link org.springframework.beans.BeanWrapper}
+ */
 public class InstantPropertyEditor implements PropertyEditor {
     private Instant instant;
 
     private final DateTimeFormatter formatter;
 
-
+    /**
+     * Create an editor with the default {@link PropertyNames#DATE_PATTERN} date format
+     */
     public InstantPropertyEditor () {
         this(PropertyNames.DATE_PATTERN, PropertyNames.DEFAULT_TIMEZONE);
     }
 
+    /**
+     * Create an editor with a specific date format
+     *
+     * @param datePattern date format
+     * @param timeZone time zone
+     */
     public InstantPropertyEditor (String datePattern, String timeZone) {
         formatter = DateTimeFormatter.ofPattern(datePattern)
                 .withZone(ZoneId.of(timeZone));

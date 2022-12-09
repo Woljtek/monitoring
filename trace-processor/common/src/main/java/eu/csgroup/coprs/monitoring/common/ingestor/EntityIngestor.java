@@ -20,6 +20,9 @@ import java.util.stream.Collectors;
 
 import static org.springframework.data.jpa.domain.Specification.where;
 
+/**
+ * Interface to interact with the storage
+ */
 @Slf4j
 @Configuration
 @EnableJpaRepositories(basePackages = "eu.csgroup.coprs.monitoring.common.jpa")
@@ -87,7 +90,14 @@ public class EntityIngestor implements EntityFinder {
     @Autowired
     private EntityManager entityManager;
 
-
+    /**
+     * For the given class select the appropriate repository to use to request storage
+     *
+     * @param className class name
+     * @return repository to use or an exception is thrown if no repository exists for the given class
+     * @param <T> type of the entity
+     * @param <E> Primary key type
+     */
     public <T extends DefaultEntity, E> EntityRepository<T,E> selectRepository(Class<T> className) {
         if (className.equals(AuxData.class)) {
             return castToGenericRepository(adRepository);
@@ -114,24 +124,42 @@ public class EntityIngestor implements EntityFinder {
         }
     }
 
+    /**
+     * Utility class to isolate unchecked cast
+     *
+     * @param specializedRepository repository to cast
+     * @return generic repository
+     * @param <T> entity type
+     * @param <E> Primary key type
+     */
     @SuppressWarnings("unchecked")
     private <T extends DefaultEntity, E> EntityRepository<T,E> castToGenericRepository (
             EntityRepository<? extends DefaultEntity,? extends Serializable> specializedRepository) {
         return (EntityRepository<T,E>) specializedRepository;
     }
 
+    /**
+     * Store in database list of entities (can be a list containing different entity type). Entity storage is done
+     * in a certain order which is
+     *
+     * @param entities
+     * @return
+     */
     public List<DefaultEntity> saveAll(List<DefaultEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return List.of();
         } else {
+            // Group entity by their type
             final var groupedEntity = entities.stream()
                     .collect(Collectors.groupingBy(DefaultEntity::getClass));
 
+            // Define the order to store entities
             final var order = new LinkedList<Class<DefaultEntity>>();
             groupedEntity.keySet()
                     .stream()
                     .map(entityClass -> EntityFactory.getInstance().getMetadata(entityClass))
                     .forEach(entityMetadata -> orderEntityType(order, entityMetadata));
+            // Then store entities in the defined order
             return order.stream()
                     .map(entityClass -> {
                         log.debug("Save entity %s".formatted(entityClass.getSimpleName()));
@@ -143,14 +171,23 @@ public class EntityIngestor implements EntityFinder {
         }
     }
 
+    /**
+     * Set entity without relation first (for example {@link Processing} rely on nobody)
+     * then set entity after its relation but before those which reference it
+     *
+     * @param orderedEntityType list of already ordered entity
+     * @param entityMetadata entity to set in ordered list
+     */
     private void orderEntityType (LinkedList<Class<DefaultEntity>> orderedEntityType, EntityMetadata entityMetadata) {
         log.debug("Check order for entity %s".formatted(entityMetadata.getEntityName()));
         if (entityMetadata.getRelyOn().isEmpty()) {
             orderedEntityType.addFirst((Class<DefaultEntity>) entityMetadata.getEntityClass());
         } else {
+            // Get the latest index of entity in the ordered list that the current one rely on
             final var indexRelyOn = EntityHelper.getDeepRelyOn(entityMetadata).map(orderedEntityType::indexOf)
                     .reduce(-1, (l,n) -> l > n ? l : n);
             log.debug("RelyOn order: %s".formatted(indexRelyOn));
+            // Get the latest index of entity in the ordered list which reference the current
             final var indexReferencedBy = EntityHelper.getDeepReferencedBy(entityMetadata).map(orderedEntityType::indexOf)
                     .filter(referencedByIndex -> referencedByIndex != -1)
                     .reduce(-1, (l,n) -> l > n ? l : n);
@@ -164,6 +201,14 @@ public class EntityIngestor implements EntityFinder {
         log.debug("Order: %s".formatted(orderedEntityType));
     }
 
+    /**
+     * Find with a set of attribute
+     *
+     * @param className entity type to find
+     * @param attributes attribute to use to find entities
+     * @return a set of entities matching given attributes otherwise an empty list
+     * @param <T> entity type
+     */
     public <T extends DefaultEntity> List<T> findEntityBy (Class<T> className, Map<String, String> attributes) {
         final var clause = attributes.entrySet()
                 .stream()
@@ -173,6 +218,13 @@ public class EntityIngestor implements EntityFinder {
         return selectRepository(className).findAll(clause);
     }
 
+    /**
+     * Find all available entity for the given type
+     *
+     * @param className entity type to find
+     * @return a set of entities otherwise an empty list
+     * @param <T> entity type
+     */
     public <T extends DefaultEntity> List<T> findAll(Class<T> className) {
         return selectRepository(className).findAll();
     }
@@ -182,11 +234,26 @@ public class EntityIngestor implements EntityFinder {
         return selectRepository(className).findAll(specs);
     }
 
+    /**
+     * Utility method to set all intermediate request before the save call transactional. If the final save fail
+     * all request called before will be discarded
+     *
+     * @param processor Process to execute to retrieve list of entities to save
+     * @return saved entities
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<DefaultEntity> process(Function<EntityIngestor, List<DefaultEntity>> processor) {
         return saveAll(processor.apply(this));
     }
 
+    /**
+     * Set existing chained processing by their input and output as duplicate in the storage. The beginning of the chain
+     * is selected by given SQL query which define processing information and associated input or output product.<br>
+     * If one processing in the storage match conditions, the chained processing is set duplicate
+     *
+     * @param inputQuery SQL query to use to find beginning processing
+     * @param values values to use to replace placeholder in SQL query
+     */
     public void setDuplicateProcessing(String inputQuery, List<List<Object>> values) {
         // Security to avoid undesired behavior
         if (! inputQuery.contains("processing.id in")) {
@@ -194,6 +261,7 @@ public class EntityIngestor implements EntityFinder {
         }
 
         Query query = entityManager.createNativeQuery(RECURSIVE_DUPLICATE_QUERY.formatted(inputQuery));
+        // Replace placeholder with given value in the order
         for (var index = 0; index < values.size(); index++) {
             var list = values.get(index);
             Object value;

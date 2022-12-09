@@ -48,6 +48,8 @@ public class DescriptorBuilder {
 
     private final Map<String, Alias> allAlias;
 
+    private final String configurationName;
+
     /**
      * Store created descriptor per entity type/alias to avoid duplicate descriptor on the same entity type/alias when
      * dealing with entity relation
@@ -61,6 +63,7 @@ public class DescriptorBuilder {
      * @param globalIngestionConfig ingestion configuration to analyze.
      */
     public DescriptorBuilder (Ingestion globalIngestionConfig) {
+        configurationName = globalIngestionConfig.getName();
         //Split configuration per entity type
         allMappings = globalIngestionConfig.getMappings()
                 .stream()
@@ -126,6 +129,7 @@ public class DescriptorBuilder {
 
             final var processDesc = new ProcessorDescription();
             processDesc.setName(procName);
+            processDesc.setConfigurationName(configurationName);
             processDesc.setMappings(mappings);
             processDesc.setEntityMetadata(entityMetadata);
 

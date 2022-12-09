@@ -26,6 +26,11 @@ public class ProcessorDescription {
     private Map<Class<? extends DefaultEntity>, Collection<String>> relyOnProc = new HashMap<>();
 
     /**
+     * Name of the configuration where mapping list is issued
+     */
+    private String configurationName;
+
+    /**
      * Mapping configuration list
      */
     private List<Mapping> mappings;
