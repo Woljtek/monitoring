@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ### Deprecated
 - Remove old behavior on trace parser
 ### Fix
+- [#755 - [BUG] [TRACE] [RS core Monitoring] Field "duplicate" not set to "true" when several processing are linked to same chunk or DSIB](https://github.com/COPRS/rs-issues/issues/755)
 - Use OneToOne relation instead of ManyToOne between Product and InputListInternal/OutputList
 
 ## [1.4.0-rc1] - 2022-11-23
