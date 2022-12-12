@@ -202,9 +202,6 @@ public record Parser(List<Mapping> rules) {
     private void parsePropertyNode(TreePropertyNode tree, BeanAccessor wrapper, Mapping rule, BeanProperty beanProperty, String rootPath, String[] splittedPropertyPath, Collection<?> node) {
         final var newNodes = new ArrayList<TreePropertyNode>();
 
-        final var treeEmptyOnStart = tree.getNodes().isEmpty();
-        var duplicateExistingNode = true;
-
         for (int index = 0; index < node.size(); index++) {
             final var propertyIndex = "[%s]".formatted(index);
             final var currentPath = PropertyUtil.getPath(rootPath, propertyIndex);
@@ -215,38 +212,16 @@ public record Parser(List<Mapping> rules) {
                     .filter(subNode -> subNode.getPath().equals(currentPath))
                     .findFirst();
 
-
-            if (opTreeNode.isEmpty() && ! treeEmptyOnStart) {
-                if (index == node.size() - 1) {
-                    duplicateExistingNode = false;
-                }
-
-                // Spread path on existing node (and duplicate them when needed)
-                // Intended to make all possible combination with existing node
-                // by updating existing and create missing one.
-                newNodes.addAll(
-                        spreadPathThenParseNode(
-                                tree,
-                                duplicateExistingNode,
-                                wrapper,
-                                rule,
-                                beanProperty,
-                                currentPath,
-                                splittedPropertyPath
-                        )
-                );
+            TreePropertyNode treeNode;
+            if (opTreeNode.isEmpty()) {
+                // Otherwise create new one
+                treeNode = new TreePropertyNode(currentPath);
+                tree.addNode(treeNode);
             } else {
-                TreePropertyNode treeNode;
-                if (opTreeNode.isEmpty()) {
-                    // Otherwise create new one
-                    treeNode = new TreePropertyNode(currentPath);
-                    tree.addNode(treeNode);
-                } else {
-                    treeNode = opTreeNode.get();
-                }
-
-                parsePropertyNode(treeNode, wrapper, rule, beanProperty, currentPath, splittedPropertyPath);
+                treeNode = opTreeNode.get();
             }
+
+            parsePropertyNode(treeNode, wrapper, rule, beanProperty, currentPath, splittedPropertyPath);
         }
 
         if (node.isEmpty()) {
@@ -254,38 +229,5 @@ public record Parser(List<Mapping> rules) {
         } else {
             tree.addAllNode(newNodes);
         }
-    }
-
-    /**
-     * Set path on given node by updating reference or duplicating them before
-     * according to duplicate parameter value.
-     *
-     * @param tree contains node to update or duplicate
-     * @param duplicate Set to true to duplicate node before setting path otherwise false.
-     * @param wrapper Wrapper encapsulating bean in which we have to retrieve values
-     * @param rule mapping rule to which bean property depend on
-     *             (useful when mapping contains multiple 'from' and we have to set them in the same leaf)
-     * @param beanProperty Current bean property to handle
-     * @param rootPath current path of the bean property path (which is a portion of the last one)
-     * @param splittedPropertyPath Array containing portion of the path (of bean property) that is not yet parsed
-     * @return only duplicated node.
-     */
-    private List<TreePropertyNode> spreadPathThenParseNode (TreePropertyNode tree, boolean duplicate, BeanAccessor wrapper, Mapping rule, BeanProperty beanProperty, String rootPath, String[] splittedPropertyPath) {
-        final var newNodes = new ArrayList<TreePropertyNode>();
-
-        for (var treeNode : tree.getNodes()) {
-            TreePropertyNode currentNode;
-            if (duplicate) {
-                currentNode = treeNode.copy(rootPath);
-                // Don't add node directly to the tree otherwise it will be used for next index.
-                newNodes.add(currentNode);
-            } else {
-                currentNode = treeNode;
-            }
-
-            parsePropertyNode(currentNode, wrapper, rule, beanProperty, rootPath, splittedPropertyPath);
-        }
-
-        return newNodes;
     }
 }
