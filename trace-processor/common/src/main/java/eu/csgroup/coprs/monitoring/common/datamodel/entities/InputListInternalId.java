@@ -23,7 +23,8 @@ public class InputListInternalId implements Serializable {
     @JoinColumn(name = "processing_id")
     private Processing processing;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    //@ManyToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id")
     private Product product;
 }
