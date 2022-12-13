@@ -27,5 +27,5 @@ export const DatasourceSelectEditor: React.FC<Props> = ({ item, value, onChange 
   }, [item.settings?.datasourceType])
 
 
-  return optionsDataSource.length > 0 ? <Select defaultValue={optionsDataSource[0].value} value={value} onChange={(e: any) => { console.log("selectdatsource", value, e); onChange(e.value) }} options={optionsDataSource} /> : null;
+  return optionsDataSource.length > 0 ? <Select defaultValue={optionsDataSource[0].value} value={value} onChange={(e: any) => onChange(e.value)} options={optionsDataSource} /> : null;
 };

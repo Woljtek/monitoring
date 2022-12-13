@@ -7,7 +7,6 @@ import {
   Field,
   Form,
   HorizontalGroup,
-  // Input,
   InputControl,
   Select,
   stylesFactory,
@@ -16,7 +15,6 @@ import {
 } from '@grafana/ui';
 import { PanelContext } from 'SimplePanel';
 import _ from 'lodash';
-// import { buildOptionsFromData, refresh } from './utils';
 import { QueryContext } from './types';
 import { buildOptionsFromData, refresh } from './utils';
 import { css, cx } from 'emotion';
@@ -131,11 +129,7 @@ export const InvalidationLinkEditor: FC<Props> = ({ selectedRows, onClose, unSel
 const onSubmit = async (formData: FormDTO, queryContext: QueryContext, productIds: number[]) => {
 
   const { invalidationId } = formData;
-  // invalidationId.value&&findOneLinkedInvalidation(queryContext,invalidationId.value);
-  // const table = 'invalidation_timeliness';
-  // const datatakeIds = productIds.join(',');
   const rawSql = `UPDATE invalidation_completeness SET missing_products_ids =  array_cat(missing_products_ids,'{${productIds}}') WHERE parent_id = ${invalidationId}`
-  // const rawSql = `UPDATE invalidation_timeliness SET product_ids =  array_cat(product_ids,'{${productIds}}') WHERE parent_id = ${invalidationId}`; `INSERT INTO invalidation_timeliness (parent_id,product_ids)values(${invalidationId},'{${productIds}}') `
   const { dataSource, timeRange } = queryContext;
   return dataSource.query(rawSql, timeRange);
 };
@@ -158,7 +152,6 @@ const InvalidationSelect = ({
   errorMessage,
 }: InvalidationSelectProps) => {
   const { control }: any = React.useContext(FormContext);
-  // control.setValue('invalidationId', value);
   return (
     <Field
       label="Invalidation ID"
@@ -169,35 +162,17 @@ const InvalidationSelect = ({
     There are some components like RadioButton or Select that are controlled-only and require some extra work.
     To make them work with the form, you need to render those using InputControl component */
     >
-      {/* <Input
-        /* Render InputControl as controlled input (Select) */
-        // as={Select}
-        // /* Pass control exposed from Form render prop */
-        // control={control}
-        // name="invalidationId"
-        // defaultValue={value as any}
-        // options={options}
-        // // TODO : doesn't seem to work
-        // rules={{ required: true }}
-        // /* In case of Select the value has to be returned as an object with a `value` key for the value to be saved to form data */
-        // onChange={([v]: any) => onChange(v)}
-        // allowCustomValue
-        // onCreateOption={onCreateOption}
-        // /> */}
-        <InputControl
-          name="invalidationId"
 
-          defaultValue={value}
-          control={control}
-          rules={{
-            required: false,
-          }}
-
-          render={({ field }) => <Select  {...field} width={50} allowCustomValue defaultValue={value}
-            onCreateOption={onCreateOption} options={options} onChange={(e) => field.onChange(e.value)} />}
-
-
-        />}
+      <InputControl
+        name="invalidationId"
+        defaultValue={value}
+        control={control}
+        rules={{
+          required: false,
+        }}
+        render={({ field }) => <Select  {...field} width={50} allowCustomValue defaultValue={value}
+          onCreateOption={onCreateOption} options={options} onChange={(e) => field.onChange(e.value)} />}
+      />
     </Field>
   );
 };
