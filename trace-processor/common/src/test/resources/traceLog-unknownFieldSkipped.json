@@ -1,0 +1,67 @@
+{
+  "stream":"stdout",
+  "logtag":"F",
+  "log": {
+    "header": {
+      "type": "REPORT",
+      "timestamp": "2021-08-30T15:02:24.125000Z",
+      "level": "INFO",
+      "mission": "S3",
+      "rs_chain_name": "trace-processor",
+      "rs_chain_version": "1.1.9-rc1",
+      "workflow": "NOMINAL",
+      "debug_mode": "false",
+      "tag_list": ["TAG1", "TAG2", "TAG3"]
+    },
+    "message": {
+      "content": "Start compression processing"
+    },
+    "task": {
+      "uid": "4cb9fa49-2c0a-4363-82c3-ea9ab223c53a",
+      "name": "CompressionProcessing",
+      "event": "BEGIN",
+      "data_rate_mebibytes_sec": "783740.123",
+      "data_volume_mebibytes": "783740.123",
+      "satellite": "S2B",
+      "input": {
+        "key": "value1",
+        "key_string": "value2",
+        "key_strings": ["value3", "value4", "value5"]
+      },
+      "child_of_task": "a66d3ac2-2483-4891-8151-1bc77e4296e8",
+      "follows_from_task": "a66d3ac2-2483-4891-8151-1bc77e4296e8"
+    },
+    "custom": {
+      "key": "value1",
+      "key_string": "value2",
+      "key_strings": ["value3", "value4", "value5"]
+    }
+  },
+  "kubernetes": {
+    "pod_name":"s1-l0asp-part3-execution-worker-low-v22-78c6fb7cdc-s4sxc",
+    "namespace_name":"processing",
+    "pod_id":"57f316eb-fb47-4b0b-b498-756c9d690ea2",
+    "labels":{"linkerd.io/control-plane-ns":"networking",
+      "linkerd.io/proxy-deployment":"s1-l0asp-part3-execution-worker-low-v22",
+      "linkerd.io/workload-ns":"processing",
+      "pod-template-hash":"78c6fb7cdc",
+      "role":"spring-app",
+      "spring-app-id":"s1-l0asp-part3-execution-worker-low-v22",
+      "spring-application-name":"execution-worker-low",
+      "spring-deployment-id":"s1-l0asp-part3-execution-worker-low-v22",
+      "spring-group-id":"s1-l0asp-part3"},
+    "annotations":{"cni.projectcalico.org/containerID":"570a352e345bf38c5824b1291cdbe7d75ee2ddce82684eeed37d7f369363ec06",
+      "cni.projectcalico.org/podIP":"10.244.78.133/32",
+      "cni.projectcalico.org/podIPs":"10.244.78.133/32",
+      "kubernetes.io/psp":"privileged",
+      "linkerd.io/created-by":"linkerd/proxy-injector stable-2.11.1",
+      "linkerd.io/identity-mode":"default",
+      "linkerd.io/proxy-version":"",
+      "viz.linkerd.io/tap-enabled":"true"},
+    "host":"cluster-ops-node-100",
+    "container_name":"s1-l0asp-part3-execution-worker-low-v22",
+    "docker_id":"8108918152a5f2d757dcc57f3c27948408ca8a859be1e6f97321cd66f1f43300",
+    "container_hash":"artifactory.coprs.esa-copernicus.eu/rs-docker-private/rs-ipf-s1-asp@sha256:62a0c8daefb68e0ac614234d3335f7fc325e73e9faceaa0195ad1aa5ae8eb39f",
+    "container_image":"artifactory.coprs.esa-copernicus.eu/rs-docker-private/rs-ipf-s1-asp:1.6.0-rc1"
+  }
+}
