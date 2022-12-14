@@ -1208,3 +1208,65 @@ Below are all the dependecies used during runtime and their respective licence.
     - Version: v1.2.0
     - License: [MIT License](https://github.com/kubernetes-sigs/yaml/blob/v1.2.0/LICENSE)
     - Source: https://github.com/kubernetes-sigs/yaml/tree/v1.2.0
+
+# Grafana plugins
+
+- @grafana/data
+  - Version: 9.0.2
+  - License: [Apache License 2.0](https://github.com/grafana/grafana/blob/v9.0.2/packages/grafana-data/LICENSE_APACHE2)
+  - Source: https://github.com/grafana/grafana/tree/v9.0.2/packages/grafana-data
+
+- @grafana/runtime
+  - Version: 9.0.2
+  - License: [Apache License 2.0](https://github.com/grafana/grafana/blob/v9.0.2/packages/grafana-runtime/LICENSE_APACHE2)
+  - Source: https://github.com/grafana/grafana/tree/v9.0.2/packages/grafana-runtime
+
+- @grafana/toolkit
+  - Version: 9.0.2
+  - License: [Apache License 2.0](https://github.com/grafana/grafana/blob/v9.0.2/packages/grafana-toolkit/LICENSE_APACHE2)
+  - Source: https://github.com/grafana/grafana/tree/v9.0.2/packages/grafana-toolkit
+
+- @grafana/ui
+  - Version: 9.0.2
+  - License: [Apache License 2.0](https://github.com/grafana/grafana/blob/v9.0.2/packages/grafana-ui/LICENSE_APACHE2)
+  - Source: https://github.com/grafana/grafana/tree/v9.0.2/packages/grafana-ui
+
+- @types/lodash
+  - Version: ^4.14.167
+  - License: [MIT License](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE)
+  - Source: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/lodash
+
+- @types/react-table
+  - Version: ^7.7.12
+  - License: [MIT License](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE)
+  - Source: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-table
+
+- @types/react-window
+  - Version: ^1.8.1
+  - License: [MIT License](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE)
+  - Source: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-window
+
+- @types/tinycolor2
+  - Version: 1.4.3
+  - License: [MIT License](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE)
+  - Source: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/tinycolor2
+
+- emotion
+  - Version: 10.0.27
+  - License: [MIT License](https://github.com/emotion-js/emotion/blob/emotion%4010.0.27/packages/emotion/LICENSE)
+  - Source : https://github.com/emotion-js/emotion/tree/emotion%4010.0.27/packages/emotion
+
+- lodash
+  - Version: ^4.17.20
+  - License: [Public Domain, per Creative Commons CC0](https://github.com/lodash/lodash/blob/4.17.20-npm/LICENSE)
+  - Source : https://github.com/lodash/lodash/tree/4.17.20-npm
+
+- react-window
+  - Version: 1.8.7
+  - License: [MIT License](https://github.com/bvaughn/react-window/blob/master/LICENSE.md)
+  - Source : https://github.com/bvaughn/react-window
+
+- tinycolor2
+  - Version: 1.4.2
+  - License: [MIT License](https://github.com/bgrins/TinyColor/blob/1.4.2/LICENSE)
+  - Source : https://github.com/bgrins/TinyColor/tree/1.4.2
