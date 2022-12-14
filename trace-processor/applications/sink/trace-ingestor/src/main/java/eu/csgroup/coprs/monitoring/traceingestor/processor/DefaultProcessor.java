@@ -22,6 +22,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Process creation of entities for a specific entity type defined in {@link ProcessorDescription}.<br>
@@ -98,14 +99,20 @@ public record DefaultProcessor(
                 .toList();
     }
 
+
     /**
      * Extract all leaf of the tree whatever position in.
      *
-     * @param tree Tree from which to extract leafs.
+     * @param node Node from which to extract leafs.
      * @return all leaf of the tree.
      */
-    private Collection<TreePropertyLeaf> extractLeaves(TreePropertyNode tree) {
-        return new ArrayList<>(tree.getLeaves());
+    private Stream<TreePropertyLeaf> extractLeaves (TreePropertyNode node) {
+        return Stream.concat(
+                node.getLeaves().stream(),
+                node.getNodes()
+                        .stream()
+                        .flatMap(this::extractLeaves)
+        );
     }
 
     /**
@@ -163,7 +170,7 @@ public record DefaultProcessor(
         if (!beanPropDep.isEmpty()) {
             // Compute value for unique entity field
             // Can be single value or array
-            final var dependencyValue = extractLeaves(treePropertyValue).stream()
+            final var dependencyValue = extractLeaves(treePropertyValue)
                     // Find leaf which are associated to a field where value must be unique.
                     .filter(leaf -> beanPropDep.contains(leaf.getRule()))
                     // Group values associated to same mapping (case of values dispatched over different index of a list)
