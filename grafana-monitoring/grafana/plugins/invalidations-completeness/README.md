@@ -1,6 +1,6 @@
 # Description
 
-This plugin is a panel used to manage invalidations associated to missing product.
+This plugin is a panel used to manage invalidations associated to missing products.
 
 It display a table with selectable rows and action buttons above the table:
 

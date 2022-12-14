@@ -1,6 +1,6 @@
 # Description
 
-This plugin is a panel used to manage invalidations associated to product.
+This plugin is a panel used to manage invalidations associated to late products.
 
 It display a table with selectable rows and action buttons above the table:
 

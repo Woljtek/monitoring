@@ -5,6 +5,7 @@
 This repository contains [RS-CORE Monitoring](#rs-core-monitoring) to handle trace to be able to monitor state of product produced by ingestion chain and even all Sentinel processing chain.
 
 The repository also contains two FINOPS components:
+
 - [object-storage-exporter](#object-storage-exporter)
 - [resources-exporter](#resources-exporter)
 
@@ -13,7 +14,7 @@ The repository also contains two FINOPS components:
 [![RS-CORE Monitoring](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-traceprocessor.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/docker-ci-traceprocessor.yml)
 
 **RS-CORE Monitoring** process trace by filtering desired one and ingesting them in database.
-![](trace-processor/inputs/trace-processor_workflow.png)
+![trace processor workflow](trace-processor/inputs/trace-processor_workflow.png)
 
 The description of each component of RS-Core is described [here](./trace-processor/README.md)
 
@@ -59,11 +60,11 @@ Run the `deploy-rs-addon.yaml` playbook with the following variables:
 Download and extract the zip file for the RS-Core to install.  
 If necessary, edit the parameters as required (See [Release Note](./rs-cores/MONITORING/Release_Note.md) for parameters description).
 
-- Create all objects defined by files in _Executables/additional_resources_
+- Create all objects defined by files in *Executables/additional_resources*
 - Using the SCDF GUI:
-  - Register the applications using the content of the _stream-application-list.properties_ file
-  - Create the streams using the content fo the _stream-definition.properties_ file
-  - Deploy the stream using the properties defined in the _stream-parameters.properties_ file (removing comments)
+  - Register the applications using the content of the *stream-application-list.properties* file
+  - Create the streams using the content fo the *stream-definition.properties* file
+  - Deploy the stream using the properties defined in the *stream-parameters.properties* file (removing comments)
 
 ### Uninstall
 
@@ -174,21 +175,41 @@ helm delete my-release
 
 The command removes all the Kubernetes components associated with the chart and deletes the release. Use the option `--purge` to delete all history too.
 
+## Grafana plugin
+
+[![Yarn CI for Grafana plugins](https://github.com/COPRS/monitoring/actions/workflows/yarn-grafana-plugins.yml/badge.svg)](https://github.com/COPRS/monitoring/actions/workflows/yarn-grafana-plugins.yml)
+### invalidations-completeness
+
+This plugin is a panel used to manage invalidations associated to missing products.
+
+### invalidations-timeliness
+
+This plugin is a panel used to manage invalidations associated to late products.
+
+### Local build
+
+#### Requirements
+
+- Node.js = 17.3
+- Yarn = 1.22.19
+
+#### Build
+
+```shellsession
+cd grafana-monitoring/grafana/plugins/<plugin_name>
+yarn install && yarn build && rm -rf node_modules
+```
+
 ## Repository Content
 
 The artifactory repository should contain:
 
-- Docker images for all components : https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-docker/monitoring
-- RS-Core Monitoring : https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-zip
-- Helm Chart for FINOPS components : https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-helm/monitoring
-
-
-<br>
+- Docker images for all components : [https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-docker/monitoring](https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-docker/monitoring)
+- RS-Core Monitoring : [https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-zip](https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-zip)
+- Helm Chart for FINOPS components : [https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-helm/monitoring](https://artifactory.coprs.esa-copernicus.eu/ui/repos/tree/General/rs-helm/monitoring)
+- Grafana plugins : [https://artifactory.coprs.esa-copernicus.eu/artifactory/rs-zip-local/monitoring](https://artifactory.coprs.esa-copernicus.eu/artifactory/rs-zip-local/monitoring)
 
 ---
-
-<br>
-
 # Copyright and license
 
 The Reference System Software as a whole is distributed under the Apache License, version 2.0. A copy of this license is available in the [LICENSE](LICENSE) file. Reference System Software depends on third-party components and code snippets released under their own license (obviously, all compatible with the one of the Reference System Software). These dependencies are listed in the [NOTICE](NOTICE.md) file.
