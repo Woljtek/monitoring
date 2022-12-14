@@ -32,14 +32,13 @@ It display a table with selectable rows and action buttons above the table:
    Before actually delete the invalidation from the database, it will unlink
    all products linked to the invalidation.
 
-### Configuration
+## Datasource and panel creation
 
-<!-- - You must provide a datasource in the display section of options in order to
-perform actions. -->
-
-The plugin assumes that the panel is associated to a `PostgreSQL` datasource
-with the following query:
-
+-Add a panel
+-Choose the `invalidation-timeliness` in the list of panels
+-Select a `PostgreSQL` DataSource
+-Choose Table Format and Click in edit SQL
+-Copy your SQL request in the text area 
 ```sql
 SELECT DISTINCT product_view.id,invalidation.root_cause AS root_cause,invalidation.id AS inval_id,responsibility,comment,label,anomaly_identifier
   FROM product_view
@@ -48,6 +47,10 @@ SELECT DISTINCT product_view.id,invalidation.root_cause AS root_cause,invalidati
   LEFT JOIN output_list ol ON ol.product_id = product_view.id 
   WHERE NOT product_view.duplicate and NOT product_view.late
 ```
+![Query Editor](public/plugins/cs-group-invalidations-timeliness/img/queryEditor.png)
+## Configuration
+
+- If you want to have an automatic refresh of the table, you must be in edit mode of the plugin
 - You can configure the list of root cause
 You can add a root cause (append Button) or delete a root cause (trash icon button)
 Click on validate button to save the new list
