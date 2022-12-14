@@ -3,7 +3,7 @@ package eu.csgroup.coprs.monitoring.traceingestor.processor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
-import  eu.csgroup.coprs.monitoring.common.datamodel.entities.MissingProducts;
+import eu.csgroup.coprs.monitoring.common.datamodel.entities.MissingProducts;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.Processing;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityFinder;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
@@ -14,11 +14,13 @@ import eu.csgroup.coprs.monitoring.traceingestor.config.DuplicateProcessing;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Ingestion;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityProcessing;
 import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityState;
+import eu.csgroup.coprs.monitoring.traceingestor.entity.EntityStatistics;
 import eu.csgroup.coprs.monitoring.traceingestor.mapper.InterruptedOperationException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.PropertyAccessorFactory;
 
+import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -46,7 +48,14 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         // Order of processed description to execute
         final var toProcess = new LinkedList<>(processorDescriptions);
 
-        while(! toProcess.isEmpty()) {
+        //used to measure the time it takes to process the whole ...process
+        final var mxBean = ManagementFactory.getThreadMXBean();
+        long totalTimeStart = mxBean.getThreadCpuTime(Thread.currentThread().getId());
+
+        while (!toProcess.isEmpty()) {
+            //used to measure the time it takes to process each processDescription
+            long unitaryTimeStart = mxBean.getThreadCpuTime(Thread.currentThread().getId());
+
             // Retrieve first processor description
             final var processorDesc = toProcess.poll();
             final var entityMetadata = processorDesc.getEntityMetadata();
@@ -70,7 +79,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                 List<EntityProcessing> finalEntities = processedEntities;
 
                 // Process association
-                if (! relyOnProc.isEmpty()) {
+                if (!relyOnProc.isEmpty()) {
 
                     // Retrieve cached entities (processed) based on relation set in processor descriptor
                     final var nestedEntities = processorDesc.getRelyOnProc()
@@ -83,7 +92,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                                             .flatMap(relyOnProcName -> cachedEntities.get(relyOnProcName).stream())
                                             .collect(ArrayList<EntityProcessing>::new, ArrayList::add, ArrayList::addAll))
                             )
-                            .collect(HashMap<Class<? extends DefaultEntity>, List<EntityProcessing>>::new, (h,o) -> h.put(o.getKey(), o.getValue()), HashMap::putAll);
+                            .collect(HashMap<Class<? extends DefaultEntity>, List<EntityProcessing>>::new, (h, o) -> h.put(o.getKey(), o.getValue()), HashMap::putAll);
 
                     // For each relation with the current entity, create association instance that must be used to set
                     // referenced entity in container entity (current processed)
@@ -91,7 +100,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                             .entrySet()
                             .stream()
                             .collect(HashMap<Class<? extends DefaultEntity>, DefaultAssociation>::new,
-                                    (h,o) -> h.put(
+                                    (h, o) -> h.put(
                                             o.getKey().getEntityClass(),
                                             AssociationFactory.getInstance().selectAssociation(
                                                     processorDesc.getEntityMetadata().getEntityClass(),
@@ -111,6 +120,10 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
 
                 // Finally store processed entities in cache
                 cachedEntities.put(processorDesc.getName(), finalEntities);
+
+                final var unitaryTime = (mxBean.getThreadCpuTime(Thread.currentThread().getId()) - unitaryTimeStart) / 1000000;
+                EntityStatistics.retrieveProcessingTime(unitaryTime, processorDesc.getEntityMetadata().getEntityClass());
+
             } else {
                 // All conditions are not met (referenced entities are not created for the given container entity)
                 log.debug("Cannot Process %s (dependency missing)%n".formatted(processorDesc.getEntityMetadata().getEntityName()));
@@ -124,22 +137,27 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                 config -> setDuplicateProcess(config, entityIngestor, cachedEntities)
         );
 
+        EntityStatistics.incorporateEntities(cachedEntities);
+        //measuring the Total Processing time of the TraceLog , in milliSeconds
+        final var totalTime = (mxBean.getThreadCpuTime(Thread.currentThread().getId()) - totalTimeStart) / 1000000;
+        EntityStatistics.setProcessingTime(totalTime);
+
         // For processed entities, remove those which were not modified (unchanged state)
         return cachedEntities.values()
                 .stream()
                 .flatMap(List::stream)
-                .filter(entityProcessing -> entityProcessing.getState() != EntityState.UNCHANGED )
+                .filter(entityProcessing -> entityProcessing.getState() != EntityState.UNCHANGED)
                 .map(EntityProcessing::getEntity)
                 .toList();
     }
 
     /**
-     *  Associate each referenced entity in the container entity by processing copy of the last one when needed
+     * Associate each referenced entity in the container entity by processing copy of the last one when needed
      *
-     * @param containerEntity entity in which to set referenced entities
+     * @param containerEntity  entity in which to set referenced entities
      * @param cachedReferences referenced entities to set in container
-     * @param associationMap association instance to use for each referenced entity to set in container entity
-     * @param entityFinder interface to access to the storage
+     * @param associationMap   association instance to use for each referenced entity to set in container entity
+     * @param entityFinder     interface to access to the storage
      * @return all possible combination with cached references
      */
     private List<EntityProcessing> associate(
@@ -177,7 +195,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
      * @param beanAccessor bean accessor trace
      * @return duplicate processing SQL query if one found otherwise empty result
      */
-    private Optional<DuplicateProcessing> selectDuplicateStartPoint (BeanAccessor beanAccessor) {
+    private Optional<DuplicateProcessing> selectDuplicateStartPoint(BeanAccessor beanAccessor) {
         // If ingestion config contains duplicate processing SQL query
         if (this.ingestionConfig.getDuplicateProcessings() != null) {
             // Select the one where rules match values in trace
@@ -192,13 +210,13 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
     }
 
     /**
-     *  With the given SQL query, replace key with the desired value of processed entities
+     * With the given SQL query, replace key with the desired value of processed entities
      *
-     * @param conf SQL query and rules
-     * @param entityIngestor interface with the storage
+     * @param conf              SQL query and rules
+     * @param entityIngestor    interface with the storage
      * @param processedEntities Processed entities to use to replace key in SQL query with desired value
      */
-    private void setDuplicateProcess (
+    private void setDuplicateProcess(
             DuplicateProcessing conf,
             EntityIngestor entityIngestor,
             Map<String, List<EntityProcessing>> processedEntities) {
@@ -215,7 +233,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
             final var matcher = Pattern.compile("<([a-zA-Z0-9_,.]*)>").matcher(inputQuery);
             final var debugParameter = new StringBuilder("Query parameters: ");
 
-            while(matcher.find()) {
+            while (matcher.find()) {
                 // Get raw result (without <...>)
                 final var rawPath = matcher.group(1);
 
@@ -246,13 +264,13 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
     /**
      * Retrieve values contained in processed entities according to paths set
      *
-     * @param query SQL query containing key
-     * @param capturingGroup raw path with <...>
-     * @param rawPath bean property path (can be multiple path separated by a coma ',')
+     * @param query             SQL query containing key
+     * @param capturingGroup    raw path with <...>
+     * @param rawPath           bean property path (can be multiple path separated by a coma ',')
      * @param processedEntities Entities to use to retrieve values
      * @return
      */
-    private List<Object> getValueForDuplicateProcess (String query, String capturingGroup, String rawPath, Map<String, List<EntityProcessing>> processedEntities) {
+    private List<Object> getValueForDuplicateProcess(String query, String capturingGroup, String rawPath, Map<String, List<EntityProcessing>> processedEntities) {
         // Check if it's a multiple path
         final var pathes = Arrays.stream(rawPath.split(","))
                 .map(PropertyUtil::snake2PascalCasePath)
@@ -264,7 +282,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         } else {
             // Otherwise retrieve values for each path
             tempRes = new ArrayList<>();
-            for (var path: pathes) {
+            for (var path : pathes) {
                 tempRes.addAll(getValueForDuplicateProcess(path, processedEntities));
             }
         }
@@ -275,15 +293,15 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
     /**
      * Retrieve value of each processed entities that match the entity type set in path
      *
-     * @param rawPath bean property path
+     * @param rawPath           bean property path
      * @param processedEntities processed entities
      * @return values associated to given path for each processed entities where entity type is the one set in path
      */
-    private List<Object> getValueForDuplicateProcess (final String rawPath, Map<String, List<EntityProcessing>> processedEntities) {
+    private List<Object> getValueForDuplicateProcess(final String rawPath, Map<String, List<EntityProcessing>> processedEntities) {
         var separatorIndex = rawPath.indexOf(".");
 
         final var entityType = separatorIndex != -1 ? rawPath.substring(0, separatorIndex) : rawPath;
-        
+
         return processedEntities.entrySet()
                 .stream()
                 // Find processed entities which match the desired entity type
