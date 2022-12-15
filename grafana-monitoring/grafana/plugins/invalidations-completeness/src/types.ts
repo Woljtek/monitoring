@@ -6,7 +6,6 @@ export interface PanelOptions {
   postgresDatasourceName: string;
   frameIndex: number;
   sortBy?: TableSortByFieldState[];
-  // rootCauseListTimeliness: RootCauseEditorOptions[];
   rootCauseListCompleteness: RootCauseEditorOptions[];
 }
 

@@ -76,6 +76,7 @@ jobs:
           echo "ARTIFACT_SHA256_CHECKSUM=$ARTIFACT_SHA256_CHECKSUM" >> $GITHUB_ENV
       
       - name: Upload zipped plugin in Artifactory
+        if: github.event_name != 'pull_request'
         run: |
           cd grafana-monitoring/grafana/plugins
           curl --header "X-Checksum-MD5:${ARTIFACT_MD5_CHECKSUM}" \

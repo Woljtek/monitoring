@@ -123,7 +123,6 @@ export const Editor: FC<Props> = ({ selectedRows, onClose, unSelect }) => {
   const [responsibility,] = React.useState<SelectableValue<EResponsibility>>(defaultResponsibility ? CATEGORYOPTIONS.filter((f) => f.value === defaultResponsibility)[0] : emptyFormData.responsibility);
   const initialDefaultRootCause: string = selectedRows.fields.find(f => f.name === 'root_cause')?.values.toArray()[0];
   const [defaultRootCause] = React.useState<SelectableValue<string>>(initialDefaultRootCause ? options.rootCauseListCompleteness.filter((f) => f.value === initialDefaultRootCause)[0] : SELECTOPTIONS.COMPLETENESS.rootCause.options[0]);
-  console.log('ini', initialDefaultRootCause, defaultRootCause, defaultResponsibility, responsibility)
   const [anomalyIdentifier] = React.useState<number>(defaultAnomalyIdentifier ?? undefined);
   const [label] = React.useState(defaultLabel ?? "");
   const productIds = selectedRows.fields.find(f => f.name === 'id')?.values.toArray();

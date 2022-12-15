@@ -1,19 +1,11 @@
 import { StandardEditorProps } from '@grafana/data';
 import {
   Button,
-
-  // Field,
-  // Collapse,
-
   HorizontalGroup,
   Input,
   InputControl,
-  // Input,
-
   Label,
-
   Select,
-
   stylesFactory,
   VerticalGroup,
 } from '@grafana/ui';
@@ -55,7 +47,6 @@ const RootCauseEditor: React.FC<Props> = ({ value, onChange, item }) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <VerticalGroup>
           {fields && fields.map((item: any, index: number) => {
-            console.log(item)
             return (
               <div key={item.id}>
                 <VerticalGroup >
@@ -71,7 +62,6 @@ const RootCauseEditor: React.FC<Props> = ({ value, onChange, item }) => {
                     Description
                   </Label>
                   <Input
-                    // name={`rootCauses[${index}].description`}
                     defaultValue={item.description}
                     {...register(`rootCauses[${index}].description`)}
                   />

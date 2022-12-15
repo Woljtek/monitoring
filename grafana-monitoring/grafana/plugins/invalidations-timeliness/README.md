@@ -41,13 +41,12 @@ The plugin assumes that the panel is associated to a `PostgreSQL` datasource
 with the following query:
 
 ```sql
-  SELECT DISTINCT product.id,invalidation.root_cause AS root_cause,invalidation.id AS inval_id,responsibility,comment,label,anomaly_identifier
-  FROM product 
-  LEFT JOIN invalidation_timeliness AS it ON product.id = ANY(it.product_ids)
+SELECT DISTINCT product_view.id,invalidation.root_cause AS root_cause,invalidation.id AS inval_id,responsibility,comment,label,anomaly_identifier
+  FROM product_view
+  LEFT JOIN invalidation_timeliness AS it ON product_view.id = ANY(it.product_ids)
   LEFT JOIN invalidation ON invalidation.id = parent_id
-  LEFT JOIN output_list ol ON ol.product_id = product.id 
-  LEFT JOIN processing proc ON proc.id  = ol.processing_id 
-  WHERE NOT proc.duplicate
+  LEFT JOIN output_list ol ON ol.product_id = product_view.id 
+  WHERE NOT product_view.duplicate and NOT product_view.late
 ```
 - You can configure the list of root cause
 You can add a root cause (append Button) or delete a root cause (trash icon button)

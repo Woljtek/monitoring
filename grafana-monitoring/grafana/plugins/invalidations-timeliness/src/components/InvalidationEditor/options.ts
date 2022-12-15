@@ -75,68 +75,7 @@ export const TIMELINESSOPTIONS = [
   },
 ]
 export const SELECTOPTIONS: SelectOptionsInterface = {
-  // COMPLETENESS: {
-  //   rootCause: {
-  //     disabled: false,
-  //     value: 'S1A',
-  //     options: [
-  //       {
-  //         label: 'S1A',
-  //         value: 'S1A',
-  //         description: 'S1A - telemetry quality',
-  //         imgUrl: 'public/plugins/cs-group-invalidations-timeliness/img/satellite.svg',
-  //       },
-  //       {
-  //         label: 'S1B',
-  //         value: 'S1B',
-  //         description: 'S1B - telemetry quality',
-  //         imgUrl: 'public/plugins/cs-group-invalidations-timeliness/img/orbit.svg',
-  //       },
-  //       {
-  //         label: 'MPS',
-  //         value: 'MPS',
-  //         description: 'MPS - telemetry quality',
-  //         imgUrl: 'public/plugins/cs-group-invalidations-timeliness/img/orbit.svg',
-  //       },
-  //       {
-  //         label: 'SGS',
-  //         value: 'SGS',
-  //         description: 'SGS - telemetry quality',
-  //         imgUrl: 'public/plugins/cs-group-invalidations-timeliness/img/settings.svg',
-  //       },
-  //       {
-  //         label: 'MTI',
-  //         value: 'MTI',
-  //         description: 'MTI - telemetry quality',
-  //         imgUrl: 'public/plugins/cs-group-invalidations-timeliness/img/settings.svg',
-  //       },
-  //       {
-  //         label: 'NSG',
-  //         value: 'NSG',
-  //         description: 'NSG - telemetry quality',
-  //         imgUrl: 'public/plugins/cs-group-invalidations-timeliness/img/settings.svg',
-  //       },
-  //       {
-  //         label: 'EDRS-A',
-  //         value: 'EDRS-A',
-  //         description: 'EDRS-A - telemetry quality',
-  //         imgUrl: 'public/plugins/cs-group-invalidations-timeliness/img/settings.svg',
-  //       },
-  //       {
-  //         label: 'CFI',
-  //         value: 'CFI',
-  //         description: 'CFI',
-  //         imgUrl: 'public/cs-group-invalidations-timeliness/img/settings.svg',
-  //       },
-  //       {
-  //         label: 'PDGS',
-  //         value: 'PDGS',
-  //         description: 'PDGS',
-  //         imgUrl: 'public/plugins/cs-group-invalidations-timeliness/img/question.svg',
-  //       },
-  //     ],
-  //   },
-  // },
+
   TIMELINESS: {
     rootCause: {
       disabled: false,

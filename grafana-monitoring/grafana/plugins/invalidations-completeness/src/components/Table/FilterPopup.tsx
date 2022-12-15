@@ -7,7 +7,6 @@ import { FilterList } from './FilterList';
 import { calculateUniqueFieldValues, getFilteredOptions, valuesToOptions } from './utils';
 import {
   Button,
-  // ClickOutsideWrapper,
   HorizontalGroup,
   Label,
   stylesFactory,
@@ -52,7 +51,6 @@ export const FilterPopup: FC<Props> = ({ column: { preFilteredRows, filterValue,
   const styles: any = useStyles(getStyles);
 
   return (
-    // <ClickOutsideWrapper onClick={onCancel} useCapture={true}>
     <div className={cx(styles.filterContainer)} onClick={stopPropagation}>
       <VerticalGroup spacing="lg">
         <VerticalGroup spacing="xs">
@@ -79,7 +77,6 @@ export const FilterPopup: FC<Props> = ({ column: { preFilteredRows, filterValue,
         </HorizontalGroup>
       </VerticalGroup>
     </div>
-    // </ClickOutsideWrapper>
   );
 };
 

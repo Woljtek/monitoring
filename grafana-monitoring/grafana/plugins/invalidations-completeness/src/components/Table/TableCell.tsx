@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import { Cell } from 'react-table';
 import { Field } from '@grafana/data';
 
-// import { getTextAlign } from './utils';
+import { getTextAlign } from './utils';
 import { TableFilterActionCallback } from './types';
 import { TableStyles } from './styles';
 import { FilterableTableCell } from './FilterableTableCell';
@@ -27,7 +27,7 @@ export const TableCell: FC<Props> = ({ cell, field, tableStyles, onCellFilterAdd
   }
 
   if (cellProps.style) {
-    // cellProps.style.textAlign = getTextAlign(field);
+    cellProps.style.textAlign = getTextAlign(field);
   }
 
   if (filterable && onCellFilterAdded) {
