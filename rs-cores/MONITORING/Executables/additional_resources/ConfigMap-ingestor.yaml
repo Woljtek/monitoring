@@ -32,6 +32,7 @@ data:
         name: IngestionTrigger_AuxData
         mappings:
           - from: log.trace.task.input[filename_string]
+            action: FORMAT ^.+(?=.zip|.TGZ)|.+$ %1$s
             to: aux_data.filename
           - from: log.trace.header.mission
             to: aux_data.mission
@@ -61,6 +62,7 @@ data:
         name: IngestionWorker_AuxData
         mappings:
           - from: log.trace.task.output[filename_string]
+            action: FORMAT ^.+(?=.zip|.TGZ)|.+$ %1$s
             to: aux_data.filename
           - from: log.trace.header.mission
             to: aux_data.mission
@@ -328,7 +330,7 @@ data:
         name: PripWorker_Product
         mappings:
           - from: log.trace.task.input[filename_string]
-            action: FORMAT ^.+(?=.zip)|.+$ %1$s
+            action: FORMAT ^.+(?=.zip|.TGZ)|.+$ %1$s
             to: product.filename
           - from: log.trace.header.timestamp
             to: product.prip_storage_end_date
