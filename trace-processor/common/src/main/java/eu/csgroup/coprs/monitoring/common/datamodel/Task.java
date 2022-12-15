@@ -1,7 +1,6 @@
 package eu.csgroup.coprs.monitoring.common.datamodel;
 
 import com.fasterxml.jackson.annotation.*;
-import eu.csgroup.coprs.monitoring.common.json.PropertyNames;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
@@ -20,7 +19,7 @@ import java.util.Map;
 )
 public class Task {
     @NotNull
-    @Pattern(regexp = PropertyNames.UID_REGEX, message = "task.uid does not match UID pattern")
+    @Pattern(regexp = Properties.UID_REGEX, message = "task.uid does not match UID pattern")
     private String uid;
 
     @NotNull

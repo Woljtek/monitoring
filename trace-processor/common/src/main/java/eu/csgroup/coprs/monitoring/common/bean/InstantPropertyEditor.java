@@ -1,6 +1,6 @@
 package eu.csgroup.coprs.monitoring.common.bean;
 
-import eu.csgroup.coprs.monitoring.common.json.PropertyNames;
+import eu.csgroup.coprs.monitoring.common.datamodel.Properties;
 
 import java.awt.*;
 import java.beans.PropertyChangeListener;
@@ -19,10 +19,10 @@ public class InstantPropertyEditor implements PropertyEditor {
     private final DateTimeFormatter formatter;
 
     /**
-     * Create an editor with the default {@link PropertyNames#DATE_PATTERN} date format
+     * Create an editor with the default {@link Properties#DATE_PATTERN} date format
      */
     public InstantPropertyEditor () {
-        this(PropertyNames.DATE_PATTERN, PropertyNames.DEFAULT_TIMEZONE);
+        this(Properties.DATE_PATTERN, Properties.DEFAULT_TIMEZONE);
     }
 
     /**

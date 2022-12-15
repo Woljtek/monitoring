@@ -196,8 +196,8 @@ public record DefaultProcessor(
             // Create default entities and fill field for unique value.
             final var requiredEntities = mapper.map(beanPropDep, handler);
 
-            log.debug("Number of available entities %s".formatted(availableEntities));
-            log.debug("Number of required entities %s".formatted(requiredEntities));
+            log.debug("Number of available entities %s".formatted(availableEntities.size()));
+            log.debug("Number of required entities %s".formatted(requiredEntities.size()));
 
             if (availableEntities.isEmpty()) {
                 // No entities is storage use created entities as default entities

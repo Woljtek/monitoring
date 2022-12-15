@@ -123,10 +123,8 @@ public record Parser(List<Mapping> rules) {
                 createOrUpdateLeaf(tree, rule, beanProperty, value);
             } catch (InvalidPropertyException e) {
                 // Split bean property path to find array value to create branch (one value in the array per branch)
-                final var splittedPath = PropertyUtil.splitPath(beanProperty.getBeanPropertyPath(true));
-                // Do not keep bean name.
-                final var splittedPathWithoutBeanName = Arrays.copyOfRange(splittedPath, 1, splittedPath.length);
-                parsePropertyNode(tree, wrapper, rule, beanProperty, splittedPath[0], splittedPathWithoutBeanName);
+                final var splittedPath = PropertyUtil.splitPath(beanProperty.getBeanPropertyPath());
+                parsePropertyNode(tree, wrapper, rule, beanProperty, beanProperty.getBeanName(), splittedPath);
             }
         }
     }

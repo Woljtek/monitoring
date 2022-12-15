@@ -92,8 +92,6 @@ public class EntityFactory {
         // Set in which entity it is referenced (used to save entity before doing association)
         // Ensure that entity is unique
         relyOn.keySet()
-                .stream()
-                .map(em -> cache.get(em.getEntityClass()))
                 .forEach(relyOnMetadata -> relyOnMetadata.addReferencedBy(entityClass));
 
         // Set entity which are parent of other entity (use child entity for association instead of parent)
