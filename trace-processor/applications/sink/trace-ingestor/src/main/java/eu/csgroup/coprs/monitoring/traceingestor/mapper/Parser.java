@@ -169,7 +169,12 @@ public record Parser(List<Mapping> rules) {
                 }
             } catch (InvalidPropertyException e) {
                 // Do not take into account path which refer to map value type
-                if (! currentPath.matches(".*\\[[a-z0-9_]+\\].*")) {
+                final var beginBracket = currentPath.indexOf("[");
+                final var endBracket = currentPath.indexOf("]");
+                // Intended to replace this call: currentPath.matches(".*\\[[a-z0-9_]+\\].*")
+                // Avoid Denial of Service (DoS) with regex
+                // Do not take into account list case ([1])
+                if (endBracket - beginBracket > 1 && currentPath.substring(beginBracket + 1, endBracket).matches("\\d[a-z]|[a-z]")) {
                     // Refer to a field that is not part of trace structure
                     throw new InterruptedOperationException(
                             "Path %s (%s) refer to a field that is not part of trace structure".formatted(currentPath, beanProperty)

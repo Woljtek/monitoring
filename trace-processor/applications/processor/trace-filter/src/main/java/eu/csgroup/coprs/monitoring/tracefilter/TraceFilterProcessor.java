@@ -106,8 +106,13 @@ public class TraceFilterProcessor
      * @return Updated structure
      */
     public String undecorate (String dirtyJson) {
-        return dirtyJson.replaceAll("\\\\*\"", "\"")
-                .replace("\"{", "{")
+        // Intended to replace this call: dirtyJson.replaceAll("\\\\*\"", "\"")
+        // Avoid Denial of Service (DoS) with regex
+        while (dirtyJson.contains("\\\"")) {
+            dirtyJson = dirtyJson.replace("\\\"", "\"");
+        }
+
+        return dirtyJson.replace("\"{", "{")
                 .replace("}\"", "}");
     }
 }
