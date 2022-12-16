@@ -200,6 +200,17 @@ cd grafana-monitoring/grafana/plugins/<plugin_name>
 yarn install && yarn build && rm -rf node_modules
 ```
 
+### Installation
+
+Update the default configuration of the grafana apps [following the infrastructure guide](https://github.com/COPRS/infrastructure/tree/main#review-and-change-the-default-configuration-to-match-your-needs and add the two plugins :
+```yaml
+custom_plugins:
+  - name: cs-group-invalidations-completeness
+    url: https://artifactory.coprs.esa-copernicus.eu/artifactory/rs-zip/monitoring/invalidations-completeness.zip
+  - name: cs-group-invalidations-timeliness
+    url: https://artifactory.coprs.esa-copernicus.eu/artifactory/rs-zip/monitoring/invalidations-timeliness.zip
+```
+
 ## Repository Content
 
 The artifactory repository should contain:
