@@ -202,7 +202,7 @@ yarn install && yarn build && rm -rf node_modules
 
 ### Installation
 
-Update the default configuration of the grafana apps [following the infrastructure guide](https://github.com/COPRS/infrastructure/tree/main#review-and-change-the-default-configuration-to-match-your-needs and add the two plugins :
+Update the default configuration of the grafana apps [following the infrastructure guide](https://github.com/COPRS/infrastructure/tree/main#review-and-change-the-default-configuration-to-match-your-needs) and add the two plugins :
 ```yaml
 custom_plugins:
   - name: cs-group-invalidations-completeness
