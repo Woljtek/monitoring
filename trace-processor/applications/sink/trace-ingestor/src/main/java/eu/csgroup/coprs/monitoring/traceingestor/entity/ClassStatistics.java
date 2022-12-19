@@ -1,6 +1,7 @@
 package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
 import lombok.Data;
@@ -8,10 +9,12 @@ import lombok.Data;
 @Data
 public class ClassStatistics {
 
-    //lowercase
+
     private String className;
+    @JsonIgnore
     private Class<? extends DefaultEntity> entityClass;
     private long processingTime;
+    private long ingestionTime;
 
 
     private int entitiesCreated;

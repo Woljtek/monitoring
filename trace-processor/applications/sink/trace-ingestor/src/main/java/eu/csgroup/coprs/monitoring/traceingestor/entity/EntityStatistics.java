@@ -1,5 +1,9 @@
 package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.*;
 import eu.csgroup.coprs.monitoring.common.ingestor.DataBaseIngestionTimer;
 
@@ -13,14 +17,20 @@ import static java.util.stream.Collectors.groupingBy;
 
 public class EntityStatistics {
 
+    @JsonProperty
     private static int numberOfEntitiesInstanced;
+    @JsonProperty
     private static int numberOfEntitiesModified;
+    @JsonProperty
     private static int numberOfUnchangedEntities;
-
+    @JsonProperty
     private static List<ClassStatistics> classStatistics;
+    @JsonProperty
     private static long processingTime;
+    @JsonProperty
+    private static long ingestionTime;
 
-    //
+    @JsonIgnore
     private static Class<? extends DefaultEntity> currentClass;
 
     static {
@@ -30,6 +40,9 @@ public class EntityStatistics {
     private EntityStatistics() {
     }
 
+    /**
+     * Clears all the attributes in the class (and in {@link DataBaseIngestionTimer}) in order to record statistics for the next TraceLog
+     */
     public static void reset() {
         numberOfEntitiesInstanced = 0;
         numberOfEntitiesModified = 0;
@@ -44,6 +57,8 @@ public class EntityStatistics {
         classStatistics.add(new ClassStatistics(InputListInternal.class));
         classStatistics.add(new ClassStatistics(OutputList.class));
         classStatistics.add(new ClassStatistics(MissingProducts.class));
+
+        DataBaseIngestionTimer.getInstance().reset();
 
     }
 
@@ -90,9 +105,29 @@ public class EntityStatistics {
                 });
     }
 
+    /**
+     * Method called to set the ingestion times from the {@link DataBaseIngestionTimer} into the {@link EntityStatistics} class
+     */
+    private static void pickUpIngestionTimes() {
+        DataBaseIngestionTimer timer = DataBaseIngestionTimer.getInstance();
+
+        ingestionTime = timer.resolveGlobalTimer();
+
+        for(ClassStatistics stats : EntityStatistics.classStatistics) {
+            stats.setIngestionTime(timer.resolveUnitaryTimer(stats.getEntityClass()));
+        }
+    }
+
+
     public static void retrieveProcessingTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
         //no need to check for the presence of the Entry, I literally create them at class loading
         getClassStatisticsByClass(entityClass).get().setProcessingTime(milliSeconds);
+
+    }
+
+    public static void retrieveIngestionTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
+        //no need to check for the presence of the Entry, I literally create them at class loading
+        getClassStatisticsByClass(entityClass).get().setIngestionTime(milliSeconds);
 
     }
 
@@ -159,9 +194,10 @@ public class EntityStatistics {
 
 
     public static String printEntitiesCreated() {
+        EntityStatistics.removeClassStatisticsIfEmpty();
+
         //getting the databaseStorage Times from the common project
-        //since this method is only called after the processing and saving has been done, we know the fields are filled!
-        DataBaseIngestionTimer dataStorageTimes = DataBaseIngestionTimer.getInstance();
+        pickUpIngestionTimes();
 
         StringBuilder builder = new StringBuilder("Entities created : %s. ".formatted(numberOfEntitiesInstanced));
         builder.append(""" 
@@ -170,30 +206,30 @@ public class EntityStatistics {
                     "entites_created" : %s,
                     "entities_modified" : %s,
                     "entities_unchanged" : %s,
-                    "processing_duration" : %s,
-                    "ingestion_duration": %s,
+                    "processing_duration" : %s ms,
+                    "ingestion_duration": %s ms,
                 """.formatted(numberOfEntitiesInstanced,
                 numberOfEntitiesModified,
                 numberOfUnchangedEntities,
                 processingTime,
-                dataStorageTimes.resolveGlobalTimer()));
+                ingestionTime));
 
-        EntityStatistics.removeClassStatisticsIfEmpty();
+
 
         EntityStatistics.classStatistics.forEach(stats -> {
-            builder.append("\"%s\": { \n".formatted(stats.getClassName()));
+            builder.append("\"%s\": { %n".formatted(stats.getClassName()));
             if (stats.getEntitiesCreated() > 0) {
-                builder.append("\"created\": %s,\n".formatted(stats.getEntitiesCreated()));
+                builder.append("\t\"created\": %s,%n".formatted(stats.getEntitiesCreated()));
             }
             if (stats.getEntitiesModified() > 0) {
-                builder.append("\"updated\": %s,\n".formatted(stats.getEntitiesModified()));
+                builder.append("\t\"updated\": %s,%n".formatted(stats.getEntitiesModified()));
             }
             if (stats.getUnchangedEntities() > 0) {
-                builder.append("\"unchanged\": %s,\n".formatted(stats.getUnchangedEntities()));
+                builder.append("\t\"unchanged\": %s,%n".formatted(stats.getUnchangedEntities()));
             }
             //not yet implemented
-            builder.append("\"processing_duration\": %s,\n".formatted(stats.getProcessingTime()))
-                    .append("\"ingestion_duration\": %s,\n".formatted(dataStorageTimes.resolveUnitaryTimer(stats.getEntityClass())))
+            builder.append("\t\"processing_duration\": %s ms,%n".formatted(stats.getProcessingTime()))
+                    .append("\t\"ingestion_duration\": %s ms,%n".formatted(stats.getIngestionTime()))
                     .append("},");
 
 
@@ -207,6 +243,12 @@ public class EntityStatistics {
         return builder.toString();
     }
 
+    public static String getAsJson() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(new EntityStatistics());
+
+    }
+
 
     public static long getProcessingTime() {
         return processingTime;
@@ -216,6 +258,13 @@ public class EntityStatistics {
         EntityStatistics.processingTime = processingTime;
     }
 
+    public static long getIngestionTime() {
+        return ingestionTime;
+    }
+
+    public static void setIngestionTime(long ingestionTime) {
+        EntityStatistics.ingestionTime = ingestionTime;
+    }
 }
 
 

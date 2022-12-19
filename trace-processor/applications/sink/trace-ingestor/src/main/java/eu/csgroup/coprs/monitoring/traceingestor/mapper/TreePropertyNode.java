@@ -54,10 +54,4 @@ public class TreePropertyNode implements TreeProperty {
         return newNode;
     }
 
-    public Collection<TreePropertyLeaf> getAllLeaves() {
-       this.nodes.forEach(TreePropertyNode::getAllLeaves);
-       List<TreePropertyLeaf> leaves = new ArrayList<>();
-       leaves.addAll(this.nodes.stream().flatMap(node -> node.getLeafs().stream()).toList());
-       return leaves;
-    }
 }

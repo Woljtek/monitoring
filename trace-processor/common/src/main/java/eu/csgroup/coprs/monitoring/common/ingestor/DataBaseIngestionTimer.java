@@ -32,6 +32,10 @@ public class DataBaseIngestionTimer {
 
     }
 
+    public void reset() {
+        this.unitaryIngestionTime.clear();
+    }
+
     public void startGlobalTimer() {
         this.globalIngestionTime[0] = this.threadBean.getThreadCpuTime(Thread.currentThread().getId());
     }
