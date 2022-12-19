@@ -2,6 +2,7 @@ package eu.csgroup.coprs.monitoring.common.bean;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.AbstractEnvironment;
@@ -66,10 +67,12 @@ public class ReloadableBeanFactory {
      */
     private <T> T reload (ConfigurationPropertiesBean beanConfig, ReloadableBean reloadableBean, Class<T> className) {
         if (reloadableBean.isReloadNeeded()) {
-            final var bean = beanConfig.getInstance();
-            context.getAutowireCapableBeanFactory().destroyBean(bean);
+            final var beanFactory = (DefaultListableBeanFactory)context.getAutowireCapableBeanFactory();
+            beanFactory.destroySingleton(className.getName());
 
-            final var newBean = context.getAutowireCapableBeanFactory().createBean(className);
+            final var newBean = beanFactory.createBean(className);
+            beanFactory.registerSingleton(className.getName(), newBean);
+
             reloadableBean.setReloaded();
             return newBean;
         } else {

@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 - Use alternate check to avoid DoS with regex backtracking
 - Minor fixes
 - Remove archive extension on aux data ingestion trigger/worker and prip worker product configuration
+- Use DefaultListableBeanFactory to register new bean configuration instance
 
 ## [1.4.0-rc1] - 2022-11-23
 ### Added

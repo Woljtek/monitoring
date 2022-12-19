@@ -1,0 +1,6 @@
+ingestions:
+  -
+    name: IngestionTrigger_Dsib
+    mappings:
+      - from: log.trace.header.mission
+        to: dsib.filename
