@@ -4,3 +4,5 @@ ingestions:
     mappings:
       - from: log.trace.header.rs_chain_name
         to: dsib.filename
+      - from: log.trace.header.mission
+        to: dsib.mission

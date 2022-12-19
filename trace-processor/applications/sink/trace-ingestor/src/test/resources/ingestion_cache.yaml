@@ -2,5 +2,5 @@ ingestions:
   -
     name: IngestionTrigger_Dsib
     mappings:
-      - from: log.trace.header.mission
+      - from: log.trace.header.rs_chain_name
         to: dsib.filename

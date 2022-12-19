@@ -1,6 +1,7 @@
 package eu.csgroup.coprs.monitoring.traceingestor.config;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
@@ -9,6 +10,7 @@ import lombok.Data;
  * @param <T> Object type to which to set an alias
  */
 @Data
+@EqualsAndHashCode
 public class AliasWrapper<T> {
     private final String alias;
 

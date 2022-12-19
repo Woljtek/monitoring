@@ -1,6 +1,7 @@
 package eu.csgroup.coprs.monitoring.traceingestor.converter;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
  * with the same type as the last required. (see {@link #getDynamicArgs()} for an example).
  */
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Action {
     /**
      * Enum to define argument's type.
@@ -27,6 +29,7 @@ public class Action {
     /**
      * Action in string format
      */
+    @EqualsAndHashCode.Include
     private final String rawAction;
 
     /**
@@ -40,6 +43,11 @@ public class Action {
     private List<String> allArgs = new ArrayList<>();
 
 
+    /**
+     * Build action based on given parameter
+     *
+     * @param rawConversion action in the form of {@link ActionConstant#DEFAULT_ACTION_PATTERN}
+     */
     public Action(String rawConversion) {
         this.rawAction = rawConversion;
         build();

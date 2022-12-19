@@ -1,15 +1,11 @@
 package eu.csgroup.coprs.monitoring.traceingestor;
 
-import eu.csgroup.coprs.monitoring.common.bean.AutoMergeableMap;
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.BeanProperty;
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
-import eu.csgroup.coprs.monitoring.common.datamodel.*;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.*;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityFactory;
-import eu.csgroup.coprs.monitoring.common.ingestor.EntityHelper;
 import eu.csgroup.coprs.monitoring.common.ingestor.EntityIngestor;
-import eu.csgroup.coprs.monitoring.common.message.FilteredTrace;
 import eu.csgroup.coprs.monitoring.traceingestor.config.Mapping;
 import eu.csgroup.coprs.monitoring.traceingestor.processor.DefaultProcessor;
 import eu.csgroup.coprs.monitoring.traceingestor.processor.ProcessorDescription;
@@ -21,8 +17,6 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -30,7 +24,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(SpringRunner.class)
 @Import(TraceIngestorConfiguration.class)

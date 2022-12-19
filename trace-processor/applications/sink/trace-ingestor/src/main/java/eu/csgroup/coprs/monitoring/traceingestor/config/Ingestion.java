@@ -3,6 +3,7 @@ package eu.csgroup.coprs.monitoring.traceingestor.config;
 import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class Ingestion {
     /**
      * Configuration name

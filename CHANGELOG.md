@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ### Added
 - [#735 - [MONITORING] Add information "late" and "duplicate" for each product.](https://github.com/COPRS/rs-issues/issues/735)
 - Set javadoc and comment
+- Store in cache processor description for the same configuration to avoid doing same job repeatedly
 ### Deprecated
 - Remove old behavior on trace parser
 ### Fix
