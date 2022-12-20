@@ -234,8 +234,7 @@ public class EntityTest {
                 Instant.parse("2022-10-20T10:23:59.00Z"),
                 Instant.parse("2022-10-21T10:23:59.00Z"),
                 Instant.parse("2022-10-22T10:23:59.00Z"),
-                Instant.parse("2022-10-23T10:23:59.00Z"),
-                false
+                Instant.parse("2022-10-23T10:23:59.00Z")
         );
 
         // When
@@ -303,7 +302,6 @@ public class EntityTest {
         product.setQualityCheckEndDate(Instant.parse("2022-10-21T10:23:59.00Z"));
         product.setFirstDownloadDate(Instant.parse("2022-10-22T10:23:59.00Z"));
         product.setEvictionDate(Instant.parse("2022-10-23T10:23:59.00Z"));
-        product.setLate(false);
 
         return product;
     }

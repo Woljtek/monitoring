@@ -68,8 +68,6 @@ public class Product implements DefaultEntity, Serializable {
 
     private Instant evictionDate;
 
-    private boolean late;
-
     @Override
     public Product copy() {
         return this.toBuilder().build();
