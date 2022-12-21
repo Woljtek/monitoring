@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 - [#735 - [MONITORING] Add information "late" and "duplicate" for each product.](https://github.com/COPRS/rs-issues/issues/735)
 - Set javadoc and comment
 - Store in cache processor description for the same configuration to avoid doing same job repeatedly
+- Update configuration file of trace-filter and trace-ingestor to handle s2-l1 processing (#492)
 ### Deprecated
 - Remove old behavior on trace parser
 ### Fix
