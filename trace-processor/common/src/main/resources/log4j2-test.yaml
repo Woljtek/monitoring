@@ -13,7 +13,7 @@ Configuration:
       - name: PLAIN
         target: SYSTEM_OUT
         PatternLayout:
-          Pattern: "%level: %msg%n"
+          Pattern: "%level: %msg (%mdc{log_param})%n"
 
   Loggers:
 

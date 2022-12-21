@@ -1,5 +1,6 @@
 package eu.csgroup.coprs.monitoring.traceingestor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.csgroup.coprs.monitoring.common.bean.BeanAccessor;
 import eu.csgroup.coprs.monitoring.common.bean.ReloadableBeanFactory;
 import eu.csgroup.coprs.monitoring.common.datamodel.TraceLog;
@@ -53,13 +54,22 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
         ingest(filteredTrace.getLog(), processorDescriptionConfig);
 
         final var cpuTimedurationNs = mxBean.getThreadCpuTime(Thread.currentThread().getId()) - cpuTimeStart;
+        var stats = EntityStatistics.getInstance();
+
         try (
-                MDC.MDCCloseable ignored = MDC.putCloseable("log_param", ",\"ingestion_duration_in_ms\":%s".formatted(cpuTimedurationNs/1000000))
+                MDC.MDCCloseable ignored = MDC.putCloseable("log_param", ",\"record\":%s".formatted(stats.getAsJson()))
         ) {
+
             log.info("Trace ingestion with configuration '%s' done (took %s ms)%n%s".formatted(
                     processorDescriptionConfig.ingestionConfig.getName(),
-                    cpuTimedurationNs/1000000,
+                    cpuTimedurationNs / 1000000,
                     filteredTrace.getLog()));
+
+            stats.reset();
+            DataBaseIngestionTimer.getInstance().reset();
+
+        } catch (JsonProcessingException e) {
+            log.error("Error occurred while parsing Json Stats", e);
         }
     }
 
@@ -70,10 +80,10 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
      * it implies that the configuration has changed and so cache is cleared to take into account new configuration.
      *
      * @param ingestionGroupConfig configuration
-     * @param filteredTrace trace for which to select the right ingestion config and so processor to execute.
+     * @param filteredTrace        trace for which to select the right ingestion config and so processor to execute.
      * @return {@link ProcessorDescriptionConfig} instance.
      */
-    private ProcessorDescriptionConfig selectProcessorDescriptor (IngestionGroup ingestionGroupConfig, FilteredTrace filteredTrace) {
+    private ProcessorDescriptionConfig selectProcessorDescriptor(IngestionGroup ingestionGroupConfig, FilteredTrace filteredTrace) {
         final var ingestionStrategy = ingestionGroupConfig.getIngestions()
                 .stream()
                 .filter(m -> m.getName().equals(filteredTrace.getRuleName()))
@@ -94,7 +104,7 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
 
             // Check if configuration was not changed
             // If so clear cache
-            if (! currentIngestionConfig.equals(processorDescriptionConfig.ingestionConfig)) {
+            if (!currentIngestionConfig.equals(processorDescriptionConfig.ingestionConfig)) {
                 cache.clear();
                 processorDescriptionConfig = null;
             }
@@ -114,9 +124,7 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
     }
 
 
-
-
-    protected final void ingest (TraceLog traceLog, ProcessorDescriptionConfig processorDescriptionConfig) {
+    protected final void ingest(TraceLog traceLog, ProcessorDescriptionConfig processorDescriptionConfig) {
         try {
             final var beanAccessor = BeanAccessor.from(PropertyAccessorFactory.forBeanPropertyAccess(traceLog));
 
@@ -137,8 +145,8 @@ public class TraceIngestorSink implements Consumer<Message<FilteredTrace>> {
 
 
     private record ProcessorDescriptionConfig(
-        Ingestion ingestionConfig,
-        Collection<ProcessorDescription> processorDescriptions
+            Ingestion ingestionConfig,
+            Collection<ProcessorDescription> processorDescriptions
     ) {
 
     }

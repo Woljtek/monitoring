@@ -293,7 +293,7 @@ public record DefaultProcessor(
     private List<Object> groupByDependencies(Collection<Field> dependencies, BeanAccessor beanEntity) {
         return dependencies.stream()
                 .map(field -> {
-                    // Compute path to access value
+                    // Compute path to make value accessible by BeanAccessor
                     final var propName = "%s.%s".formatted(
                             beanEntity.getDelegate().getWrappedClass().getSimpleName(),
                             field.getName()

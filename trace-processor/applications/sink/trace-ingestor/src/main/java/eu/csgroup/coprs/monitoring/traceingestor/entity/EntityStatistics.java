@@ -1,11 +1,14 @@
 package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.*;
 import eu.csgroup.coprs.monitoring.common.ingestor.DataBaseIngestionTimer;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,92 +17,82 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.groupingBy;
 
-
+/**
+ * Class used to register statistics about the behaviour of the TraceIngestion process
+ * <br>
+ * The finality is to display a json message whenever a trace is processed, containing these statistics.
+ */
 public class EntityStatistics {
 
-    @JsonProperty
-    private static int numberOfEntitiesInstanced;
-    @JsonProperty
-    private static int numberOfEntitiesModified;
-    @JsonProperty
-    private static int numberOfUnchangedEntities;
-    @JsonProperty
-    private static List<ClassStatistics> classStatistics;
-    @JsonProperty
-    private static long processingTime;
-    @JsonProperty
-    private static long ingestionTime;
+
+    private int numberOfEntitiesInstanced;
+    private int numberOfEntitiesModified;
+    private int numberOfUnchangedEntities;
+
+    private List<ClassStatistics> classStatistics;
+    private long processingTime;
+    private long ingestionTime;
 
     @JsonIgnore
-    private static Class<? extends DefaultEntity> currentClass;
+    private Class<? extends DefaultEntity> currentClass;
+    @JsonIgnore
+    private static final EntityStatistics instance;
+
 
     static {
-        reset();
+        instance= new EntityStatistics();
+    }
+
+
+    public static EntityStatistics getInstance() {
+
+        return instance;
     }
 
     private EntityStatistics() {
+        reset();
     }
 
     /**
-     * Clears all the attributes in the class (and in {@link DataBaseIngestionTimer}) in order to record statistics for the next TraceLog
+     * Clears all the attributes in the class in order to record statistics for the next TraceLog
      */
-    public static void reset() {
-        numberOfEntitiesInstanced = 0;
-        numberOfEntitiesModified = 0;
-        numberOfUnchangedEntities = 0;
-        classStatistics = new ArrayList<>();
-        classStatistics.add(new ClassStatistics(AuxData.class));
-        classStatistics.add(new ClassStatistics(Chunk.class));
-        classStatistics.add(new ClassStatistics(Dsib.class));
-        classStatistics.add(new ClassStatistics(Product.class));
-        classStatistics.add(new ClassStatistics(Processing.class));
-        classStatistics.add(new ClassStatistics(InputListExternal.class));
-        classStatistics.add(new ClassStatistics(InputListInternal.class));
-        classStatistics.add(new ClassStatistics(OutputList.class));
-        classStatistics.add(new ClassStatistics(MissingProducts.class));
-
-        DataBaseIngestionTimer.getInstance().reset();
-
+    public void reset() {
+        this.numberOfEntitiesInstanced = 0;
+        this.numberOfEntitiesModified = 0;
+        this.numberOfUnchangedEntities = 0;
+        this.classStatistics = new ArrayList<>();
+        this.classStatistics.add(new ClassStatistics(AuxData.class));
+        this.classStatistics.add(new ClassStatistics(Chunk.class));
+        this.classStatistics.add(new ClassStatistics(Dsib.class));
+        this.classStatistics.add(new ClassStatistics(Product.class));
+        this.classStatistics.add(new ClassStatistics(Processing.class));
+        this.classStatistics.add(new ClassStatistics(InputListExternal.class));
+        this.classStatistics.add(new ClassStatistics(InputListInternal.class));
+        this.classStatistics.add(new ClassStatistics(OutputList.class));
+        this.classStatistics.add(new ClassStatistics(MissingProducts.class));
     }
 
-    //old way of doing it, keep it just in case
-    public static void incorporateEntitiesList(List<EntityProcessing> processedEntities) {
-        //group by DefaultEntity
-        processedEntities.stream()
-                .collect(groupingBy(EntityProcessing::getEntity))
-                .forEach((defaultEntity, entites) -> {
-                    //set the currentClasstoIncrement
-                    EntityStatistics.setCurrentClass(defaultEntity.getClass());
-                    //increment global amount, and the currentClass
-                    for (EntityProcessing entity : entites) {
-                        if (entity.getState().equals(EntityState.NEW)) {
-                            EntityStatistics.incrementNumberOfEntitiesInstanced(1);
-                        } else if (entity.getState().equals(EntityState.UPDATED)) {
-                            EntityStatistics.incrementNumberOfEntitiesModified(1);
-                        } else if (entity.getState().equals(EntityState.UNCHANGED)) {
-                            EntityStatistics.incrementNumberOfUnchangedEntities(1);
-                        }
-                    }
-                });
-    }
-
-    public static void incorporateEntities(Map<String, List<EntityProcessing>> processedEntities) {
+    /**
+     * Records the number of entities created, modified, and unchanged, both globally and for each {@link DefaultEntity}
+     * @param processedEntities list of entities processed by the {@link eu.csgroup.coprs.monitoring.traceingestor.processor.ProcessorOrchestrator}
+     */
+    public void incorporateEntities(Map<String, List<EntityProcessing>> processedEntities) {
         //from a map to a list
         processedEntities.entrySet()
                 .stream().flatMap(entry -> entry.getValue().stream())
                 //group by DefaultEntity
                 .collect(groupingBy(EntityProcessing::getEntity))
                 .forEach((defaultEntity, entites) -> {
-                    //set the currentClasstoIncrement
-                    EntityStatistics.setCurrentClass(defaultEntity.getClass());
+                    //set the current Class to increment
+                    setCurrentClass(defaultEntity.getClass());
                     //increment global amount, and the currentClass
                     for (EntityProcessing entity : entites) {
                         if (entity.getState().equals(EntityState.NEW)) {
-                            EntityStatistics.incrementNumberOfEntitiesInstanced(1);
+                            incrementNumberOfEntitiesInstanced(1);
                         } else if (entity.getState().equals(EntityState.UPDATED)) {
-                            EntityStatistics.incrementNumberOfEntitiesModified(1);
+                            incrementNumberOfEntitiesModified(1);
                         } else if (entity.getState().equals(EntityState.UNCHANGED)) {
-                            EntityStatistics.incrementNumberOfUnchangedEntities(1);
+                            incrementNumberOfUnchangedEntities(1);
                         }
                     }
                 });
@@ -108,60 +101,62 @@ public class EntityStatistics {
     /**
      * Method called to set the ingestion times from the {@link DataBaseIngestionTimer} into the {@link EntityStatistics} class
      */
-    private static void pickUpIngestionTimes() {
+    private void pickUpIngestionTimes() {
         DataBaseIngestionTimer timer = DataBaseIngestionTimer.getInstance();
 
-        ingestionTime = timer.resolveGlobalTimer();
+        this.ingestionTime = timer.resolveGlobalTimer();
 
-        for(ClassStatistics stats : EntityStatistics.classStatistics) {
-            stats.setIngestionTime(timer.resolveUnitaryTimer(stats.getEntityClass()));
+        for (ClassStatistics stats : this.classStatistics) {
+            stats.setIngestionTimeMs(timer.resolveUnitaryTimer(stats.getEntityClass()));
         }
     }
 
 
-    public static void retrieveProcessingTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
+    public void retrieveProcessingTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
         //no need to check for the presence of the Entry, I literally create them at class loading
-        getClassStatisticsByClass(entityClass).get().setProcessingTime(milliSeconds);
+        getClassStatisticsByClass(entityClass).ifPresent(statistics -> statistics.setProcessingTimeMs(milliSeconds));
+
 
     }
 
-    public static void retrieveIngestionTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
+    public void retrieveIngestionTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
         //no need to check for the presence of the Entry, I literally create them at class loading
-        getClassStatisticsByClass(entityClass).get().setIngestionTime(milliSeconds);
+        getClassStatisticsByClass(entityClass).ifPresent(statistics -> statistics.setIngestionTimeMs(milliSeconds));
 
     }
 
-    public static void setCurrentClass(Class<? extends DefaultEntity> current) {
+    @JsonIgnore
+    public void setCurrentClass(Class<? extends DefaultEntity> current) {
         currentClass = current;
     }
 
 
-    public static Optional<ClassStatistics> getClassStatistics(DefaultEntity entity) {
-        return EntityStatistics.classStatistics.stream()
+    public Optional<ClassStatistics> getClassStatistics(DefaultEntity entity) {
+        return this.classStatistics.stream()
                 .filter(classStats -> classStats.getEntityClass().equals(entity.getClass()))
                 .findAny();
     }
 
-    private static Optional<ClassStatistics> getClassStatisticsByClass(Class<? extends DefaultEntity> currentClass) {
-        return EntityStatistics.classStatistics.stream()
+    private Optional<ClassStatistics> getClassStatisticsByClass(Class<? extends DefaultEntity> currentClass) {
+        return this.classStatistics.stream()
                 .filter(stat -> stat.getEntityClass().equals(currentClass))
                 .findFirst();
     }
 
-    public static void incrementNumberOfEntitiesInstanced(int number) {
-        EntityStatistics.numberOfEntitiesInstanced += number;
+    public void incrementNumberOfEntitiesInstanced(int number) {
+        this.numberOfEntitiesInstanced += number;
 
-        Optional<ClassStatistics> currentOptional = getClassStatisticsByClass(EntityStatistics.currentClass);
+        Optional<ClassStatistics> currentOptional = getClassStatisticsByClass(this.currentClass);
         if (currentOptional.isPresent()) {
             var current = currentOptional.get();
             current.incrementEntitiesCreated(number);
         }
     }
 
-    public static void incrementNumberOfUnchangedEntities(int number) {
-        EntityStatistics.numberOfUnchangedEntities += number;
+    public void incrementNumberOfUnchangedEntities(int number) {
+        this.numberOfUnchangedEntities += number;
 
-        Optional<ClassStatistics> currentOptional = getClassStatisticsByClass(EntityStatistics.currentClass);
+        Optional<ClassStatistics> currentOptional = getClassStatisticsByClass(this.currentClass);
         if (currentOptional.isPresent()) {
             var current = currentOptional.get();
             current.incrementUnchangedEntities(number);
@@ -169,10 +164,10 @@ public class EntityStatistics {
     }
 
 
-    public static void incrementNumberOfEntitiesModified(int number) {
-        EntityStatistics.numberOfEntitiesModified += number;
+    public void incrementNumberOfEntitiesModified(int number) {
+        this.numberOfEntitiesModified += number;
 
-        Optional<ClassStatistics> currentOptional = getClassStatisticsByClass(EntityStatistics.currentClass);
+        Optional<ClassStatistics> currentOptional = getClassStatisticsByClass(this.currentClass);
         if (currentOptional.isPresent()) {
             var current = currentOptional.get();
             current.incrementEntitiesModified(number);
@@ -180,56 +175,54 @@ public class EntityStatistics {
     }
 
 
-    private static void removeClassStatisticsIfEmpty() {
+    private void removeClassStatisticsIfEmpty() {
         List<ClassStatistics> toRemove = new ArrayList<>();
-        for (ClassStatistics item : EntityStatistics.classStatistics) {
+        for (ClassStatistics item : this.classStatistics) {
             if (item.getEntitiesCreated() == 0 && item.getEntitiesModified() == 0) {
                 toRemove.add(item);
             }
         }
         for (ClassStatistics itemToRemove : toRemove) {
-            EntityStatistics.classStatistics.remove(itemToRemove);
+            this.classStatistics.remove(itemToRemove);
         }
     }
 
 
-    public static String printEntitiesCreated() {
-        EntityStatistics.removeClassStatisticsIfEmpty();
-
-        //getting the databaseStorage Times from the common project
+    public String printEntitiesCreated() {
+        //2 methods to prepare the class to be exploited
+        removeClassStatisticsIfEmpty();
         pickUpIngestionTimes();
 
-        StringBuilder builder = new StringBuilder("Entities created : %s. ".formatted(numberOfEntitiesInstanced));
+        StringBuilder builder = new StringBuilder("Entities created : %s. ".formatted(this.numberOfEntitiesInstanced));
         builder.append(""" 
                 {
                     "report" : {
-                    "entites_created" : %s,
-                    "entities_modified" : %s,
-                    "entities_unchanged" : %s,
-                    "processing_duration" : %s ms,
-                    "ingestion_duration": %s ms,
-                """.formatted(numberOfEntitiesInstanced,
-                numberOfEntitiesModified,
-                numberOfUnchangedEntities,
-                processingTime,
-                ingestionTime));
+                    "number_of_entities_instanced" : %s,
+                    "number_of_entities_modified" : %s,
+                    "number_of_unchanged_entities" : %s,
+                    "processing_time_ms" : %s ms,
+                    "ingestion_time_ms": %s ms,
+                """.formatted(this.numberOfEntitiesInstanced,
+                this.numberOfEntitiesModified,
+                this.numberOfUnchangedEntities,
+                this.processingTime,
+                this.ingestionTime));
 
 
-
-        EntityStatistics.classStatistics.forEach(stats -> {
+        this.classStatistics.forEach(stats -> {
             builder.append("\"%s\": { %n".formatted(stats.getClassName()));
             if (stats.getEntitiesCreated() > 0) {
-                builder.append("\t\"created\": %s,%n".formatted(stats.getEntitiesCreated()));
+                builder.append("\t\"entities_created\": %s,%n".formatted(stats.getEntitiesCreated()));
             }
             if (stats.getEntitiesModified() > 0) {
-                builder.append("\t\"updated\": %s,%n".formatted(stats.getEntitiesModified()));
+                builder.append("\t\"entities_modified\": %s,%n".formatted(stats.getEntitiesModified()));
             }
             if (stats.getUnchangedEntities() > 0) {
-                builder.append("\t\"unchanged\": %s,%n".formatted(stats.getUnchangedEntities()));
+                builder.append("\t\"unchanged_entities\": %s,%n".formatted(stats.getUnchangedEntities()));
             }
             //not yet implemented
-            builder.append("\t\"processing_duration\": %s ms,%n".formatted(stats.getProcessingTime()))
-                    .append("\t\"ingestion_duration\": %s ms,%n".formatted(stats.getIngestionTime()))
+            builder.append("\t\"processing_duration_ms\": %s ms,%n".formatted(stats.getProcessingTimeMs()))
+                    .append("\t\"ingestion_duration_ms\": %s ms,%n".formatted(stats.getIngestionTimeMs()))
                     .append("},");
 
 
@@ -238,32 +231,62 @@ public class EntityStatistics {
         builder.deleteCharAt(builder.length() - 1)
                 .append("\n } \n}");
 
-        //maybe call reset() here?
-        //maybe not, we might want to get the data in Json form !
         return builder.toString();
     }
 
-    public static String getAsJson() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(new EntityStatistics());
+    /**
+     * Private Class used to serialize the stats data into Json
+     */
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+    @Getter
+    private static class StatsToJson{
 
+        private final int numberOfEntitiesInstanced;
+
+        private final int numberOfEntitiesModified;
+        private final int numberOfUnchangedEntities;
+
+
+        private final long processingTimeMs;
+        private final long ingestionTimeMs;
+        private final List<ClassStatistics> classStatistics;
+
+        public StatsToJson(EntityStatistics statistics) {
+            this.numberOfEntitiesInstanced = statistics.numberOfEntitiesInstanced;
+            this.numberOfEntitiesModified = statistics.numberOfEntitiesModified;
+            this.numberOfUnchangedEntities = statistics.numberOfUnchangedEntities;
+            this.classStatistics = statistics.classStatistics;
+            this.processingTimeMs = statistics.processingTime;
+            this.ingestionTimeMs = statistics.ingestionTime;
+        }
+    }
+
+    public String getAsJson() throws JsonProcessingException {
+        //2 methods to prepare the class to be exploited
+        removeClassStatisticsIfEmpty();
+        pickUpIngestionTimes();
+
+        ObjectMapper mapper = JsonMapper.builder()
+                .build();
+
+        return mapper.writeValueAsString(new StatsToJson(getInstance()));
     }
 
 
-    public static long getProcessingTime() {
-        return processingTime;
+    public long getProcessingTime() {
+        return this.processingTime;
     }
 
-    public static void setProcessingTime(long processingTime) {
-        EntityStatistics.processingTime = processingTime;
+    public void setProcessingTime(long processingTime) {
+        this.processingTime = processingTime;
     }
 
-    public static long getIngestionTime() {
-        return ingestionTime;
+    public long getIngestionTime() {
+        return this.ingestionTime;
     }
 
-    public static void setIngestionTime(long ingestionTime) {
-        EntityStatistics.ingestionTime = ingestionTime;
+    public void setIngestionTime(long ingestionTime) {
+        this.ingestionTime = ingestionTime;
     }
 }
 

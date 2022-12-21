@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.PropertyAccessorFactory;
 
 import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -49,7 +50,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
         final var toProcess = new LinkedList<>(processorDescriptions);
 
         //used to measure the time it takes to process the whole ...process
-        final var mxBean = ManagementFactory.getThreadMXBean();
+        final ThreadMXBean mxBean = ManagementFactory.getThreadMXBean();
         long totalTimeStart = mxBean.getThreadCpuTime(Thread.currentThread().getId());
 
         while (!toProcess.isEmpty()) {
@@ -121,8 +122,9 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                 // Finally store processed entities in cache
                 cachedEntities.put(processorDesc.getName(), finalEntities);
 
-                final var unitaryTime = (mxBean.getThreadCpuTime(Thread.currentThread().getId()) - unitaryTimeStart) / 1000000;
-                EntityStatistics.retrieveProcessingTime(unitaryTime, processorDesc.getEntityMetadata().getEntityClass());
+                long unitaryTime = (mxBean.getThreadCpuTime(Thread.currentThread().getId()) - unitaryTimeStart) / 1000000;
+                EntityStatistics.getInstance()
+                        .retrieveProcessingTime(unitaryTime, processorDesc.getEntityMetadata().getEntityClass());
 
             } else {
                 // All conditions are not met (referenced entities are not created for the given container entity)
@@ -137,10 +139,10 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
                 config -> setDuplicateProcess(config, entityIngestor, cachedEntities)
         );
 
-        EntityStatistics.incorporateEntities(cachedEntities);
+        EntityStatistics.getInstance().incorporateEntities(cachedEntities);
         //measuring the Total Processing time of the TraceLog , in milliSeconds
         final var totalTime = (mxBean.getThreadCpuTime(Thread.currentThread().getId()) - totalTimeStart) / 1000000;
-        EntityStatistics.setProcessingTime(totalTime);
+        EntityStatistics.getInstance().setProcessingTime(totalTime);
 
         // For processed entities, remove those which were not modified (unchanged state)
         return cachedEntities.values()

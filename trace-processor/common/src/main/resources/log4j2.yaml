@@ -31,7 +31,7 @@ Configuration:
         fileName: "${path}/logfile.log"
         filePattern: "${path}/logfile.log.%d{yyyy-MM-dd-hh-mm}.gz"
         PatternLayout:
-          pattern: "%d{yyyy-MM-dd'T'HH:mm:ss.SSS} | %-5level | %logger{1.} [%thread]: %msg %n"
+          pattern: "%d{yyyy-MM-dd'T'HH:mm:ss.SSS} | %-5level | %logger{1.} [%thread]: %msg (%mdc{log_param})%n"
         Policies:
           SizeBasedTriggeringPolicy:
             size: 10 MB

@@ -54,7 +54,7 @@ public class DefaultAssociation implements EntityAssociation {
         try {
             // Create copy or use the original.
             final var entityCopy = copy ? EntityHelper.copy(entityContainer.getEntity()) : entityContainer.getEntity();
-            final var containerRef = EntityProcessing.fromEntity(entityCopy, EntityState.UNCHANGED);
+            final var containerRef = EntityProcessing.fromEntity(entityCopy, EntityState.NEW);
             // If association field size is greater than 1 it means that we are associating a reference
             final var iter = associationFields.iterator();
 

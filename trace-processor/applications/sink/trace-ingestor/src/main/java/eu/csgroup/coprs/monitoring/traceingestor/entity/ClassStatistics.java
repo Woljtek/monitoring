@@ -2,10 +2,13 @@ package eu.csgroup.coprs.monitoring.traceingestor.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import eu.csgroup.coprs.monitoring.common.datamodel.entities.DefaultEntity;
 import eu.csgroup.coprs.monitoring.common.properties.PropertyUtil;
 import lombok.Data;
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Data
 public class ClassStatistics {
 
@@ -13,13 +16,13 @@ public class ClassStatistics {
     private String className;
     @JsonIgnore
     private Class<? extends DefaultEntity> entityClass;
-    private long processingTime;
-    private long ingestionTime;
-
 
     private int entitiesCreated;
     private int entitiesModified;
     private int unchangedEntities;
+
+    private long processingTimeMs;
+    private long ingestionTimeMs;
 
     public ClassStatistics(Class<? extends DefaultEntity> entityClass) {
         this.entityClass = entityClass;

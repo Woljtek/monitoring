@@ -141,13 +141,7 @@ public class EntityIngestor implements EntityFinder {
         return (EntityRepository<T, E>) specializedRepository;
     }
 
-    /**
-     * Store in database list of entities (can be a list containing different entity type). Entity storage is done
-     * in a certain order which is
-     *
-     * @param entities
-     * @return
-     */
+
     public List<DefaultEntity> saveAll(List<DefaultEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return List.of();
@@ -164,7 +158,7 @@ public class EntityIngestor implements EntityFinder {
                     .forEach(entityMetadata -> orderEntityType(order, entityMetadata));
             // Then store entities in the defined order
 
-            //data Storage Statistics !!
+            //data storage statistics retrieval
             DataBaseIngestionTimer timer = DataBaseIngestionTimer.getInstance();
             timer.startGlobalTimer();
 
