@@ -65,10 +65,6 @@ public class EntityCache {
                     return cache;
                 });
 
-        //Romain: ici on récupère à chaque fois les Mapping/Object du noeud père
-        // c'est pour ca que dans le TraceMapper, on n'apelle populateEntities que pour les noeuds qui n'ont pas d'enfants
-        //c'est les noeuds qui ont tous les mappings des parents
-
         // By default, we only store properties for later use.
         // Retrieve parent properties node
         // Create a copy and set it as active node

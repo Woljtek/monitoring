@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 - [#735 - [MONITORING] Add information "late" and "duplicate" for each product.](https://github.com/COPRS/rs-issues/issues/735)
 - Set javadoc and comment
 - Store in cache processor description for the same configuration to avoid doing same job repeatedly
+- Added json entry in application logs, describing the behaviour of the application : entities stored in database, update, unchanged as well as processing and database storage times 
 ### Deprecated
 - Remove old behavior on trace parser
 ### Fix

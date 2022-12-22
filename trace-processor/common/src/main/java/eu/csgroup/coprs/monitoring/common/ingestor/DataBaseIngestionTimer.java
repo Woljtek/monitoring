@@ -49,14 +49,13 @@ public class DataBaseIngestionTimer {
     }
 
     public void startUnitaryTimer(Class<? extends DefaultEntity> entityClass) {
-        //weird syntax proposed by IDe to say "if the entry isnt there, instanciate new array of longs"
+        //weird syntax proposed by IDe to say "if the entry isn't there, instantiate new array of longs"
         this.unitaryIngestionTime.computeIfAbsent(entityClass, k -> new Long[2]);
 
         this.unitaryIngestionTime.get(entityClass)[0] = this.threadBean.getThreadCpuTime(Thread.currentThread().getId());
     }
 
-    public void endtUnitaryTimer(Class<? extends DefaultEntity> entityClass) {
-        //weird syntax proposed by IDe to say "if the entry isnt there, instanciate new array of longs"
+    public void endUnitaryTimer(Class<? extends DefaultEntity> entityClass) {
         this.unitaryIngestionTime.computeIfAbsent(entityClass, k -> new Long[2]);
 
         this.unitaryIngestionTime.get(entityClass)[1] = this.threadBean.getThreadCpuTime(Thread.currentThread().getId());

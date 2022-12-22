@@ -124,7 +124,7 @@ public class ProcessorOrchestrator implements Function<EntityIngestor, List<Defa
 
                 long unitaryTime = (mxBean.getThreadCpuTime(Thread.currentThread().getId()) - unitaryTimeStart) / 1000000;
                 EntityStatistics.getInstance()
-                        .retrieveProcessingTime(unitaryTime, processorDesc.getEntityMetadata().getEntityClass());
+                        .setUnitaryProcessingTime(unitaryTime, processorDesc.getEntityMetadata().getEntityClass());
 
             } else {
                 // All conditions are not met (referenced entities are not created for the given container entity)

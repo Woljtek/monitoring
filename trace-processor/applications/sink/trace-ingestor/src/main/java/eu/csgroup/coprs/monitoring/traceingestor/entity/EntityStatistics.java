@@ -102,6 +102,8 @@ public class EntityStatistics {
      * Method called to set the ingestion times from the {@link DataBaseIngestionTimer} into the {@link EntityStatistics} class
      */
     private void pickUpIngestionTimes() {
+        //making sure we only set times for Entities that were created, or gotten from DB
+        this.removeClassStatisticsIfEmpty();
         DataBaseIngestionTimer timer = DataBaseIngestionTimer.getInstance();
 
         this.ingestionTime = timer.resolveGlobalTimer();
@@ -112,14 +114,14 @@ public class EntityStatistics {
     }
 
 
-    public void retrieveProcessingTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
+    public void setUnitaryProcessingTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
         //no need to check for the presence of the Entry, I literally create them at class loading
         getClassStatisticsByClass(entityClass).ifPresent(statistics -> statistics.setProcessingTimeMs(milliSeconds));
 
 
     }
 
-    public void retrieveIngestionTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
+    public void setUnitaryIngestionTime(long milliSeconds, Class<? extends DefaultEntity> entityClass) {
         //no need to check for the presence of the Entry, I literally create them at class loading
         getClassStatisticsByClass(entityClass).ifPresent(statistics -> statistics.setIngestionTimeMs(milliSeconds));
 
@@ -132,9 +134,7 @@ public class EntityStatistics {
 
 
     public Optional<ClassStatistics> getClassStatistics(DefaultEntity entity) {
-        return this.classStatistics.stream()
-                .filter(classStats -> classStats.getEntityClass().equals(entity.getClass()))
-                .findAny();
+        return this.getClassStatisticsByClass(entity.getClass());
     }
 
     private Optional<ClassStatistics> getClassStatisticsByClass(Class<? extends DefaultEntity> currentClass) {
@@ -187,53 +187,6 @@ public class EntityStatistics {
         }
     }
 
-
-    public String printEntitiesCreated() {
-        //2 methods to prepare the class to be exploited
-        removeClassStatisticsIfEmpty();
-        pickUpIngestionTimes();
-
-        StringBuilder builder = new StringBuilder("Entities created : %s. ".formatted(this.numberOfEntitiesInstanced));
-        builder.append(""" 
-                {
-                    "report" : {
-                    "number_of_entities_instanced" : %s,
-                    "number_of_entities_modified" : %s,
-                    "number_of_unchanged_entities" : %s,
-                    "processing_time_ms" : %s ms,
-                    "ingestion_time_ms": %s ms,
-                """.formatted(this.numberOfEntitiesInstanced,
-                this.numberOfEntitiesModified,
-                this.numberOfUnchangedEntities,
-                this.processingTime,
-                this.ingestionTime));
-
-
-        this.classStatistics.forEach(stats -> {
-            builder.append("\"%s\": { %n".formatted(stats.getClassName()));
-            if (stats.getEntitiesCreated() > 0) {
-                builder.append("\t\"entities_created\": %s,%n".formatted(stats.getEntitiesCreated()));
-            }
-            if (stats.getEntitiesModified() > 0) {
-                builder.append("\t\"entities_modified\": %s,%n".formatted(stats.getEntitiesModified()));
-            }
-            if (stats.getUnchangedEntities() > 0) {
-                builder.append("\t\"unchanged_entities\": %s,%n".formatted(stats.getUnchangedEntities()));
-            }
-            //not yet implemented
-            builder.append("\t\"processing_duration_ms\": %s ms,%n".formatted(stats.getProcessingTimeMs()))
-                    .append("\t\"ingestion_duration_ms\": %s ms,%n".formatted(stats.getIngestionTimeMs()))
-                    .append("},");
-
-
-        });
-        //remove last comma
-        builder.deleteCharAt(builder.length() - 1)
-                .append("\n } \n}");
-
-        return builder.toString();
-    }
-
     /**
      * Private Class used to serialize the stats data into Json
      */
@@ -262,8 +215,6 @@ public class EntityStatistics {
     }
 
     public String getAsJson() throws JsonProcessingException {
-        //2 methods to prepare the class to be exploited
-        removeClassStatisticsIfEmpty();
         pickUpIngestionTimes();
 
         ObjectMapper mapper = JsonMapper.builder()
