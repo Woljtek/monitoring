@@ -79,7 +79,7 @@ data:
           log.trace.task.name: JobProcessing
           log.trace.task.event: END
           log.trace.task.status: OK
-          log.trace.header.rs_chain_name: S1-L0AIOP|S1-L0ASP|S1-L1|S1-L2|s2-l0u|s2-l0c|s2-l1|S3-ACQ
+          log.trace.header.rs_chain_name: S1-L0AIOP|S1-L0ASP|S1-L1|S1-L2|s2-l0u|s2-l0c|s2-l1|s2-l2|S3-ACQ
           log.trace.task.output[filename_strings][0]: .+
       -
         name: JobProcessing_Product-singleOutput
