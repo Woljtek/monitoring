@@ -99,7 +99,6 @@ public record DefaultProcessor(
                 .toList();
     }
 
-
     /**
      * Extract all leaf of the tree whatever position in.
      *
@@ -186,7 +185,9 @@ public record DefaultProcessor(
             if (dependencyValue.size() > 0) {
                 availableEntities.addAll(
                         // Format value into a specification before sending request.
-                        entityFinder.findAll(getFindClauses(dependencyValue), handler.getEntityClass()).stream()
+                        entityFinder.findAll(getFindClauses(dependencyValue), handler.getEntityClass())
+                                // wrap received entities in EntityProcessing
+                                .stream()
                                 .map(entity -> EntityProcessing.fromEntity(entity, EntityState.UNCHANGED))
                                 .toList()
 
@@ -228,6 +229,7 @@ public record DefaultProcessor(
 
         // Remove mapping associated to field annotated with unique attribute set to true (field associated to 'to'
         // clause of the mapping)
+        // for each stream of the entity mapping, we keep the ones NOT contained in any of the dependency mappings
         final var mappingWithoutDependencies = processorDesc.getMappings()
                 .stream()
                 .filter(m -> beanPropDep.stream()
@@ -291,7 +293,7 @@ public record DefaultProcessor(
     private List<Object> groupByDependencies(Collection<Field> dependencies, BeanAccessor beanEntity) {
         return dependencies.stream()
                 .map(field -> {
-                    // Compute path to access value
+                    // Compute path to make value accessible by BeanAccessor
                     final var propName = "%s.%s".formatted(
                             beanEntity.getDelegate().getWrappedClass().getSimpleName(),
                             field.getName()

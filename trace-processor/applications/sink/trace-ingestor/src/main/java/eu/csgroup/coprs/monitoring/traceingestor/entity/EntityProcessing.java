@@ -42,7 +42,11 @@ public class EntityProcessing extends BeanAccessor {
         var object = this.getPropertyValue(property);
 
         if ((object != null && ! object.equals(value)) || value != null) {
-            state = EntityState.UPDATED;
+            //avoid entites with State NEW to be changeds to UPDATED,
+            //it is only relevant to know if entities retrieved from database (UNCHANGED) did ..change
+            if(state == EntityState.UNCHANGED) {
+                state = EntityState.UPDATED;
+            }
         }
 
         super.setPropertyValue(property, value);

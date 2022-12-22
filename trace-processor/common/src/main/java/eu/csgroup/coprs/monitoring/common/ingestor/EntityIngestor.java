@@ -14,9 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.io.Serializable;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.springframework.data.jpa.domain.Specification.where;
 
@@ -133,17 +136,19 @@ public class EntityIngestor implements EntityFinder {
      * @param <E> Primary key type
      */
     @SuppressWarnings("unchecked")
-    private <T extends DefaultEntity, E> EntityRepository<T,E> castToGenericRepository (
-            EntityRepository<? extends DefaultEntity,? extends Serializable> specializedRepository) {
-        return (EntityRepository<T,E>) specializedRepository;
+    private <T extends DefaultEntity, E> EntityRepository<T, E> castToGenericRepository(
+            EntityRepository<? extends DefaultEntity, ? extends Serializable> specializedRepository) {
+        return (EntityRepository<T, E>) specializedRepository;
     }
 
     /**
      * Store in database list of entities (can be a list containing different entity type). Entity storage is done
-     * in a certain order which is
+     * in a certain order:
+     * <br>
+     * First Entities that don't have foreign keys towards other entities, then the ones that do.
      *
-     * @param entities
-     * @return
+     * @param entities processed by ProcessorOrchestrator
+     * @return The entities saved in database
      */
     public List<DefaultEntity> saveAll(List<DefaultEntity> entities) {
         if (entities == null || entities.isEmpty()) {
@@ -160,16 +165,36 @@ public class EntityIngestor implements EntityFinder {
                     .map(entityClass -> EntityFactory.getInstance().getMetadata(entityClass))
                     .forEach(entityMetadata -> orderEntityType(order, entityMetadata));
             // Then store entities in the defined order
-            return order.stream()
+
+            //data storage statistics retrieval
+            DataBaseIngestionTimer timer = DataBaseIngestionTimer.getInstance();
+            timer.startGlobalTimer();
+
+            var result = order.stream()
                     .map(entityClass -> {
                         log.debug("Save entity %s".formatted(entityClass.getSimpleName()));
                         return entityClass;
                     })
                     .map(entityClass -> Map.entry(entityClass, groupedEntity.get(entityClass)))
-                    .flatMap(entry -> selectRepository(entry.getKey()).saveAll(entry.getValue()).stream())
+                    .flatMap(entry -> incorporateTimersWhileSaving(timer, entry))
                     .toList();
+
+            timer.endGlobalTimer();
+
+            return result;
+
         }
     }
+
+    private Stream<DefaultEntity> incorporateTimersWhileSaving(DataBaseIngestionTimer timer, Map.Entry<Class<DefaultEntity>, List<DefaultEntity>> entry) {
+        var repo = selectRepository(entry.getKey());
+        timer.startUnitaryTimer(entry.getKey());
+        var defaultEntities = repo.saveAll(entry.getValue());
+        timer.endUnitaryTimer(entry.getKey());
+        return defaultEntities.stream();
+    }
+
+
 
     /**
      * Set entity without relation first (for example {@link Processing} rely on nobody)
