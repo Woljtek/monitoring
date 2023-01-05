@@ -178,7 +178,7 @@ public class EntityStatistics {
     private void removeClassStatisticsIfEmpty() {
         List<ClassStatistics> toRemove = new ArrayList<>();
         for (ClassStatistics item : this.classStatistics) {
-            if (item.getEntitiesCreated() == 0 && item.getEntitiesModified() == 0) {
+            if (item.getEntitiesCreated() == 0 && item.getEntitiesModified() == 0 && item.getUnchangedEntities() == 0) {
                 toRemove.add(item);
             }
         }
