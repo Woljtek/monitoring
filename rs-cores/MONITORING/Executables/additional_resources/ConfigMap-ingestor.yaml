@@ -206,7 +206,7 @@ data:
               log.trace.header.rs_chain_name: S1-L0AIOP|s2-l0u|S3-ACQ
           - query: processing.id in (select ol.processing_id from output_list ol where ol.product_id in <output_product.id>) and processing.rs_chain_name = <processing.rs_chain_name> and processing.rs_chain_version = <processing.rs_chain_version>
             rules:
-              log.trace.header.rs_chain_name: S1-L0ASP|S1-L1|S1-L2|s2-l0c|s2-l1
+              log.trace.header.rs_chain_name: S1-L0ASP|S1-L1|S1-L2|s2-l0c|s2-l1|s2-l2
           - query: processing.id in (select ili.processing_id from input_list_internal ili where ili.product_id in <input_product.id>) and processing.rs_chain_name = <processing.rs_chain_name> and processing.rs_chain_version = <processing.rs_chain_version>
       -
         name: JobProcessing_Product-singleOutput
